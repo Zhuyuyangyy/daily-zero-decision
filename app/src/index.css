@@ -1,0 +1,425 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ============================================================
+     Motion tokens — 100/300/500 rule (impeccable)
+     ============================================================ */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-quart: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-instant: 80ms;
+  --dur-fast: 150ms;
+  --dur-normal: 250ms;
+  --dur-slow: 400ms;
+  --dur-entrance: 600ms;
+
+  /* Sky noise color — very faint, matte */
+  --sky-noise: rgba(217, 153, 142, 0.04);
+
+  /* ============================================================
+     Surface ladder (awesome-design-md Linear pattern)
+     Tonal steps create depth without shadow overload
+     ============================================================ */
+  --surface-canvas: #FDF4F0;
+  --surface-0: #FEFAF7;
+  --surface-1: #FFF8F4;
+  --surface-2: #FFF3EC;
+  --surface-3: #FFEDE3;
+
+  /* ============================================================
+     Tinted neutrals (impeccable: chroma 0.005-0.015, warm)
+     ============================================================ */
+  --neutral-50: #FAF5F1;
+  --neutral-100: #F5EDE6;
+  --neutral-200: #EBE0D5;
+  --neutral-300: #D4C5B7;
+  --neutral-400: #B8A598;
+  --neutral-500: #9C8778;
+  --neutral-600: #7A6F68;
+  --neutral-700: #5C544F;
+  --neutral-800: #3D3530;
+  --neutral-900: #1F1A16;
+
+  /* ============================================================
+     Hairline borders (tinted, never pure gray)
+     ============================================================ */
+  --hairline: 1px solid var(--neutral-200);
+  --hairline-subtle: 1px solid rgba(180, 165, 152, 0.25);
+
+  /* ============================================================
+     Negative letter-spacing tokens (awesome-design-md)
+     ============================================================ */
+  --tracking-display: -0.025em;
+  --tracking-heading: -0.01em;
+  --tracking-subhead: -0.005em;
+  --tracking-normal: 0;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background-color: #FDF4F0;
+  color: #3D3530;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  /* Subtle paper grain across the whole canvas */
+  background-image:
+    radial-gradient(circle at 25% 10%, rgba(251, 196, 196, 0.10), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(168, 230, 181, 0.10), transparent 45%);
+}
+
+::selection {
+  background-color: #A8E6B5;
+  color: #3D3530;
+}
+
+:focus-visible {
+  outline: 2px solid #6FCF8A;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.font-display {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Sky noise — faint matte texture to kill the "flat color" feel */
+  .sky-noise {
+    position: relative;
+  }
+  .sky-noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    border-radius: inherit;
+  }
+
+  /* Horizon glow used at the bottom of the sky */
+  .horizon-glow {
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 220, 195, 0.45) 80%, rgba(255, 200, 180, 0.6) 100%);
+  }
+
+  /* ============================================================
+     T9 全局打磨（命名空间 .clay-*，与 .sky-noise / .horizon-glow 并列）
+     字号阶梯统一由本轮 T9 的 .clay-text-h1/h2/h3/body/caption 控制
+     （56/32/22/16/13 px + ZCOOL KuaiLe 圆体）。
+     旧的 .clay-text-display / h1(24px) / h2(18px) / body(15px) / caption(12px)
+     已删除，避免和下方 T9 第二轮定义冲突。
+     ============================================================ */
+
+  /* 整页极淡噪点哑光：覆盖 body 上层 */
+  .clay-page-grain {
+    position: relative;
+  }
+  .clay-page-grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: var(--noise-svg, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.25 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"));
+    opacity: 0.18;
+    mix-blend-mode: multiply;
+  }
+
+  /* 主内容层在 grain 之上 */
+  .clay-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 间距韵律：4pt 基础 */
+  .clay-stack-1 > * + * { margin-top: 4px; }
+  .clay-stack-2 > * + * { margin-top: 8px; }
+  .clay-stack-3 > * + * { margin-top: 12px; }
+  .clay-stack-4 > * + * { margin-top: 16px; }
+  .clay-stack-5 > * + * { margin-top: 24px; }
+  .clay-stack-6 > * + * { margin-top: 32px; }
+
+  /* 焦点环统一增强（更高对比 + 微动反馈） */
+  .clay-focusable:focus-visible {
+    outline: 2px solid var(--clay-mint);
+    outline-offset: 3px;
+    border-radius: var(--radius-btn);
+    transition: outline-offset 120ms var(--ease-out-quart);
+  }
+
+  /* 触点最小 44×44 */
+  .clay-tap {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 文字平衡（标题用） */
+  .clay-balance {
+    text-wrap: balance;
+  }
+
+  /* 数字等宽（用于页码等对齐数字） */
+  .clay-tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}
+
+/* ============================================================
+   Reduced motion 增强版（T9）：不仅关动画，也禁用 transform-based motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   T9 第二轮全局打磨（追加在末尾，不动旧规则）
+   - 命名空间全部 .clay-*
+   - 字号阶梯用 var(--font-display)（ZCOOL KuaiLe 圆体）
+   - 行高 1.7–1.8、留白 4pt 基础、焦点环统一、噪点层、阴影
+   ============================================================ */
+
+@layer utilities {
+  /* 字体/行高/调色 token（覆盖式给 .clay-* 用，不污染原 :root） */
+  .clay-root {
+    --font-display: 'ZCOOL KuaiLe', 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
+    --leading-relaxed: 1.75;
+    --leading-loose: 1.8;
+    --ink: #3D3530;
+    --ink-light: #7A6F68;
+    --ink-muted: #A89A92;
+    --mint-cloud-deep: #6FCF8A;
+    --radius-btn: 14px;
+    --shadow-clay-1: 0 2px 6px rgba(168, 138, 122, 0.08), 0 1px 2px rgba(168, 138, 122, 0.06);
+    --shadow-clay-2: 0 6px 18px rgba(168, 138, 122, 0.10), 0 2px 6px rgba(168, 138, 122, 0.06);
+    --shadow-clay-3: 0 14px 36px rgba(168, 138, 122, 0.14), 0 4px 12px rgba(168, 138, 122, 0.08);
+  }
+
+  /* 整页极淡噪点哑光层（fixed inset-0 z-0 pointer-events-none，opacity 0.15） */
+  .clay-page-grain {
+    position: relative;
+  }
+  .clay-page-grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.3 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.15;
+    mix-blend-mode: multiply;
+  }
+
+  /* 主内容层浮在 grain 之上 */
+  .clay-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 字号阶梯（display 用 ZCOOL KuaiLe 圆体） */
+  .clay-text-h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 56px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .clay-text-h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .clay-text-h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .clay-text-body {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: var(--leading-relaxed);
+    color: var(--ink);
+  }
+  .clay-text-caption {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-light);
+  }
+
+  /* 留白工具类（4pt 基础）— padding */
+  .clay-p-1 { padding: 8px; }
+  .clay-p-2 { padding: 12px; }
+  .clay-p-3 { padding: 16px; }
+  .clay-p-4 { padding: 24px; }
+  .clay-p-5 { padding: 32px; }
+  .clay-p-6 { padding: 48px; }
+
+  /* 单边 padding 补充（4pt 基础） */
+  .clay-px-3 { padding-left: 16px; padding-right: 16px; }
+  .clay-px-4 { padding-left: 24px; padding-right: 24px; }
+  .clay-px-5 { padding-left: 32px; padding-right: 32px; }
+  .clay-py-3 { padding-top: 16px; padding-bottom: 16px; }
+  .clay-py-4 { padding-top: 24px; padding-bottom: 24px; }
+  .clay-py-5 { padding-top: 32px; padding-bottom: 32px; }
+
+  /* 间距韵律 — gap（4pt 基础） */
+  .clay-stack-1 { display: flex; flex-direction: column; gap: 8px; }
+  .clay-stack-2 { display: flex; flex-direction: column; gap: 12px; }
+  .clay-stack-3 { display: flex; flex-direction: column; gap: 16px; }
+  .clay-stack-4 { display: flex; flex-direction: column; gap: 24px; }
+  .clay-stack-5 { display: flex; flex-direction: column; gap: 32px; }
+  .clay-row-1 { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+  .clay-row-2 { display: flex; flex-direction: row; align-items: center; gap: 12px; }
+  .clay-row-3 { display: flex; flex-direction: row; align-items: center; gap: 16px; }
+  .clay-row-4 { display: flex; flex-direction: row; align-items: center; gap: 24px; }
+
+  /* 统一焦点环（mint-cloud-deep 绿，2px solid + 3px offset + 圆角） */
+  .clay-focusable:focus-visible {
+    outline: 2px solid var(--mint-cloud-deep);
+    outline-offset: 3px;
+    border-radius: var(--radius-btn);
+  }
+
+  /* 触点最小 44×44 */
+  .clay-tap {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 标题文字平衡 */
+  .clay-balance {
+    text-wrap: balance;
+  }
+
+  /* 数字等宽对齐 */
+  .clay-tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* 统一阴影语言（3 阶） */
+  .clay-shadow-1 { box-shadow: var(--shadow-clay-1); }
+  .clay-shadow-2 { box-shadow: var(--shadow-clay-2); }
+  .clay-shadow-3 { box-shadow: var(--shadow-clay-3); }
+}
+
+/* 全局 reduced motion：整页动画 duration 0.01ms（再覆盖一次，含 transform 动画） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Surface ladder + Double-Bezel + tinted shadows
+   ============================================================ */
+@layer utilities {
+  .surface-canvas { background: var(--surface-canvas); }
+  .surface-0 { background: var(--surface-0); }
+  .surface-1 { background: var(--surface-1); }
+  .surface-2 { background: var(--surface-2); }
+  .surface-3 { background: var(--surface-3); }
+
+  .clay-double-bezel {
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(180, 165, 152, 0.15),
+      0 4px 16px rgba(180, 140, 120, 0.08),
+      0 1px 4px rgba(180, 140, 120, 0.04);
+  }
+  .clay-double-bezel::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: var(--radius-chunk, 20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+  }
+
+  .shadow-tinted {
+    box-shadow:
+      0 8px 30px rgba(200, 140, 110, 0.12),
+      0 2px 8px rgba(200, 140, 110, 0.06);
+  }
+  .shadow-tinted-lg {
+    box-shadow:
+      0 20px 50px rgba(200, 140, 110, 0.15),
+      0 8px 20px rgba(200, 140, 110, 0.08);
+  }
+
+  .section-sm { padding-top: 32px; padding-bottom: 32px; }
+  .section-md { padding-top: 48px; padding-bottom: 48px; }
+  .section-lg { padding-top: 64px; padding-bottom: 64px; }
+
+  .tracking-display { letter-spacing: var(--tracking-display); }
+  .tracking-heading { letter-spacing: var(--tracking-heading); }
+}
+
+/* ============================================================
+   Custom scrollbar — thin, tinted to match the clay palette
+   ============================================================ */
+.clay-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+}
+
+.clay-scroll-area::-webkit-scrollbar {
+  width: 5px;
+}
+
+.clay-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clay-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 999px;
+}
+
+.clay-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+}

@@ -1,0 +1,212 @@
+/* ============================================================
+   每日零决策卡 —— 共享设计令牌 (T1)
+   主题：晨昏天空 (Dawn/Dusk Sky)
+   5-3-2 配色：60% 暖粉橙大渐变 + 30% 暖米表面 + 10% 薄荷绿点缀
+   主角永远是云朵，不是豆芽/苗苗。
+
+   设计参考 (本机 D:\GITHUB)：
+   - open-design-main/design-systems/claymorphism
+       → 软圆 3D、inset highlight + 偏移阴影、150-250ms 缓动
+   - open-design-main/design-systems/clay
+       → 暖奶油画布 + 命名 swatch（Matcha / Lemon / Pomegranate）、
+          双重 inset+偏移阴影
+   - impeccable-main  (typography/motion/spatial/ux-writing references)
+   - taste-skill-main  (双边框/Bento/双重阴影)
+   - ui-ux-pro-max-skill-main  (3 层 token 体系 / 4-8pt 间距 / 44px 触点)
+
+   我们取了 clay 名字（凝土）+ claymorphism 的硬偏移阴影，
+   配色上保留 5-3-2：sky-dawn-* 暖粉橙是主调，mint-cloud-* 是 10% 点缀。
+   ============================================================ */
+
+:root {
+  /* ------------------------------------------------------------
+     暖粉橙主色（晨昏天空调色板，5-3-2 里的 5）
+     不用纯橙/纯粉——朝偏暖、低饱和、可被白云衬起来
+     ------------------------------------------------------------ */
+  --sky-dawn-1: #FFD7C4;   /* 顶部：高光蜜桃 */
+  --sky-dawn-2: #FFB89A;   /* 中部：暖蜜桃 */
+  --sky-dawn-3: #FFA38A;   /* 腰部：粉橙 */
+  --sky-dawn-4: #F88C82;   /* 底部：夕霞 */
+
+  --warm-coral: #FF9B85;    /* 强调色 1：粉珊瑚 */
+  --warm-amber: #FFC288;    /* 强调色 2：暖琥珀 */
+
+  /* ------------------------------------------------------------
+     暖米中性表面（3）——卡片、按钮、输入框
+     不用纯白，必染色朝暖
+     ------------------------------------------------------------ */
+  --warm-canvas:    #FFF5EC;  /* 主画布：暖奶米 */
+  --warm-card:      #FFFAF3;  /* 卡片：比画布更亮 */
+  --warm-card-deep: #FFE9D6;  /* 卡片深色（次级卡） */
+  --warm-border:    #F5DCC8;  /* 描边：暖米 */
+
+  /* ------------------------------------------------------------
+     薄荷绿点缀（2）——云朵、CTA、强调
+     用作点缀，不超过 10% 表面
+     ------------------------------------------------------------ */
+  --mint-cloud-light: #C9F0D5; /* 云朵亮部 */
+  --mint-cloud:       #8ADBA8; /* 云朵主色 */
+  --mint-cloud-deep:  #5FCB86; /* 云朵阴面/CTA */
+  --mint-cloud-cta:   #4AB574; /* CTA 主色（深一档才看得清字） */
+  --mint-cloud-text:  #2F8B57; /* 云朵上深色文字（用于 cta 文字） */
+
+  /* ------------------------------------------------------------
+     文字（绝不纯黑/纯灰，必染色朝暖）
+     ------------------------------------------------------------ */
+  --ink:        #4A3A33;
+  --ink-light:  #8B7A70;
+  --ink-faint:  #C2B5AB;
+  --ink-soft:   #E5D9CF;
+
+  /* ------------------------------------------------------------
+     双阴影系统（黏土感的核心：左上内亮 + 右下内暗 + 外阴影）
+     ------------------------------------------------------------ */
+  --shadow-clay-soft:
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    0 1px 3px rgba(248, 140, 130, 0.08),
+    inset 0 2px 2px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 3px rgba(248, 140, 130, 0.10);
+
+  --shadow-clay:
+    0 8px 24px rgba(248, 140, 130, 0.18),
+    0 3px 8px rgba(248, 140, 130, 0.10),
+    inset 0 3px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 5px rgba(248, 140, 130, 0.15);
+
+  --shadow-clay-deep:
+    0 14px 36px rgba(248, 140, 130, 0.22),
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    inset 0 2px 3px rgba(255, 255, 255, 1),
+    inset 0 -4px 8px rgba(248, 140, 130, 0.15);
+
+  --shadow-clay-pressed:
+    inset 0 3px 5px rgba(248, 140, 130, 0.25),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.5);
+
+  --shadow-clay-cta:
+    0 4px 0 #3A9A60,
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+
+  --shadow-clay-cta-pressed:
+    inset 0 4px 6px rgba(58, 154, 96, 0.4),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.4);
+
+  /* ------------------------------------------------------------
+     第三方 swatch 别名 (open-design-main clay) — 仅作语义映射，
+     不会改我们自己的 5-3-2 配色，方便设计稿联动
+     ------------------------------------------------------------ */
+  --swatch-matcha:    var(--mint-cloud);            /* 抹茶 */
+  --swatch-matcha-300: var(--mint-cloud-light);
+  --swatch-lemon:      var(--warm-amber);            /* 暖柠 */
+  --swatch-pomegranate: var(--warm-coral);            /* 石榴粉 */
+  --swatch-oat:        var(--warm-border);            /* 燕麦描边 */
+  --swatch-cream:      var(--warm-canvas);            /* 暖奶油画布 */
+
+  /* ------------------------------------------------------------
+     圆角阶 (大圆角 20-28px，参考图统一调性)
+     ------------------------------------------------------------ */
+  --radius-btn:    20px;
+  --radius-card:   24px;
+  --radius-chunk:  28px;
+  --radius-hero:   36px;
+  --radius-blob:   48px;
+
+  /* ------------------------------------------------------------
+     缓动曲线（治愈系禁用 linear / ease-in-out）
+     ------------------------------------------------------------ */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back:      cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-quart:  cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* ------------------------------------------------------------
+     时长阶
+     ------------------------------------------------------------ */
+  --dur-instant: 80ms;
+  --dur-fast:    150ms;
+  --dur-base:    250ms;
+  --dur-medium:  400ms;
+  --dur-slow:    600ms;
+  --dur-delight: 800ms;
+
+  /* ------------------------------------------------------------
+     行高（治愈系/笔记风 1.7-1.8）
+     ------------------------------------------------------------ */
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;  /* 正文默认 */
+  --leading-loose:  1.85;  /* 大段叙事 */
+
+  /* ------------------------------------------------------------
+     噪点纹理（inline SVG fractalNoise，可直接用作 background）
+     ------------------------------------------------------------ */
+  --noise-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  /* ------------------------------------------------------------
+     字体栈：H1 用圆润 CJK（站酷快乐体免费，但保持可选降级）
+     正文用清晰无衬线
+     ------------------------------------------------------------ */
+  --font-display: 'ZCOOL KuaiLe', 'Comic Sans MS', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+}
+
+/* ------------------------------------------------------------
+   通用工具类
+   ------------------------------------------------------------ */
+
+/* 噪点层 */
+.clay-noise {
+  position: relative;
+  isolation: isolate;
+}
+.clay-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--noise-svg);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+}
+.clay-noise > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* 焦点环统一 */
+.clay-focusable:focus-visible {
+  outline: 2px solid var(--mint-cloud-deep);
+  outline-offset: 3px;
+  border-radius: var(--radius-btn);
+  transition: outline-offset 120ms var(--ease-out-quart);
+}
+
+/* 触点最小 44×44 */
+.clay-tap {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* 文字平衡 */
+.clay-balance { text-wrap: balance; }
+.clay-pretty  { text-wrap: pretty; }
+
+/* 数字等宽 */
+.clay-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Task, TaskType } from '../types';
+import { Task, TaskType } from '../../types';
 
 interface SearchResultsProps {
   history: Record<string, Task[]>;

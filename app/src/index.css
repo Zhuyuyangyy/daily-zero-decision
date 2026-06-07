@@ -67,7 +67,7 @@ html {
 }
 
 body {
-  font-family: 'Nunito', system-ui, sans-serif;
+  font-family: var(--font-body);
   background-color: #FDF4F0;
   color: #3D3530;
   min-height: 100vh;
@@ -98,7 +98,7 @@ body {
 }
 
 .font-display {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: var(--font-display);
 }
 
 @layer utilities {

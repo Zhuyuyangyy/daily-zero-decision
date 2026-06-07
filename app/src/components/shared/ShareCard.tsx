@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Task } from '../types';
-import { copy } from '../utils/copy';
+import type { Task } from '../../types';
+import { copy } from '../../utils/copy';
 
 /**
  * ShareCard — 完成态分享卡（模态对话框）

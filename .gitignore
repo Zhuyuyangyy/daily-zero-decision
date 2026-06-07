@@ -1,0 +1,70 @@
+# ============================================================
+# Monorepo root: only `app/` is part of THIS git repository.
+# Every other sub-project directory has its own git repo
+# (or is excluded entirely). Auto-ignore any direct subdirectory
+# that doesn't start with `app` so a new sibling project won't
+# accidentally get staged.
+# ============================================================
+/*/
+!/app/
+!/app/**
+
+# Allow our own app's internals (covers any nested depth)
+/app/
+
+# ============================================================
+# Common ignores
+# ============================================================
+
+# Node modules & build outputs
+node_modules/
+dist/
+build/
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+*.jar
+*.class
+*.tar.gz
+*.zip
+
+# OpenClaw
+.openclaw/
+
+# Tooling
+.claude/
+.obsidian/
+.coverage
+coverage.xml
+logs/
+.storage/
+
+# Temp / scratch docs
+check_*.py
+find_*.py
+health_check_*.py
+generate_*.py
+pd_report.py
+sql_report.py
+read_doc.py
+extract_review_files.py
+.agent_status.md
+
+# Stray Windows / shell artifacts
+%USERPROFILE%/
+
+# ============================================================
+# Monorepo orchestration noise (belongs to other repos)
+# ============================================================
+pyproject.toml
+start_*.bat

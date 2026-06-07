@@ -150,6 +150,35 @@
   --font-display: 'ZCOOL KuaiLe', 'Comic Sans MS', 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+
+  /* ============================================================
+     Font family presets (L2: system fonts only, no CDN)
+     由根元素的 [data-font] 切换
+     ============================================================ */
+  --stack-rounded: 'ZCOOL KuaiLe', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --stack-serif: 'Songti SC', 'Noto Serif SC', 'Times New Roman', Georgia, serif;
+  --stack-sans: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --stack-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+}
+
+[data-font='rounded'] {
+  --font-display: var(--stack-rounded);
+  --font-body: var(--stack-rounded);
+}
+
+[data-font='serif'] {
+  --font-display: var(--stack-serif);
+  --font-body: var(--stack-serif);
+}
+
+[data-font='sans'] {
+  --font-display: var(--stack-sans);
+  --font-body: var(--stack-sans);
+}
+
+[data-font='mono'] {
+  --font-display: var(--stack-mono);
+  --font-body: var(--stack-mono);
 }
 
 /* ------------------------------------------------------------

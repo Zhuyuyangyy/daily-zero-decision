@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Cloud from './Cloud';
-import { copy } from '../utils/copy';
+import { copy } from '../../utils/copy';
 
 /**
  * HeroSky — 首屏 Hero 区域（暖粉橙晨昏天空）

@@ -1,4 +1,4 @@
-import { ACHIEVEMENT_INFO } from '../utils/achievements';
+import { ACHIEVEMENT_INFO } from '../../utils/achievements';
 
 interface AchievementGridProps {
   achievements: string[];

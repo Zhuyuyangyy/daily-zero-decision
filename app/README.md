@@ -1,24 +1,22 @@
-# 养一片自己的天空 ☁️
+# 每日零决策卡 · 养一片自己的天空 ☁️
 
 > **治愈不焦虑的打卡。你在养天空，天空不会 PUA 你。**
 
-不是"坚持 X 天"的冷数字，是一片**你亲手养出来的、独一无二的天空**。
-每坚持一天，天空里多一朵属于你的云——形状、颜色、表情每天都不一样。
-坚持越久，天空越丰盈：从晨雾到晴空，再到夕阳。
+一个每日零决策打卡习惯应用。不是"坚持 X 天"的冷数字，是一片你亲手养出来的、独一无二的天空。每坚持一天，天空里多一朵属于你的云。
 
-漏签了？没关系。云会飘回来。
+## 功能特性
 
-## 核心循环
+- **今天** — 每日任务卡片：说一句话生成零决策卡，点完成养一朵云
+- **我的天空** — 云朵花园：连续打卡让天空从晨雾变夕阳
+- **统计** — 数据洞察：连续天数、心情趋势、任务分布
+- **番茄钟** — 内置专注计时器
+- **成就系统** — 解锁里程碑徽章
+- **数据导出/导入** — JSON 备份，云朵不会丢
+- **心情记录** — 每天记录一下心情
 
-1. **说一句话**（"看书""背单词""下课看书"……）—— 或点预设 chip
-2. **应用生成零决策卡**：自动记住上次看到第几页、算好这一段看几页、标好地点时间
-3. **截图 / 打印这张卡，放下手机，去做**
-4. **回来点完成** —— 天空里多了一朵云，云会跟你说"嗯"
-5. **刷新后数据还在**
+## 核心理念
 
-没有"失败""断了""再坚持一次"——只有"今天少了一朵，明天补一朵"。
-
-## 反 Duolingo
+### 反 Duolingo
 
 Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
 **我们不会。**
@@ -27,10 +25,145 @@ Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
 你不欠这朵云任何东西。
 明天回来，云还在。
 
-## 抖音天然可晒
+### 抖音天然可晒
 
 "这是我坚持 30 天养出来的天空"——这句话本身就是一条短视频。
 **每个人的天空都不一样**，别人会想拍自己的。
+
+## 技术栈
+
+- React 18 + TypeScript
+- Tailwind CSS + clay.css design tokens
+- Vite 5
+- 纯前端，localStorage 持久化，可静态部署
+
+## 项目结构
+
+```
+src/
+├── App.tsx                    # 应用壳 + Tab 路由
+├── main.tsx                   # 入口
+├── types.ts                   # TypeScript 类型定义
+├── index.css                  # 全局样式
+├── pages/
+│   ├── TodayPage.tsx          # 今天 Tab
+│   ├── SkyPage.tsx            # 我的天空 Tab
+│   ├── StatsPage.tsx          # 统计 Tab
+│   └── SettingsPage.tsx       # 设置 Tab
+├── components/
+│   ├── task/
+│   │   ├── CompactTaskRow.tsx # 紧凑任务行
+│   │   └── TaskHistory.tsx    # 任务历史
+│   ├── sky/
+│   │   ├── HeroSky.tsx        # 天空视觉
+│   │   ├── Cloud.tsx          # 云朵组件
+│   │   └── StreakDisplay.tsx  # 连续天数显示
+│   ├── stats/
+│   │   ├── StatsDashboard.tsx # 统计面板
+│   │   └── AchievementGrid.tsx# 成就网格
+│   ├── search/
+│   │   ├── SearchBar.tsx      # 搜索栏
+│   │   └── SearchResults.tsx  # 搜索结果
+│   └── shared/
+│       ├── TabBar.tsx         # 底部 Tab 栏
+│       ├── Onboarding.tsx     # 新手引导
+│       ├── Celebration.tsx    # 庆祝动画
+│       ├── CompletionNote.tsx # 完成备注
+│       ├── MoodWidget.tsx     # 心情选择
+│       ├── DailyQuote.tsx     # 每日金句
+│       ├── Pomodoro.tsx       # 番茄钟
+│       ├── ShareCard.tsx      # 分享卡片
+│       └── PresetManager.tsx  # 预设管理
+├── hooks/
+│   ├── useAppState.ts         # 状态 + 持久化
+│   ├── useTasks.ts            # 任务 CRUD
+│   ├── useStreak.ts           # 连续天数
+│   ├── useSearch.ts           # 搜索状态
+│   └── usePomodoro.ts         # 番茄钟
+├── utils/
+│   ├── storage.ts             # localStorage 工具
+│   ├── copy.ts                # 文案系统
+│   ├── cloudSeed.ts           # 云朵种子生成
+│   ├── achievements.ts        # 成就定义
+│   └── skyMood.ts             # 天空心情计算
+└── theme/
+    └── clay.css               # 设计系统 tokens
+```
+
+## 快速开始
+
+### 环境要求
+
+- Node.js 18+
+- npm 或 yarn
+
+### 安装
+
+```bash
+npm install
+```
+
+### 开发
+
+```bash
+npm run dev          # http://localhost:5173
+```
+
+### 测试
+
+```bash
+npm test             # 运行所有测试
+npm run test:watch   # 监听模式
+```
+
+### 构建
+
+```bash
+npm run build        # → dist/
+```
+
+## 设计系统
+
+采用 clay.css 设计系统，包含：
+
+- **暖奶油画布** — 柔和的背景色调
+- **软圆 3D** — claymorphism 风格的圆角和阴影
+- **命名 swatch** — Matcha / Lemon / Pomegranate 等语义化颜色
+- **4-8pt 间距** — 统一的间距系统
+- **44px 触点** — 移动端友好的触摸目标
+
+详见 `src/theme/clay.css`。
+
+## 架构说明
+
+### 状态管理
+
+使用 React hooks 进行状态管理，无外部状态库：
+
+- `useAppState` — 核心状态 + localStorage 持久化
+- `useTasks` — 任务 CRUD 操作
+- `useStreak` — 连续天数派生值
+- `useSearch` — 搜索状态
+- `usePomodoro` — 番茄钟状态
+
+### 组件组织
+
+按功能模块组织组件：
+
+- **task/** — 任务相关组件
+- **sky/** — 天空视觉组件
+- **stats/** — 统计相关组件
+- **search/** — 搜索相关组件
+- **shared/** — 共享组件
+
+### 页面组件
+
+每个 Tab 对应一个页面组件：
+
+- `TodayPage` — 今天 Tab
+- `SkyPage` — 我的天空 Tab
+- `StatsPage` — 统计 Tab
+- `SettingsPage` — 设置 Tab
 
 ## 视觉特色
 
@@ -38,41 +171,6 @@ Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
 - **每朵云由日期 hash 生成**：同一日期永远同一朵云，不同日期不同
 - **8 种云的表情**：calm / smile / sleep / wink / tiny-smile / peeking / peaceful / neutral
 - **温柔文案系统**：每条文案都过"不骂你"审核
-
-## 技术栈
-
-- React 18 + TypeScript
-- Tailwind CSS
-- Vite
-- 纯前端、localStorage、可静态托管
-
-## 设计系统引用
-
-借用了本机 `D:\GITHUB` 下的几个开源 design system 的思路（仅思路，不搬代码）：
-
-| 项目 | 取了什么 |
-|---|---|
-| `open-design-main/design-systems/claymorphism` | 软圆 3D、双重 inset+偏移阴影、150-250ms 缓动 |
-| `open-design-main/design-systems/clay` | 暖奶油画布、命名 swatch（Matcha / Lemon / Pomegranate）、多档暖色命名 |
-| `impeccable-main` | typography / motion / spatial / ux-writing 规则 |
-| `taste-skill-main` | 双边框 (Doppelrand)、Bento 网格、tinted shadow |
-| `ui-ux-pro-max-skill-main` | 3 层 token 体系、4-8pt 间距、44px 触点 |
-
-具体适配写进 `src/theme/clay.css` 顶部的注释 + swatch 别名层（`--swatch-matcha` / `--swatch-lemon` 等）。
-
-## 本地运行
-
-```bash
-npm install
-npm run dev          # http://localhost:5173
-```
-
-## 部署
-
-```bash
-npm run build        # → dist/
-# Vercel / Netlify / 任意静态托管
-```
 
 ## 许可证
 

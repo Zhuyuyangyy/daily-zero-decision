@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { copy } from '../utils/copy';
+import { copy } from '../../utils/copy';
 
 interface DailyQuoteProps {
   className?: string;

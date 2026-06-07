@@ -1,5 +1,5 @@
 import { useMemo, type CSSProperties } from 'react';
-import { Task, TaskType } from '../types';
+import { Task, TaskType } from '../../types';
 
 interface StatsDashboardProps {
   history: Record<string, Task[]>;

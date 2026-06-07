@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Preset } from '../types';
-import { generateId } from '../utils/storage';
+import { Preset } from '../../types';
+import { generateId } from '../../utils/storage';
 
 interface PresetManagerProps {
   presets: Preset[];

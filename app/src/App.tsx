@@ -46,6 +46,7 @@ export default function App() {
     allTodaysTasksDone,
     atMaxTasks,
     handleAddTask,
+    addWithValue,
     handleCompleteTask,
     handleConfirmComplete,
     handleCancelComplete,
@@ -54,6 +55,7 @@ export default function App() {
     handleMoodSelect,
     handleOnboardingFinish,
     handlePomodoroComplete,
+    handleEasier,
     today,
   } = useTasks(state, setState, () => setShowCelebration(true));
 
@@ -130,11 +132,13 @@ export default function App() {
           input={input}
           setInput={setInput}
           handleAddTask={handleAddTask}
+          addWithValue={addWithValue}
           handleCompleteTask={handleCompleteTask}
           handleDeleteTask={handleDeleteTask}
           handleMoodSelect={handleMoodSelect}
           handlePomodoroComplete={handlePomodoroComplete}
           handleReset={handleReset}
+          handleEasier={handleEasier}
           pomodoroExpanded={pomodoroExpanded}
           setPomodoroExpanded={setPomodoroExpanded}
         />

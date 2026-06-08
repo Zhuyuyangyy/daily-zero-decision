@@ -9,7 +9,9 @@ import {
 import { checkAchievements } from '../utils/achievements';
 import type { Mood } from '../components/shared/MoodWidget';
 
-const MAX_TASKS_PER_DAY = 5;
+// 每日只做 1 小步：与"今天只做这一小步"产品定位对齐
+// （Round 7：从 5 降到 1；原代码里残留的 5 是历史默认）
+const MAX_TASKS_PER_DAY = 1;
 
 /**
  * Task CRUD operations hook.
@@ -30,41 +32,41 @@ export function useTasks(
   const allTodaysTasksDone = todaysTasks.length > 0 && incompleteTasks.length === 0;
   const atMaxTasks = todaysTasks.length >= MAX_TASKS_PER_DAY;
 
+  // 用最新值添加（避免 closure 陷阱：用户从 EmptyCloudCard 点"读一点"时不需要先 setInput 再 add）
+  const addWithValue = useCallback(
+    (rawValue: string) => {
+      const trimmed = rawValue.trim();
+      if (!trimmed || trimmed === '​') return;
+      if (state.tasks.filter((t) => t.createdAt === today && !t.completedAt).length >= MAX_TASKS_PER_DAY) return;
+
+      const parsed = parseTaskFromInput(trimmed);
+
+      let startPage = state.settings.lastPageRead + 1;
+      let endPage = startPage + (parsed.pagesPerSession || 10) - 1;
+
+      const newTask: Task = {
+        id: generateId(),
+        title: trimmed,
+        type: parsed.type || 'other',
+        bookName: parsed.bookName,
+        currentPage: endPage,
+        pagesPerSession: parsed.pagesPerSession || 10,
+        startPage,
+        endPage,
+        place: '安静的地方',
+        time: '30分钟',
+        createdAt: today,
+      };
+
+      setState((prev) => ({ ...prev, tasks: [...prev.tasks, newTask] }));
+      setInput('');
+    },
+    [state.tasks, state.settings, today, setState]
+  );
+
   const handleAddTask = useCallback(() => {
-    const trimmed = input.trim();
-    if (!trimmed || trimmed === '​') return;
-    if (todaysTasks.length >= MAX_TASKS_PER_DAY) return;
-
-    const parsed = parseTaskFromInput(input.trim());
-
-    let startPage = state.settings.lastPageRead + 1;
-    let endPage = startPage + (parsed.pagesPerSession || 10) - 1;
-
-    if (parsed.bookName && parsed.bookName === state.settings.lastBookName) {
-      startPage = state.settings.lastPageRead + 1;
-      endPage = startPage + (parsed.pagesPerSession || 10) - 1;
-    }
-
-    const newTask: Task = {
-      id: generateId(),
-      title: trimmed,
-      type: parsed.type || 'other',
-      bookName: parsed.bookName,
-      currentPage: endPage,
-      pagesPerSession: parsed.pagesPerSession || 10,
-      startPage,
-      endPage,
-      place: '安静的地方',
-      time: '30分钟',
-      createdAt: today,
-    };
-
-    setState((prev) => ({
-      ...prev,
-      tasks: [...prev.tasks, newTask],
-    }));
-    setInput('');
-  }, [input, todaysTasks.length, state.settings, today, setState]);
+    addWithValue(input);
+  }, [addWithValue, input]);
 
   const handleCompleteTask = useCallback((taskId: string) => {
     setCompletingTaskId(taskId);
@@ -151,6 +153,70 @@ export function useTasks(
     setHasCompletedToday(false);
   }, [today, setState]);
 
+  /**
+   * 换一朵轻一点的 — 不是给 3 个候选，是直接降难度
+   * - 今天没任务：填一个最轻的预设（"出门走走" / "读 2 页"等）
+   * - 已有不完整任务：把它的时间/页数/字符都调小
+   * - 已完成：什么都不做
+   */
+  const handleEasier = useCallback(() => {
+    const LIGHT_TEMPLATES: Array<{ title: string; type: Task['type']; minutes: number; pages?: number; place: string }> = [
+      { title: '读 2 页书', type: 'reading', minutes: 5, pages: 2, place: '沙发' },
+      { title: '出门走走', type: 'exercise', minutes: 10, place: '楼下' },
+      { title: '看 5 分钟代码', type: 'coding', minutes: 5, place: '电脑前' },
+      { title: '深呼吸三次', type: 'other', minutes: 1, place: '原地' },
+      { title: '写一行日记', type: 'other', minutes: 3, place: '桌前' },
+    ];
+
+    setState((prev) => {
+      const todayIncomplete = prev.tasks.find(
+        (t) => t.createdAt === today && !t.completedAt
+      );
+      if (!todayIncomplete) {
+        // 今天还没任务：填一个最轻的（随机但稳定）
+        const seed = prev.tasks.length;
+        const tpl = LIGHT_TEMPLATES[seed % LIGHT_TEMPLATES.length];
+        const newTask: Task = {
+          id: generateId(),
+          title: tpl.title,
+          type: tpl.type,
+          bookName: tpl.type === 'reading' ? prev.settings.lastBookName : undefined,
+          startPage: tpl.pages ? prev.settings.lastPageRead + 1 : undefined,
+          endPage: tpl.pages ? prev.settings.lastPageRead + tpl.pages : undefined,
+          currentPage: tpl.pages ? prev.settings.lastPageRead + tpl.pages : undefined,
+          pagesPerSession: tpl.pages,
+          place: tpl.place,
+          time: `${tpl.minutes} 分钟`,
+          createdAt: today,
+        };
+        return { ...prev, tasks: [...prev.tasks, newTask] };
+      }
+      // 已有任务：把它降级（页数减半、分钟减半，但不低于 1）
+      const halved = (n: number) => Math.max(1, Math.floor(n / 2));
+      return {
+        ...prev,
+        tasks: prev.tasks.map((t) => {
+          if (t.id !== todayIncomplete.id) return t;
+          const minMatch = t.time?.match(/(\d+)/);
+          const newMinutes = minMatch ? halved(parseInt(minMatch[1], 10)) : 5;
+          const newPages = t.pagesPerSession
+            ? halved(t.pagesPerSession)
+            : undefined;
+          // 标题前缀加重
+          const easierTitle = t.title.replace(/^(\d+)\s*页/, (_, n) => `${halved(parseInt(n, 10))} 页`);
+          return {
+            ...t,
+            title: easierTitle,
+            time: `${newMinutes} 分钟`,
+            pagesPerSession: newPages,
+            endPage: newPages && t.startPage ? t.startPage + newPages - 1 : t.endPage,
+            currentPage: newPages && t.startPage ? t.startPage + newPages - 1 : t.currentPage,
+          };
+        }),
+      };
+    });
+  }, [today, setState]);
+
   const handleMoodSelect = useCallback((mood: Mood) => {
     setState((prev) => ({
       ...prev,
@@ -184,6 +250,7 @@ export function useTasks(
     allTodaysTasksDone,
     atMaxTasks,
     handleAddTask,
+    addWithValue,
     handleCompleteTask,
     handleConfirmComplete,
     handleCancelComplete,
@@ -192,6 +259,7 @@ export function useTasks(
     handleMoodSelect,
     handleOnboardingFinish,
     handlePomodoroComplete,
+    handleEasier,
     today,
   };
 }

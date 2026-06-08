@@ -538,3 +538,59 @@
 .clay-sky-cloud:hover { transform: scale(1.1); }
 .clay-sky-cloud:active { transform: scale(0.95); }
 
+/* ---- 设置区段（Round 4 简化） ---- */
+.clay-settings-section {
+  border-radius: var(--radius-chunk, 20px);
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-subtle);
+  box-shadow: 0 6px 18px rgba(180, 100, 80, 0.08);
+}
+.clay-settings-section__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.clay-settings-section__desc {
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: var(--leading-relaxed);
+  margin: 0 0 14px;
+}
+.clay-settings-section__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.clay-font-card {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-0);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.clay-font-card:hover { background: var(--warm-canvas); }
+.clay-font-card[data-active='true'] {
+  background: var(--mint-cloud-light);
+  border-color: var(--mint-cloud-deep);
+  border-width: 2px;
+}
+.clay-font-card__preview {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.clay-font-card__label {
+  font-size: 11px;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+}
+

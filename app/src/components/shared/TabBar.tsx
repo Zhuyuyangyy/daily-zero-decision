@@ -10,7 +10,7 @@ interface TabBarProps {
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'today', label: '今天', icon: '☁️' },
   { id: 'sky', label: '我的天空', icon: '🌤' },
-  { id: 'stats', label: '统计', icon: '📊' },
+  { id: 'stats', label: '云迹', icon: '👣' },
   { id: 'settings', label: '设置', icon: '⚙' },
 ];
 

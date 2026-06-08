@@ -501,3 +501,40 @@
   cursor: pointer;
 }
 
+/* ---- 天空画布（Round 3 沉浸式） ---- */
+.clay-sky-canvas {
+  position: relative;
+  height: 280px;
+  border-radius: var(--radius-chunk, 28px);
+  background:
+    linear-gradient(180deg, var(--sky-dawn-1) 0%, var(--sky-dawn-2) 45%, var(--sky-dawn-3) 100%);
+  box-shadow:
+    inset 0 -8px 24px rgba(180, 100, 90, 0.12),
+    inset 0 4px 14px rgba(255, 240, 225, 0.55),
+    var(--shadow-clay);
+  overflow: hidden;
+  isolation: isolate;
+}
+.clay-sky-canvas__title {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding-top: 20px;
+}
+.clay-sky-canvas__clouds {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.clay-sky-cloud {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 10px rgba(180, 100, 80, 0.18));
+  transition: transform var(--dur-base) var(--ease-out-expo);
+}
+.clay-sky-cloud:hover { transform: scale(1.1); }
+.clay-sky-cloud:active { transform: scale(0.95); }
+

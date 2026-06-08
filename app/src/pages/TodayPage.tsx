@@ -27,6 +27,7 @@ interface TodayPageProps {
   handlePomodoroComplete: (sessionType: 'focus' | 'shortBreak' | 'longBreak') => void;
   handleReset: () => void;
   handleEasier: () => void;
+  onNavigateToSky: () => void;
   pomodoroExpanded: boolean;
   setPomodoroExpanded: Dispatch<SetStateAction<boolean>>;
   skyMood: import('../utils/skyMood').SkyMood;
@@ -54,8 +55,9 @@ export default function TodayPage({
   handleDeleteTask: _handleDeleteTask,
   handleMoodSelect,
   handlePomodoroComplete,
-  handleReset,
+  handleReset: _handleReset,  // 完成态不再使用（避免"再养一朵"破坏"每日单卡"语义），保留给 App.tsx 接口兼容
   handleEasier,
+  onNavigateToSky,
   pomodoroExpanded: _pomodoroExpanded,
   setPomodoroExpanded: _setPomodoroExpanded,
   skyMood,
@@ -176,9 +178,15 @@ export default function TodayPage({
                   <br />
                   明天不用多做，再回来养一朵就好。
                 </p>
-                <SoftButton variant="ghost" size="md" onClick={handleReset}>
-                  再养一朵
-                </SoftButton>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                  <SoftButton
+                    variant="mint"
+                    size="md"
+                    onClick={onNavigateToSky}
+                  >
+                    ☁️ 看看我的天空
+                  </SoftButton>
+                </div>
               </div>
             </div>
           ) : (

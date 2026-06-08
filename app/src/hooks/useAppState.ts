@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AppState } from '../types';
-import { loadState, saveState } from '../utils/storage';
+import { loadState, saveState, importState } from '../utils/storage';
 
 /**
  * Core app state hook with localStorage persistence.
@@ -22,13 +22,13 @@ export function useAppState() {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        try {
-          const json = JSON.parse(reader.result as string);
-          if (window.confirm('导入数据将覆盖当前数据，确定继续？')) {
-            setState(json);
-          }
-        } catch {
+        const next = importState(reader.result as string);
+        if (!next) {
           alert('文件格式不正确');
+          return;
+        }
+        if (window.confirm('导入数据将覆盖当前数据，确定继续？')) {
+          setState(next);
         }
       };
       reader.readAsText(file);

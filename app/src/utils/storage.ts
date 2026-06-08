@@ -67,10 +67,23 @@ export function exportState(state: AppState): void {
 export function importState(json: string): AppState | null {
   try {
     const parsed = JSON.parse(json);
-    // Validate basic shape
+
     if (!Array.isArray(parsed.log)) return null;
     if (!parsed.streak || typeof parsed.streak.current !== 'number') return null;
-    return loadState(); // just return valid — caller decides merge strategy
+
+    return {
+      ...defaultState,
+      ...parsed,
+      settings: {
+        ...defaultState.settings,
+        ...(parsed.settings || {}),
+      },
+      achievements: parsed.achievements || [],
+      history: parsed.history || {},
+      moods: parsed.moods || {},
+      pomodoroSessions: parsed.pomodoroSessions ?? 0,
+      onboarded: parsed.onboarded ?? true,
+    };
   } catch {
     return null;
   }
@@ -146,8 +159,25 @@ export function parseTaskFromInput(input: string): Partial<Task> {
   let bookName = '';
   let pagesPerSession = 10;
   let startPage = 0;
+  let time: string | undefined;
 
-  if (lower.includes('书') || lower.includes('read') || lower.includes('阅读')) {
+  // 1) 抽取"X 页"和"X 分钟"这种量化指标
+  const pageMatch = input.match(/(\d+)\s*页/);
+  if (pageMatch) pagesPerSession = Number(pageMatch[1]);
+
+  const minuteMatch = input.match(/(\d+)\s*(分钟|min)/i);
+  if (minuteMatch) {
+    time = `${Number(minuteMatch[1])} 分钟`;
+  }
+
+  // 2) 主题归类（顺序：先看更具体的"散步/新词"，再回退到原关键词）
+  if (lower.includes('散步') || lower.includes('走走') || lower.includes('出门走')) {
+    type = 'exercise';
+  } else if (lower.includes('新词') || lower.includes('背词') || lower.includes('单词')) {
+    type = 'reading';
+    bookName = '单词本';
+    if (!pageMatch) pagesPerSession = 5;
+  } else if (lower.includes('书') || lower.includes('read') || lower.includes('阅读')) {
     type = 'reading';
     const bookMatch = input.match(/《([^》]+)》/);
     if (bookMatch) {
@@ -158,10 +188,6 @@ export function parseTaskFromInput(input: string): Partial<Task> {
         bookName = afterKeyword;
       }
     }
-  } else if (lower.includes('单词') || lower.includes('背单词') || lower.includes('背词')) {
-    type = 'reading';
-    bookName = '单词本';
-    pagesPerSession = 20;
   } else if (lower.includes('代码') || lower.includes('写代码') || lower.includes('编程')) {
     type = 'coding';
   } else if (lower.includes('运动') || lower.includes('跑步') || lower.includes('健身') || lower.includes('瑜伽')) {
@@ -173,6 +199,7 @@ export function parseTaskFromInput(input: string): Partial<Task> {
     bookName: bookName || undefined,
     pagesPerSession,
     startPage,
+    time,
   };
 }
 

@@ -144,6 +144,7 @@ export default function App() {
           handleEasier={handleEasier}
           pomodoroExpanded={pomodoroExpanded}
           setPomodoroExpanded={setPomodoroExpanded}
+          onNavigateToSky={() => setActiveTab('sky')}
         />
       )}
 

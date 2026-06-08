@@ -44,6 +44,15 @@ export function useTasks(
       let startPage = state.settings.lastPageRead + 1;
       let endPage = startPage + (parsed.pagesPerSession || 10) - 1;
 
+      // 时间优先用 hint 里解析出来的"X 分钟"，否则按页数/默认推一个温柔时间
+      const inferredTime =
+        parsed.time ||
+        (parsed.pagesPerSession && parsed.pagesPerSession <= 2
+          ? '5 分钟'
+          : parsed.pagesPerSession && parsed.pagesPerSession <= 10
+          ? '15 分钟'
+          : '30 分钟');
+
       const newTask: Task = {
         id: generateId(),
         title: trimmed,
@@ -54,7 +63,7 @@ export function useTasks(
         startPage,
         endPage,
         place: '安静的地方',
-        time: '30分钟',
+        time: inferredTime,
         createdAt: today,
       };
 
@@ -155,8 +164,8 @@ export function useTasks(
 
   /**
    * 换一朵轻一点的 — 不是给 3 个候选，是直接降难度
-   * - 今天没任务：填一个最轻的预设（"出门走走" / "读 2 页"等）
-   * - 已有不完整任务：把它的时间/页数/字符都调小
+   * - 今天没任务：填一个最轻的预设
+   * - 已有不完整任务：把它的时间/页数都调小，且按任务类型重写主标题
    * - 已完成：什么都不做
    */
   const handleEasier = useCallback(() => {
@@ -168,12 +177,22 @@ export function useTasks(
       { title: '写一行日记', type: 'other', minutes: 3, place: '桌前' },
     ];
 
+    const halved = (n: number) => Math.max(1, Math.floor(n / 2));
+
+    // 按任务类型重写主标题（而不是字符串替换数字）
+    const makeEasierTitle = (task: Task, newMinutes: number, newPages?: number): string => {
+      if (task.type === 'reading' && newPages) return `读 ${newPages} 页书`;
+      if (task.type === 'coding') return `看 ${newMinutes} 分钟代码`;
+      if (task.type === 'exercise') return `出门走走 ${newMinutes} 分钟`;
+      // other：保持原意（深呼吸/日记），只动时间
+      return task.title;
+    };
+
     setState((prev) => {
       const todayIncomplete = prev.tasks.find(
         (t) => t.createdAt === today && !t.completedAt
       );
       if (!todayIncomplete) {
-        // 今天还没任务：填一个最轻的（随机但稳定）
         const seed = prev.tasks.length;
         const tpl = LIGHT_TEMPLATES[seed % LIGHT_TEMPLATES.length];
         const newTask: Task = {
@@ -191,22 +210,16 @@ export function useTasks(
         };
         return { ...prev, tasks: [...prev.tasks, newTask] };
       }
-      // 已有任务：把它降级（页数减半、分钟减半，但不低于 1）
-      const halved = (n: number) => Math.max(1, Math.floor(n / 2));
       return {
         ...prev,
         tasks: prev.tasks.map((t) => {
           if (t.id !== todayIncomplete.id) return t;
           const minMatch = t.time?.match(/(\d+)/);
           const newMinutes = minMatch ? halved(parseInt(minMatch[1], 10)) : 5;
-          const newPages = t.pagesPerSession
-            ? halved(t.pagesPerSession)
-            : undefined;
-          // 标题前缀加重
-          const easierTitle = t.title.replace(/^(\d+)\s*页/, (_, n) => `${halved(parseInt(n, 10))} 页`);
+          const newPages = t.pagesPerSession ? halved(t.pagesPerSession) : undefined;
           return {
             ...t,
-            title: easierTitle,
+            title: makeEasierTitle(t, newMinutes, newPages),
             time: `${newMinutes} 分钟`,
             pagesPerSession: newPages,
             endPage: newPages && t.startPage ? t.startPage + newPages - 1 : t.endPage,

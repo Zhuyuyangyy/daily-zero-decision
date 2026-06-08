@@ -9,7 +9,9 @@ import {
 import { checkAchievements } from '../utils/achievements';
 import type { Mood } from '../components/shared/MoodWidget';
 
-const MAX_TASKS_PER_DAY = 5;
+// 每日只做 1 小步：与"今天只做这一小步"产品定位对齐
+// （Round 7：从 5 降到 1；原代码里残留的 5 是历史默认）
+const MAX_TASKS_PER_DAY = 1;
 
 /**
  * Task CRUD operations hook.

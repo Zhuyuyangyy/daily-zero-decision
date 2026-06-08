@@ -18,6 +18,7 @@ const SUGGEST: { id: string; label: string; icon: string; hint: string }[] = [
   { id: 'coding',   label: '写代码', icon: '💻', hint: '看 5 分钟代码' },
   { id: 'vocab',    label: '背单词', icon: '📝', hint: '背 5 个新词' },
 ];
+// 每个 hint 已经被 parseTaskFromInput 解释成"今天只做这一小步"，数量字眼（2 页/5 分钟）是反例式的友好提示。
 
 const INPUT_PLACEHOLDER = '或者输入你想坚持的事…';
 

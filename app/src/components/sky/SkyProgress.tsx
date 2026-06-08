@@ -24,6 +24,7 @@ export interface SkyProgressProps {
   today: string;
   selectedMood?: Mood;
   onMoodSelect: (mood: Mood) => void;
+  compact?: boolean;
 }
 
 // mood → 渐变 + 呼吸节奏 + 云色
@@ -115,7 +116,9 @@ export default function SkyProgress({
   today: _today,
   selectedMood,
   onMoodSelect,
+  compact = false,
 }: SkyProgressProps) {
+  void _today;
   const t = MOOD_CONFIG[mood] ?? MOOD_CONFIG.morning;
   const isComplete = totalCount > 0 && completedCount === totalCount;
   const hasData = streak > 0 || totalDays > 0;
@@ -141,11 +144,13 @@ export default function SkyProgress({
       style={{
         position: 'relative',
         width: '100%',
-        height: 120,
+        height: compact ? 60 : 120,
         overflow: 'hidden',
-        borderRadius: 'var(--radius-hero, 28px)',
+        borderRadius: 'var(--radius-chunk, 20px)',
         background: `linear-gradient(180deg, ${t.from} 0%, ${t.via} 50%, ${t.to} 100%)`,
-        boxShadow: 'inset 0 -6px 18px rgba(180,100,90,0.10), inset 0 2px 10px rgba(255, 240, 225, 0.55), var(--shadow-clay-deep)',
+        boxShadow: compact
+          ? 'inset 0 -4px 10px rgba(180,100,80,0.08), inset 0 1px 4px rgba(255, 240, 225, 0.4)'
+          : 'inset 0 -6px 18px rgba(180,100,90,0.10), inset 0 2px 10px rgba(255, 240, 225, 0.55), var(--shadow-clay-deep)',
         transition: 'background 1.6s var(--ease-out-quart)',
       }}
     >
@@ -158,78 +163,82 @@ export default function SkyProgress({
       `}</style>
 
       {/* 顶部信息条：日期 + 问候（半透明） */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 10,
-          left: 16,
-          right: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 4,
-          pointerEvents: 'none',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 12,
-              color: 'var(--ink-light)',
-              fontFamily: 'var(--font-body)',
-              lineHeight: 1.2,
-              opacity: 0.85,
-            }}
-          >
-            {getDateLabel()}
-          </div>
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              color: 'var(--ink)',
-              fontFamily: 'var(--font-display)',
-              lineHeight: 1.2,
-              marginTop: 1,
-            }}
-          >
-            {getGreeting()}
-          </div>
-        </div>
-        {/* 连续天数徽章（仅 streak > 0 时显示） */}
-        {streak > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--warm-coral) 0%, var(--warm-amber, #F2A660) 100%)',
-              color: '#fff',
-              boxShadow: '0 3px 10px rgba(255, 155, 133, 0.4)',
-              flexShrink: 0,
-              pointerEvents: 'auto',
-            }}
-          >
-            <span
+      {!compact && (
+        <>
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 16,
+            right: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 4,
+            pointerEvents: 'none',
+          }}
+        >
+          <div>
+            <div
               style={{
-                fontSize: 18,
-                fontWeight: 800,
-                lineHeight: 1,
-                fontFamily: 'var(--font-display)',
+                fontSize: 12,
+                color: 'var(--ink-light)',
+                fontFamily: 'var(--font-body)',
+                lineHeight: 1.2,
+                opacity: 0.85,
               }}
             >
-              {streak}
-            </span>
-            <span style={{ fontSize: 8, lineHeight: 1, opacity: 0.9, marginTop: 1 }}>
-              天
-            </span>
+              {getDateLabel()}
+            </div>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: 'var(--ink)',
+                fontFamily: 'var(--font-display)',
+                lineHeight: 1.2,
+                marginTop: 1,
+              }}
+            >
+              {getGreeting()}
+            </div>
           </div>
-        )}
-      </div>
+          {/* 连续天数徽章（仅 streak > 0 时显示） */}
+          {streak > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--warm-coral) 0%, var(--warm-amber, #F2A660) 100%)',
+                color: '#fff',
+                boxShadow: '0 3px 10px rgba(255, 155, 133, 0.4)',
+                flexShrink: 0,
+                pointerEvents: 'auto',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  fontFamily: 'var(--font-display)',
+                }}
+              >
+                {streak}
+              </span>
+              <span style={{ fontSize: 8, lineHeight: 1, opacity: 0.9, marginTop: 1 }}>
+                天
+              </span>
+            </div>
+          )}
+        </div>
+        </>
+      )}
 
       {/* 云朵 + 呼吸光环（左侧主视觉） */}
       <div

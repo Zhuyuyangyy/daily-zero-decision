@@ -23,9 +23,10 @@ const TYPE_ICON: Record<string, string> = {
 };
 
 /**
- * 云迹 — Round 3
- * 把"统计"改成"叙事":讲你这周养了什么样的云、心情是什么、节奏在哪里
- * 不用"连续天数/总页数"等工具指标主导,改用一句有温度的总结
+ * 回顾 — Round 5
+ * 答的是"我坚持了什么"
+ * 自然语言总结代替工具指标
+ * 让用户每次打开都觉得:原来我真的在慢慢坚持
  */
 export default function StatsPage({ history, streak, moods }: StatsPageProps) {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -91,7 +92,7 @@ export default function StatsPage({ history, streak, moods }: StatsPageProps) {
               margin: 0,
             }}
           >
-            云迹
+            回顾
           </h1>
           <p
             style={{
@@ -102,7 +103,7 @@ export default function StatsPage({ history, streak, moods }: StatsPageProps) {
               margin: '6px 0 0',
             }}
           >
-            这是你走过的天空
+            原来我真的在慢慢坚持。
           </p>
         </div>
 

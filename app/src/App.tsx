@@ -92,7 +92,10 @@ export default function App() {
     >
       {/* Onboarding overlay */}
       {!state.onboarded && (
-        <Onboarding onFinish={handleOnboardingFinish} />
+        <Onboarding
+          onFinish={handleOnboardingFinish}
+          onSelect={addWithValue}
+        />
       )}
 
       {/* Celebration overlay */}

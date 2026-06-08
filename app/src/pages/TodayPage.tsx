@@ -7,7 +7,7 @@ import SkyProgress from '../components/sky/SkyProgress';
 import TodayDecisionCard from '../components/today/TodayDecisionCard';
 import EmptyCloudCard from '../components/today/EmptyCloudCard';
 import { SoftButton } from '../components/ui';
-import type { Dispatch, SetStateAction } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 
 interface TodayPageProps {
   state: AppState;
@@ -32,6 +32,12 @@ interface TodayPageProps {
   skyMood: import('../utils/skyMood').SkyMood;
 }
 
+/**
+ * Today 页 — Round 5 重塑
+ * 一、价值主张：每天不知道从哪开始？今天只做这一小步。
+ * 二、唯一主角：今日最小行动卡（主题型壳 + 任务型核 + 奖励闭环）
+ * 三、番茄钟降级成内联小按钮，不再独立成块
+ */
 export default function TodayPage({
   state,
   today,
@@ -39,22 +45,23 @@ export default function TodayPage({
   incompleteTasks,
   completedTasks,
   allTodaysTasksDone,
-  atMaxTasks,
-  input,
-  setInput,
-  handleAddTask,
+  atMaxTasks: _atMaxTasks,
+  input: _input,
+  setInput: _setInput,
+  handleAddTask: _handleAddTask,
   addWithValue,
   handleCompleteTask,
-  handleDeleteTask,
+  handleDeleteTask: _handleDeleteTask,
   handleMoodSelect,
   handlePomodoroComplete,
   handleReset,
   handleEasier,
-  pomodoroExpanded,
-  setPomodoroExpanded,
+  pomodoroExpanded: _pomodoroExpanded,
+  setPomodoroExpanded: _setPomodoroExpanded,
   skyMood,
 }: TodayPageProps) {
-  void atMaxTasks; void input; void setInput; void handleAddTask; void handleDeleteTask;
+  void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks; void _pomodoroExpanded; void _setPomodoroExpanded;
+  const [pomodoroOpen, setPomodoroOpen] = useState(false);
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
 
   return (
@@ -63,22 +70,90 @@ export default function TodayPage({
       style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
     >
       {/* 头部（不可滚动） */}
-      <div className="w-full max-w-md mx-auto" style={{ flexShrink: 0, padding: '10px 16px 0' }}>
-        <SkyProgress
-          mood={skyMood}
-          completedCount={completedTasks.length}
-          totalCount={todaysTasks.length}
-          streak={state.streak.current}
-          bestStreak={state.streak.best}
-          totalDays={state.log.length}
-          today={today}
-          selectedMood={state.moods[today] as Mood | undefined}
-          onMoodSelect={handleMoodSelect}
-        />
+      <div
+        className="w-full max-w-md mx-auto"
+        style={{ flexShrink: 0, padding: '12px 16px 0' }}
+      >
+        {/* 价值主张：3 秒内让客户知道这是干嘛的 */}
+        {todaysTasks.length === 0 ? (
+          <div style={{ marginBottom: 10, textAlign: 'center' }}>
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 20,
+                fontWeight: 700,
+                color: 'var(--ink)',
+                margin: 0,
+                lineHeight: 1.3,
+              }}
+            >
+              每天不知道从哪开始？
+            </h1>
+            <p
+              style={{
+                color: 'var(--ink-light)',
+                fontSize: 12,
+                fontFamily: 'var(--font-body)',
+                lineHeight: 1.55,
+                margin: '4px 0 0',
+              }}
+            >
+              我帮你把想坚持的事，变成今天能完成的一小步。
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 8,
+              padding: '0 4px',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 17,
+                fontWeight: 700,
+                color: 'var(--ink)',
+              }}
+            >
+              今日只做这一小步
+            </span>
+            <span
+              style={{
+                color: 'var(--ink-faint)',
+                fontSize: 11,
+                fontFamily: 'var(--font-body)',
+                flex: 1,
+                textAlign: 'right',
+              }}
+            >
+              ☁️ {state.streak.current} 天
+            </span>
+          </div>
+        )}
+
+        {/* SkyProgress 降级为小状态条（不在首屏占大块） */}
+        <div style={{ marginBottom: 4 }}>
+          <SkyProgress
+            mood={skyMood}
+            completedCount={completedTasks.length}
+            totalCount={todaysTasks.length}
+            streak={state.streak.current}
+            bestStreak={state.streak.best}
+            totalDays={state.log.length}
+            today={today}
+            selectedMood={state.moods[today] as Mood | undefined}
+            onMoodSelect={handleMoodSelect}
+            compact
+          />
+        </div>
 
         {currentTask ? (
           allTodaysTasksDone ? (
-            <div className="animate-fade-up" style={{ margin: '16px 0 0' }}>
+            <div className="animate-fade-up" style={{ margin: '12px 0 0' }}>
               <div className="clay-card clay-card--celebrate" style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>🎉</div>
                 <h2
@@ -93,9 +168,15 @@ export default function TodayPage({
                   {copy.completed(state.streak.current)}
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--ink-light)', margin: '0 0 16px' }}>
-                  今天完成了 {completedTasks.length} 朵云
+                  今天的云长出来了 ☁️
                 </p>
-                <SoftButton variant="mint" size="md" onClick={handleReset}>
+                <p style={{ fontSize: 12, color: 'var(--ink-light)', margin: '0 0 16px', lineHeight: 1.55 }}>
+                  你已经回来 {state.streak.current} 天了，
+                  天空里有 {state.log.length} 朵云。
+                  <br />
+                  明天不用多做，再回来养一朵就好。
+                </p>
+                <SoftButton variant="ghost" size="md" onClick={handleReset}>
                   再养一朵
                 </SoftButton>
               </div>
@@ -105,6 +186,7 @@ export default function TodayPage({
               task={currentTask}
               onComplete={() => handleCompleteTask(currentTask.id)}
               onEasier={handleEasier}
+              onStartPomodoro={() => setPomodoroOpen((p) => !p)}
             />
           )
         ) : (
@@ -113,6 +195,21 @@ export default function TodayPage({
             onSuggest={addWithValue}
           />
         )}
+
+        {/* 番茄钟下拉（被点击展开时显示完整组件） */}
+        {pomodoroOpen && !allTodaysTasksDone && currentTask && (
+          <div
+            className="animate-fade-up"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: 8,
+            }}
+          >
+            <Pomodoro onComplete={handlePomodoroComplete} />
+          </div>
+        )}
+        {void _pomodoroExpanded}
       </div>
 
       {/* 弱化区（可滚动） */}
@@ -124,21 +221,6 @@ export default function TodayPage({
           <div style={{ opacity: 0.7 }}>
             <DailyQuote />
           </div>
-
-          <button
-            onClick={() => setPomodoroExpanded((p) => !p)}
-            className="clay-collapse"
-          >
-            <span>⏱️ 番茄钟 · {state.pomodoroSessions || 0} 次专注</span>
-            <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
-              {pomodoroExpanded ? '收起 ▲' : '展开 ▼'}
-            </span>
-          </button>
-          {pomodoroExpanded && (
-            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
-              <Pomodoro onComplete={handlePomodoroComplete} />
-            </div>
-          )}
 
           <div style={{ marginTop: 24, textAlign: 'center', opacity: 0.5 }}>
             <p

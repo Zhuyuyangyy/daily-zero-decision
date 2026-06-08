@@ -594,3 +594,48 @@
   font-family: var(--font-body);
 }
 
+/* ---- Onboarding 建议芯片（Round 5 A-lite） ---- */
+.clay-suggest-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-0);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+  -webkit-tap-highlight-color: transparent;
+}
+.clay-suggest-chip:hover {
+  background: var(--mint-cloud-light);
+  border-color: var(--mint-cloud-deep);
+  color: var(--mint-cloud-text);
+}
+.clay-suggest-chip:active { transform: scale(0.97); }
+.clay-suggest-chip__icon { font-size: 16px; }
+
+/* ---- 番茄钟降级（卡片内联按钮） ---- */
+.clay-pomodoro-inline {
+  background: transparent;
+  border: none;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 999px;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+}
+.clay-pomodoro-inline:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.4);
+}
+

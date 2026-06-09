@@ -4,6 +4,7 @@ import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
 import Onboarding from './components/shared/Onboarding';
 import ShareCard from './components/shared/ShareCard';
+import type { Task } from './types';
 
 // Hooks
 import { useAppState } from './hooks/useAppState';
@@ -95,6 +96,36 @@ export default function App() {
         <Onboarding
           onFinish={handleOnboardingFinish}
           onSelect={addWithValue}
+          onTryDemo={() => {
+            // 注入示范数据：让"先看看示例"的访客立刻看到完整主页体验
+            const today = new Date().toISOString().slice(0, 10);
+            const fakeHistory: Record<string, Task[]> = {};
+            for (let i = 1; i <= 5; i++) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              const key = d.toISOString().slice(0, 10);
+              const types: Array<Task['type']> = ['reading', 'exercise', 'coding', 'other', 'reading'];
+              const titles = ['读 2 页书', '出门走走 5 分钟', '看 5 分钟代码', '写一行日记', '读 1 页书'];
+              fakeHistory[key] = [{
+                id: 'demo' + i, title: titles[i - 1], type: types[i - 1],
+                createdAt: key, completedAt: key,
+                time: '5 分钟', place: '安静的地方',
+              }];
+            }
+            const moodMap: Record<string, 'okay' | 'hopeful' | 'low'> = {};
+            Object.keys(fakeHistory).forEach((k, i) => {
+              moodMap[k] = (['okay', 'hopeful', 'okay', 'low', 'okay'] as const)[i];
+            });
+            setState((prev) => ({
+              ...prev,
+              tasks: [],
+              log: [...Object.keys(fakeHistory), today],
+              streak: { current: 5, best: 5, lastCompletedDate: today },
+              history: { ...fakeHistory, [today]: [] },
+              moods: moodMap,
+              achievements: ['first-cloud', 'streak-7'],
+            }));
+          }}
         />
       )}
 

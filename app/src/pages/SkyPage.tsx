@@ -302,7 +302,7 @@ export default function SkyPage({
                 margin: '0 0 6px',
               }}
             >
-              天空还空着呢
+              在等第一朵云
             </h2>
             <p
               style={{

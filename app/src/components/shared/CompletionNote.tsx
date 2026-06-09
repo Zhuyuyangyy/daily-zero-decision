@@ -51,7 +51,7 @@ export default function CompletionNote({ onConfirm, onCancel }: CompletionNotePr
               marginBottom: '6px',
             }}
           >
-            任务完成！
+            嗯，这一小步。
           </h2>
           <p
             style={{

@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 export interface OnboardingProps {
   onFinish: () => void;
   onSelect: (hint: string) => void; // 由父组件注入：用 hint 创建今日卡
+  onTryDemo?: () => void; // 用户点"先看看示例"时填一张示范卡
 }
 
 const SUGGEST: { id: string; label: string; icon: string; hint: string }[] = [
@@ -22,7 +23,7 @@ const SUGGEST: { id: string; label: string; icon: string; hint: string }[] = [
 
 const INPUT_PLACEHOLDER = '或者输入你想坚持的事…';
 
-export default function Onboarding({ onFinish, onSelect }: OnboardingProps) {
+export default function Onboarding({ onFinish, onSelect, onTryDemo }: OnboardingProps) {
   const [visible, setVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [showInput, setShowInput] = useState(false);
@@ -210,7 +211,11 @@ export default function Onboarding({ onFinish, onSelect }: OnboardingProps) {
             </button>
             <button
               type="button"
-              onClick={onFinish}
+              onClick={() => {
+                // 注入一张示范卡，让用户立刻看到完整主页
+                if (onTryDemo) onTryDemo();
+                onFinish();
+              }}
               className="clay-btn clay-btn--text clay-btn--md clay-btn--block"
             >
               先看看示例

@@ -2,9 +2,12 @@
 // Given a date string, deterministically generate a unique cloud
 // Same date → same cloud. Different dates → different clouds.
 
+export type TaskType = 'reading' | 'exercise' | 'coding' | 'other';
+
 export interface CloudShape {
   id: string;
   date: string;
+  type: TaskType;        // 云朵种类（决定颜色 / 表情 / 形状）
   // Visual properties
   size: number;        // 0.7 - 1.5
   cx: number;          // x position % in sky  8 - 92
@@ -56,31 +59,93 @@ function pick<T>(seed: number, salt: number, options: T[]): T {
 const expressions: CloudShape['expression'][] = [
   'calm', 'smile', 'sleep', 'wink', 'tiny-smile', 'peeking', 'neutral', 'peaceful',
 ];
+void expressions; // 留作 reference；当前 preset 内用类型预设
 
-export function generateCloud(date: string): CloudShape {
+/**
+ * 云朵类型 → 视觉语言映射
+ *
+ * 把"用户养什么云"从"随机形状"升级到"种类决定画感"：
+ *  - reading: 书页/眼镜形，薄荷绿底+暖金边
+ *  - exercise: 流体形/飞鸟感，暖珊瑚主体+活力橙光晕
+ *  - coding:   几何矩形拼接，浅蓝紫（仍属暖偏），像素感
+ *  - other:    标准云朵造型，留白最多
+ */
+export const CLOUD_TYPE_PRESET: Record<
+  TaskType,
+  {
+    hue: [number, number];
+    saturation: [number, number];
+    lightness: [number, number];
+    rx: [number, number];
+    ry: [number, number];
+    bumpCount: [number, number];
+    expressions: Array<CloudShape['expression']>;
+    label: string;
+  }
+> = {
+  reading: {
+    hue: [80, 140],
+    saturation: [40, 60],
+    lightness: [82, 92],
+    rx: [28, 42],
+    ry: [10, 14],
+    bumpCount: [3, 4.99],
+    expressions: ['peaceful', 'tiny-smile', 'neutral'],
+    label: '阅读云',
+  },
+  exercise: {
+    hue: [10, 28],
+    saturation: [55, 75],
+    lightness: [84, 92],
+    rx: [26, 36],
+    ry: [14, 20],
+    bumpCount: [2, 3.99],
+    expressions: ['smile', 'wink', 'calm'],
+    label: '散步云',
+  },
+  coding: {
+    hue: [180, 230],
+    saturation: [25, 40],
+    lightness: [86, 94],
+    rx: [30, 40],
+    ry: [12, 16],
+    bumpCount: [2, 3.99],
+    expressions: ['calm', 'peeking', 'sleep'],
+    label: '编码云',
+  },
+  other: {
+    hue: [20, 40],
+    saturation: [30, 50],
+    lightness: [88, 95],
+    rx: [22, 32],
+    ry: [14, 20],
+    bumpCount: [2, 3.99],
+    expressions: ['calm', 'neutral', 'peaceful', 'tiny-smile'],
+    label: '日常云',
+  },
+};
+
+export function generateCloud(date: string, type: TaskType = 'other'): CloudShape {
   const seed = hashString(date);
-
-  // Hue: warm cream-pink base + a hint of variation, never harsh blue/green
-  // Range: 10-50 (pinks, peaches, creams) with occasional pastel mint
-  const baseHue = range(seed, 9, 10, 50);
-  const hue = seededRandom(seed, 16) > 0.85 ? range(seed, 17, 80, 140) : baseHue;
+  const preset = CLOUD_TYPE_PRESET[type];
 
   return {
     id: `cloud-${date}`,
     date,
+    type,
     size: range(seed, 1, 0.7, 1.5),
     cx: range(seed, 2, 8, 92),
     cy: range(seed, 3, 15, 70),
     rotation: range(seed, 4, -6, 6),
-    rx: range(seed, 5, 22, 38),
-    ry: range(seed, 6, 12, 18),
-    bumpCount: Math.floor(range(seed, 7, 2, 4.99)),
+    rx: range(seed, 5, preset.rx[0], preset.rx[1]),
+    ry: range(seed, 6, preset.ry[0], preset.ry[1]),
+    bumpCount: Math.floor(range(seed, 7, preset.bumpCount[0], preset.bumpCount[1])),
     bumpSize: range(seed, 8, 0.85, 1.2),
-    hue,
-    saturation: range(seed, 10, 22, 50),
-    lightness: range(seed, 11, 84, 96),
+    hue: range(seed, 9, preset.hue[0], preset.hue[1]),
+    saturation: range(seed, 10, preset.saturation[0], preset.saturation[1]),
+    lightness: range(seed, 11, preset.lightness[0], preset.lightness[1]),
     opacity: range(seed, 12, 0.85, 1),
-    expression: pick(seed, 13, expressions),
+    expression: pick(seed, 13, preset.expressions),
     drift: range(seed, 14, 0, 6),
     floatSpeed: range(seed, 15, 5, 9),
     layer: seededRandom(seed, 18),
@@ -90,10 +155,11 @@ export function generateCloud(date: string): CloudShape {
 // Generate cloud field for a date range
 export function generateCloudsForRange(
   dates: string[],
+  types: TaskType[] = [],
   maxClouds: number = 12
 ): CloudShape[] {
   const recent = dates.slice(-maxClouds);
-  return recent.map(generateCloud);
+  return recent.map((date, i) => generateCloud(date, types[i] ?? 'other'));
 }
 
 // Sky mood based on streak length + recency

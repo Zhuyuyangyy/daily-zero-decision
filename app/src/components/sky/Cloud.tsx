@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
+import type { TaskType } from '../../types';
 
 interface CloudProps {
   mood: 'calm' | 'happy' | 'celebrate';
   size?: 'sm' | 'md' | 'lg';
   showCelebration?: boolean;
+  type?: TaskType; // 决定颜色 + 形态（让"养不同云"视觉不同）
 }
 
 const SIZE_MAP: Record<NonNullable<CloudProps['size']>, number> = {
@@ -12,12 +14,25 @@ const SIZE_MAP: Record<NonNullable<CloudProps['size']>, number> = {
   lg: 168,
 };
 
+// 不同 type 的色彩语言：让每种云一眼能区分
+// reading  → 薄荷绿（薄）+ 暖金边
+// exercise → 暖珊瑚（厚）+ 活力橙光晕
+// coding   → 浅蓝紫（几何感）
+// other    → 标准暖奶白
+const CLOUD_PALETTE: Record<TaskType, { from: string; mid: string; to: string; rim: string; bg: string }> = {
+  reading: { from: '#E4F5E9', mid: '#A8D8B5', to: '#6FBE8C', rim: 'rgba(255, 200, 100, 0.45)', bg: 'rgba(168, 216, 181, 0.25)' },
+  exercise: { from: '#FFE4D1', mid: '#FFAA82', to: '#F47A5B', rim: 'rgba(255, 130, 60, 0.50)', bg: 'rgba(255, 170, 130, 0.30)' },
+  coding: { from: '#E4E8F2', mid: '#A8B0CC', to: '#7888B5', rim: 'rgba(120, 100, 180, 0.40)', bg: 'rgba(168, 176, 204, 0.25)' },
+  other: { from: '#FFEEE0', mid: '#FFD7B0', to: '#F0B97F', rim: 'rgba(248, 140, 130, 0.35)', bg: 'rgba(255, 235, 215, 0.30)' },
+};
+
 // 治愈系治愈缓动
 const EASE = 'cubic-bezier(0.25, 1, 0.5, 1)';
 const EASE_BACK = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-export default function Cloud({ mood, size = 'md', showCelebration = false }: CloudProps) {
+export default function Cloud({ mood, size = 'md', showCelebration = false, type = 'other' }: CloudProps) {
   const px = SIZE_MAP[size];
+  const palette = CLOUD_PALETTE[type];
 
   // 用 useMemo 缓存所有 gradient id,避免每次渲染随机抖动
   const gradIds = useMemo(() => {
@@ -110,9 +125,9 @@ export default function Cloud({ mood, size = 'md', showCelebration = false }: Cl
         <defs>
           {/* 主体渐变:薄荷亮 → 薄荷主 → 薄荷深 */}
           <linearGradient id={gradIds.body} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"  stopColor="var(--mint-cloud-light, #C9F0D5)" />
-            <stop offset="45%" stopColor="var(--mint-cloud,       #8ADBA8)" />
-            <stop offset="100%" stopColor="var(--mint-cloud-deep,  #5FCB86)" />
+            <stop offset="0%"  stopColor={palette.from} />
+            <stop offset="45%" stopColor={palette.mid} />
+            <stop offset="100%" stopColor={palette.to} />
           </linearGradient>
 
           {/* 边缘厚度:暖珊瑚半透明渐变 */}
@@ -152,16 +167,45 @@ export default function Cloud({ mood, size = 'md', showCelebration = false }: Cl
 
           {/* 蓬松云团轮廓:5 个叠加椭圆,顶部团子状凸起,主体宽厚 */}
           <g id={gradIds.silhouette}>
-            {/* 底层:宽厚主体,形成稳定基底 */}
-            <ellipse cx="50" cy="64" rx="36" ry="18" />
-            {/* 左团子 */}
-            <ellipse cx="28" cy="58" rx="18" ry="16" />
-            {/* 中团子(最高最鼓) */}
-            <ellipse cx="46" cy="42" rx="22" ry="22" />
-            {/* 右团子 */}
-            <ellipse cx="70" cy="44" rx="20" ry="20" />
-            {/* 远右小团子 */}
-            <ellipse cx="84" cy="56" rx="14" ry="14" />
+            {type === 'reading' && (
+              <>
+                {/* 阅读云:扁平 + 4 个均匀小团子,像翻开的一本书 */}
+                <ellipse cx="50" cy="62" rx="42" ry="10" />
+                <ellipse cx="20" cy="56" rx="14" ry="14" />
+                <ellipse cx="38" cy="50" rx="14" ry="14" />
+                <ellipse cx="58" cy="50" rx="14" ry="14" />
+                <ellipse cx="78" cy="58" rx="12" ry="12" />
+              </>
+            )}
+            {type === 'exercise' && (
+              <>
+                {/* 散步云:流体/飞鸟感 — 一边伸长像翅膀 */}
+                <ellipse cx="50" cy="60" rx="44" ry="14" />
+                <ellipse cx="22" cy="48" rx="20" ry="20" />
+                <ellipse cx="78" cy="50" rx="22" ry="18" />
+                <ellipse cx="50" cy="50" rx="14" ry="14" />
+                <ellipse cx="8" cy="62" rx="10" ry="10" />
+              </>
+            )}
+            {type === 'coding' && (
+              <>
+                {/* 编码云:稍微方正,几何感 */}
+                <rect x="8" y="48" width="84" height="20" rx="10" />
+                <ellipse cx="22" cy="46" rx="14" ry="14" />
+                <ellipse cx="50" cy="38" rx="20" ry="20" />
+                <ellipse cx="78" cy="48" rx="14" ry="14" />
+              </>
+            )}
+            {type === 'other' && (
+              <>
+                {/* 日常云:标准圆润云团 */}
+                <ellipse cx="50" cy="64" rx="36" ry="18" />
+                <ellipse cx="28" cy="58" rx="18" ry="16" />
+                <ellipse cx="46" cy="42" rx="22" ry="22" />
+                <ellipse cx="70" cy="44" rx="20" ry="20" />
+                <ellipse cx="84" cy="56" rx="14" ry="14" />
+              </>
+            )}
           </g>
 
           {/* 剪裁路径,用于高光/阴影只显示在身体内 */}

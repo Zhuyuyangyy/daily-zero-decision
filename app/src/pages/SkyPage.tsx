@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { AppState, Task, TaskType } from '../types';
 import type { SkyMood } from '../utils/skyMood';
+import { CLOUD_TYPE_PRESET } from '../utils/cloudSeed';
 import Cloud from '../components/sky/Cloud';
 import { SoftButton } from '../components/ui';
 
@@ -18,6 +19,17 @@ interface SkyPageProps {
   onNavigateToToday: () => void;
 }
 
+// Cloud type → 心情表达（与 cloudSeed 视觉语言一致）
+const CLOUD_MOOD_FOR_TYPE: Record<string, 'calm' | 'happy' | 'celebrate'> = {
+  reading: 'calm',     // 阅读云 → 平静
+  exercise: 'happy',   // 散步云 → 开心
+  coding: 'calm',      // 编码云 → 平静（专注）
+  other: 'calm',
+};
+
+const cloudMoodFromType = (t: TaskType): 'calm' | 'happy' | 'celebrate' =>
+  CLOUD_MOOD_FOR_TYPE[t] ?? 'calm';
+
 const MOOD_CLOUD: Record<SkyMood, 'calm' | 'happy' | 'celebrate'> = {
   dawn: 'calm',
   morning: 'calm',
@@ -25,6 +37,7 @@ const MOOD_CLOUD: Record<SkyMood, 'calm' | 'happy' | 'celebrate'> = {
   sunny: 'happy',
   golden: 'celebrate',
 };
+void MOOD_CLOUD; // 留作参考：skyMood 状态下默认云朵心情
 
 const TYPE_ICON: Record<string, string> = {
   reading: '📖', exercise: '🏃', coding: '💻', other: '✨',
@@ -43,7 +56,7 @@ const TYPE_NAME: Record<string, string> = {
  */
 export default function SkyPage({
   state: _state,
-  skyMood,
+  skyMood: _skyMood,
   totalDays: _totalDays,
   hasLog,
   todayLog,
@@ -56,7 +69,6 @@ export default function SkyPage({
 }: SkyPageProps) {
   void _state; void _totalDays; void _searchQuery; void _setSearchQuery; void _searchType; void _setSearchType; void _onNavigateToToday;
   const [openedDate, setOpenedDate] = useState<string | null>(null);
-  const cloudMood = MOOD_CLOUD[skyMood];
 
   // 最近 7 天（含今天）
   const last7 = todayLog.slice(-7);
@@ -108,18 +120,32 @@ export default function SkyPage({
             <div className="clay-sky-canvas__clouds">
               {last7.map((date, i) => {
                 const isToday = date === todayLog[todayLog.length - 1];
+                const tasks = allHistoryTasks[date] ?? [];
+                // 决定这朵云的颜色/形态 —— 用当天首个任务的 type
+                const cloudType = (tasks[0]?.type ?? 'other') as TaskType;
+                // 深度越深（layer）云朵越小越淡
+                const layer = (i + 1) / last7.length; // 0 (近) ~ 1 (远)
+                const cloudMood: 'calm' | 'happy' | 'celebrate' =
+                  isToday ? 'celebrate' : cloudMoodFromType(cloudType);
                 return (
                   <button
                     key={date}
                     className="clay-sky-cloud"
                     style={{
-                      top: `${15 + (i * 17) % 50}%`,
+                      top: `${10 + (i * 19) % 50}%`,
                       left: `${(i * 23) % 70 + 8}%`,
+                      // 越远的云越小、越淡、拖影越小
+                      transform: `scale(${1 - layer * 0.35})`,
+                      opacity: 1 - layer * 0.3,
                     }}
                     onClick={() => setOpenedDate(date === openedDate ? null : date)}
-                    aria-label={`查看 ${date} 的云`}
+                    aria-label={`查看 ${date} 的 ${CLOUD_TYPE_PRESET[cloudType].label}`}
                   >
-                    <Cloud mood={cloudMood} size={isToday ? 'md' : 'sm'} />
+                    <Cloud
+                      mood={cloudMood}
+                      size={isToday ? 'md' : 'sm'}
+                      type={cloudType}
+                    />
                   </button>
                 );
               })}

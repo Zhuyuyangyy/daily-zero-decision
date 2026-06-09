@@ -501,12 +501,17 @@
   cursor: pointer;
 }
 
-/* ---- 天空画布（Round 3 沉浸式） ---- */
+/* ---- 天空画布（Round 3 + Round 12 早晨感） ---- */
 .clay-sky-canvas {
   position: relative;
-  height: 280px;
+  height: 300px;
   border-radius: var(--radius-chunk, 28px);
   background:
+    /* 早晨地平线暖光 — 暖琥珀色横线，从底部 25% 处透出来 */
+    radial-gradient(ellipse 80% 35% at 50% 78%, rgba(255, 180, 110, 0.32) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 28% at 28% 65%, rgba(255, 215, 175, 0.30) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 22% at 78% 70%, rgba(255, 195, 165, 0.28) 0%, transparent 60%),
+    /* 顶部冷光（天色 — 给视觉上方"空气感"） */
     linear-gradient(180deg, var(--sky-dawn-1) 0%, var(--sky-dawn-2) 45%, var(--sky-dawn-3) 100%);
   box-shadow:
     inset 0 -8px 24px rgba(180, 100, 90, 0.12),
@@ -514,6 +519,32 @@
     var(--shadow-clay);
   overflow: hidden;
   isolation: isolate;
+}
+/* 早晨噪点纹理 — 给天空"不是平面"的感觉 */
+.clay-sky-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--noise-svg);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+/* 极淡的远山轮廓 — 让"地平线"有锚点 */
+.clay-sky-canvas::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 100% at 22% 100%, rgba(180, 100, 90, 0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 100% at 78% 100%, rgba(180, 100, 90, 0.10) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(180, 100, 90, 0.06) 100%);
+  z-index: 0;
 }
 .clay-sky-canvas__title {
   position: relative;

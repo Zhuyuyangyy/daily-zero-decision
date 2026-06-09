@@ -80,22 +80,54 @@ export default function Onboarding({ onFinish, onSelect, onTryDemo }: Onboarding
             '0 24px 60px rgba(180, 100, 80, 0.22), 0 8px 24px rgba(180, 100, 80, 0.10), inset 0 2px 3px rgba(255, 255, 255, 0.9), inset 0 -3px 6px rgba(248, 140, 130, 0.10)',
         }}
       >
-        {/* 大云朵插画 */}
+        {/* 早晨天空小插图 — 暖光穿过云 */}
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: 8,
+            position: 'relative',
+            height: 96,
+            margin: '4px -28px 8px',
+            background: `
+              radial-gradient(ellipse 70% 50% at 50% 80%, rgba(255, 200, 140, 0.45) 0%, transparent 70%),
+              linear-gradient(180deg, #F8C6B0 0%, #FBE0C8 60%, #FAD7BA 100%)
+            `,
+            overflow: 'hidden',
           }}
           aria-hidden
         >
-          <svg viewBox="0 0 100 70" width="64" height="44" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="20" cy="48" rx="18" ry="12" fill="#fff" opacity="0.95" />
+          {/* 远山轮廓 */}
+          <svg
+            viewBox="0 0 100 40"
+            preserveAspectRatio="none"
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: '40%' }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 28 Q 20 18, 35 22 T 60 20 T 100 26 L 100 40 L 0 40 Z"
+              fill="rgba(200, 130, 110, 0.35)"
+            />
+          </svg>
+
+          {/* 远小云 — 早晨空气中那种雾感的云 */}
+          <svg viewBox="0 0 100 60" width="100%" height="100%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="22" cy="22" rx="14" ry="6" fill="rgba(255, 250, 240, 0.6)" />
+            <ellipse cx="80" cy="20" rx="16" ry="7" fill="rgba(255, 250, 240, 0.55)" />
+          </svg>
+
+          {/* 主云团 — 现在 4 个团子 + 1 颗暖光点 */}
+          <svg
+            viewBox="0 0 100 70"
+            width="64"
+            height="44"
+            style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <ellipse cx="20" cy="48" rx="18" ry="12" fill="#fff" opacity="0.96" />
             <ellipse cx="40" cy="32" rx="22" ry="20" fill="#fff" />
-            <ellipse cx="62" cy="34" rx="20" ry="18" fill="#fff" opacity="0.95" />
+            <ellipse cx="62" cy="34" rx="20" ry="18" fill="#fff" opacity="0.96" />
             <ellipse cx="80" cy="50" rx="14" ry="12" fill="#fff" opacity="0.9" />
-            {/* 暖粉橙光点 — 承诺 = 给你留一点温度 */}
-            <circle cx="65" cy="18" r="3" fill="var(--warm-coral)" opacity="0.7" />
+            {/* 暖光点 — 露珠般的暖 */}
+            <circle cx="65" cy="18" r="3" fill="var(--warm-coral)" opacity="0.85" />
+            <circle cx="65" cy="18" r="6" fill="var(--warm-coral)" opacity="0.2" />
           </svg>
         </div>
 

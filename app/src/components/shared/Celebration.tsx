@@ -196,14 +196,17 @@ export function Celebration({ onComplete }: CelebrationProps) {
 
   // 云朵联动：把一只"领飞"云固定在稍偏左上（屏幕中心相对位置），让它在 0ms 弹一下
   // 位置：dx = -40, dy = -60 —— 距离中心 72px，避开完全中心位置（让"+"更醒目）
+  // 关键：云朵大小按 streak 累积缩放，让"我养出来的"有时间累积感
+  //   streak=1: 44px、streak=7: 56px、streak=30: 72px、streak=100: 96px
+  const growth = Math.min(2, 1 + Math.log10(Math.max(1, streak)) * 0.7);
   const leadCloud = {
     dx: -40,
     dy: -60,
     delay: 0,
     duration: 700,
     color: 'var(--mint-cloud-light)',
-    width: 44,
-    height: 26,
+    width: Math.round(44 * growth),
+    height: Math.round(26 * growth),
     variant: 0,
   };
 

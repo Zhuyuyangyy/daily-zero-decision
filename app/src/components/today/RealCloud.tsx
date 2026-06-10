@@ -31,6 +31,12 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
     }
   }, [color]);
 
+  // 阴影/光感增强
+  const puffStyle = {
+    borderRadius: '50%',
+    transition: 'all 0.3s ease-out'
+  };
+
   return (
     <div
       style={{
@@ -39,20 +45,32 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
         position: 'relative',
         cursor: 'pointer',
         transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        // 整个云团的柔光投影
+        filter: 'drop-shadow(0 4px 8px rgba(121, 98, 82, 0.15))',
       }}
     >
+      {/* 金边光感 — 早晨阳光从左上角打过来 */}
+      <div style={{
+        position: 'absolute',
+        inset: '15% 20% 30% 25%',
+        background: 'rgba(255, 245, 220, 0.45)',
+        borderRadius: '50%',
+        filter: 'blur(8px)',
+        zIndex: 0
+      }} />
+
       {/* 基础云体 4-6 个圆团 */}
-      <div style={{ position: 'absolute', bottom: '15%', left: '10%', width: '30%', height: '45%', background: `radial-gradient(${colors.main}, ${colors.shadow})`, borderRadius: '50%' }} />
-      <div style={{ position: 'absolute', bottom: '20%', left: '25%', width: '35%', height: '55%', background: `radial-gradient(${colors.main}, ${colors.shadow})`, borderRadius: '50%', zIndex: 2 }} />
-      <div style={{ position: 'absolute', bottom: '15%', right: '15%', width: '28%', height: '40%', background: `radial-gradient(${colors.main}, ${colors.shadow})`, borderRadius: '50%', zIndex: 1 }} />
-      <div style={{ position: 'absolute', bottom: '0', left: '5%', right: '5%', height: '35%', background: `radial-gradient(ellipse, ${colors.main}, ${colors.shadow})`, borderRadius: '50%' }} />
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', left: '10%', width: '30%', height: '45%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(121, 98, 82, 0.08)` }} />
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '20%', left: '25%', width: '35%', height: '55%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(121, 98, 82, 0.08)`, zIndex: 2 }} />
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', right: '15%', width: '28%', height: '40%', background: `radial-gradient(ellipse at 70% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(121, 98, 82, 0.08)`, zIndex: 1 }} />
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '0', left: '5%', right: '5%', height: '35%', background: `radial-gradient(ellipse, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(121, 98, 82, 0.08)` }} />
 
       {/* 高光层 */}
       <div style={{
         position: 'absolute',
         top: '10%', left: '20%',
         width: '40%', height: '30%',
-        background: 'rgba(255,255,255,0.8)',
+        background: 'rgba(255,255,255,0.85)',
         borderRadius: '50%',
         filter: 'blur(4px)',
         opacity: 0.8,

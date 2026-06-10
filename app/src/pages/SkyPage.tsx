@@ -47,6 +47,26 @@ const TYPE_NAME: Record<string, string> = {
   reading: '阅读云', exercise: '散步云', coding: '编码云', other: '日常云',
 };
 
+// 与 Cloud 组件 CLOUD_PALETTE 同步 — 列表行用色条点出"我养了什么云"
+const TYPE_TAG_BG: Record<string, string> = {
+  reading: 'rgba(168, 216, 181, 0.30)',   // 薄荷绿
+  exercise: 'rgba(255, 170, 130, 0.35)',  // 暖珊瑚
+  coding: 'rgba(168, 176, 204, 0.35)',    // 浅蓝紫
+  other: 'rgba(255, 235, 215, 0.45)',     // 暖奶白
+};
+const TYPE_TAG_BORDER: Record<string, string> = {
+  reading: 'rgba(111, 190, 140, 0.45)',
+  exercise: 'rgba(244, 122, 91, 0.55)',
+  coding: 'rgba(120, 136, 181, 0.50)',
+  other: 'rgba(240, 185, 127, 0.50)',
+};
+const TYPE_TAG_TEXT: Record<string, string> = {
+  reading: '#2F6B45',
+  exercise: '#A14530',
+  coding: '#3E4866',
+  other: '#8B5E3C',
+};
+
 /**
  * 我的天空 — Round 5 奖励页
  * 答的是"我坚持后得到了什么"
@@ -294,7 +314,23 @@ export default function SkyPage({
                           display: 'block',
                         }}
                       >
-                        {TYPE_NAME[first.type] || '日常云'} · {first.title}
+                        {/* 类型色条小标签 — 让"我养了什么云"一眼能看见 */}
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            background: TYPE_TAG_BG[first.type] || TYPE_TAG_BG.other,
+                            border: `1px solid ${TYPE_TAG_BORDER[first.type] || TYPE_TAG_BORDER.other}`,
+                            color: TYPE_TAG_TEXT[first.type] || TYPE_TAG_TEXT.other,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            marginRight: 6,
+                          }}
+                        >
+                          {TYPE_NAME[first.type] || '日常云'}
+                        </span>
+                        {first.title}
                       </span>
                     </span>
                     <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>›</span>

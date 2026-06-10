@@ -1,99 +1,18 @@
-# 养一片自己的天空 · 每日零决策卡
+# 每日零决策卡 · 养一片自己的天空 ☁️
 
-> **每天不知道从哪开始？**
-> 把想坚持的事，变成今天能完成的一小步。
-> 完成这一小步，你的天空就多一朵云。
+> **治愈不焦虑的打卡。你在养天空，天空不会 PUA 你。**
 
-一个**最小行动**打卡 App。不是 Todo，不是番茄钟，也不是习惯追踪器。
-它每天帮你把想坚持的事，压成一张小到不会抗拒的行动卡。
-完成这一小步，你的天空就多一朵云。漏一天也没关系，云不会骂你，明天回来就好。
+一个每日零决策打卡习惯应用。不是"坚持 X 天"的冷数字，是一片你亲手养出来的、独一无二的天空。每坚持一天，天空里多一朵属于你的云。
 
-## 核心闭环
+## 功能特性
 
-```
-我想坚持一件事
-   ↓
-它帮我变成今天最小的一步
-   ↓
-我完成
-   ↓
-天空多一朵云
-```
-
-## 功能
-
-- **今日卡** — 把想坚持的事变成最小行动（首次进入一屏激活）
-- **我的天空** — 完成后长出一朵云；漂浮云朵画布，点击看当天任务
-- **回顾** — 用自然语言看见自己慢慢坚持（不再罗列数字）
-- **设置** — 字体偏好、数据导入导出、重置数据
-
-## 仓库结构
-
-这是一个 monorepo。每个子目录都是独立项目（自带 git 仓库）。
-本项目位于 `app/` 子目录：
-
-```
-.
-├── README.md                 # 你正在看（项目门面）
-├── SPEC.md                   # 详细规格文档
-├── .gitignore                # 忽略所有 sibling 项目
-└── app/                      # 本项目
-    ├── README.md             # app 内的开发者文档
-    ├── package.json
-    ├── vite.config.ts
-    ├── tailwind.config.js
-    ├── tsconfig.json
-    ├── src/
-    │   ├── App.tsx          # 应用壳 + Tab 路由
-    │   ├── main.tsx         # 入口
-    │   ├── types.ts         # TypeScript 类型
-    │   ├── index.css        # 全局样式
-    │   ├── pages/           # 4 个页面（TodayPage / SkyPage / StatsPage / SettingsPage）
-    │   ├── components/      # 按功能分组
-    │   │   ├── ui/          # 5 个基础组件（SoftButton/PillChip/CloudCard/FloatingInput/PageShell）
-    │   │   ├── task/        # 任务组件
-    │   │   ├── sky/         # 天空视觉
-    │   │   ├── stats/       # 统计
-    │   │   ├── search/      # 搜索
-    │   │   └── shared/      # 共享
-    │   ├── hooks/           # 5 个自定义 hooks
-    │   ├── utils/           # 工具函数
-    │   └── theme/           # 设计系统 tokens
-    └── public/
-```
-
-## 快速开始
-
-### 环境要求
-
-- Node.js 18+
-- npm 或 yarn
-
-### 安装与运行
-
-```bash
-cd app
-npm install
-npm run dev          # http://localhost:5173
-```
-
-### 测试
-
-```bash
-npm test             # 运行所有测试
-npm run test:watch   # 监听模式
-```
-
-### 构建
-
-```bash
-npm run build        # → app/dist/
-```
-
-## 详细文档
-
-- **app/README.md** — 开发者文档（项目结构、状态管理、组件组织、设计系统）
-- **SPEC.md** — 完整产品规格（定位、功能循环、禁止添加的功能、视觉规格）
+- **今天** — 每日任务卡片：说一句话生成零决策卡，点完成养一朵云
+- **我的天空** — 云朵花园：连续打卡让天空从晨雾变夕阳
+- **统计** — 数据洞察：连续天数、心情趋势、任务分布
+- **番茄钟** — 内置专注计时器
+- **成就系统** — 解锁里程碑徽章
+- **数据导出/导入** — JSON 备份，云朵不会丢
+- **心情记录** — 每天记录一下心情
 
 ## 核心理念
 
@@ -111,14 +30,146 @@ Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
 "这是我坚持 30 天养出来的天空"——这句话本身就是一条短视频。
 **每个人的天空都不一样**，别人会想拍自己的。
 
+## 技术栈
+
+- React 18 + TypeScript
+- Tailwind CSS + clay.css design tokens
+- Vite 5
+- 纯前端，localStorage 持久化，可静态部署
+
+## 项目结构
+
+```
+src/
+├── App.tsx                    # 应用壳 + Tab 路由
+├── main.tsx                   # 入口
+├── types.ts                   # TypeScript 类型定义
+├── index.css                  # 全局样式
+├── pages/
+│   ├── TodayPage.tsx          # 今天 Tab
+│   ├── SkyPage.tsx            # 我的天空 Tab
+│   ├── StatsPage.tsx          # 统计 Tab
+│   └── SettingsPage.tsx       # 设置 Tab
+├── components/
+│   ├── task/
+│   │   ├── CompactTaskRow.tsx # 紧凑任务行
+│   │   └── TaskHistory.tsx    # 任务历史
+│   ├── sky/
+│   │   ├── HeroSky.tsx        # 天空视觉
+│   │   ├── Cloud.tsx          # 云朵组件
+│   │   └── StreakDisplay.tsx  # 连续天数显示
+│   ├── stats/
+│   │   ├── StatsDashboard.tsx # 统计面板
+│   │   └── AchievementGrid.tsx# 成就网格
+│   ├── search/
+│   │   ├── SearchBar.tsx      # 搜索栏
+│   │   └── SearchResults.tsx  # 搜索结果
+│   └── shared/
+│       ├── TabBar.tsx         # 底部 Tab 栏
+│       ├── Onboarding.tsx     # 新手引导
+│       ├── Celebration.tsx    # 庆祝动画
+│       ├── CompletionNote.tsx # 完成备注
+│       ├── MoodWidget.tsx     # 心情选择
+│       ├── DailyQuote.tsx     # 每日金句
+│       ├── Pomodoro.tsx       # 番茄钟
+│       ├── ShareCard.tsx      # 分享卡片
+│       └── PresetManager.tsx  # 预设管理
+├── hooks/
+│   ├── useAppState.ts         # 状态 + 持久化
+│   ├── useTasks.ts            # 任务 CRUD
+│   ├── useStreak.ts           # 连续天数
+│   ├── useSearch.ts           # 搜索状态
+│   └── usePomodoro.ts         # 番茄钟
+├── utils/
+│   ├── storage.ts             # localStorage 工具
+│   ├── copy.ts                # 文案系统
+│   ├── cloudSeed.ts           # 云朵种子生成
+│   ├── achievements.ts        # 成就定义
+│   └── skyMood.ts             # 天空心情计算
+└── theme/
+    └── clay.css               # 设计系统 tokens
+```
+
+## 快速开始
+
+### 环境要求
+
+- Node.js 18+
+- npm 或 yarn
+
+### 安装
+
+```bash
+npm install
+```
+
+### 开发
+
+```bash
+npm run dev          # http://localhost:5173
+```
+
+### 测试
+
+```bash
+npm test             # 运行所有测试
+npm run test:watch   # 监听模式
+```
+
+### 构建
+
+```bash
+npm run build        # → dist/
+```
+
+## 设计系统
+
+采用 clay.css 设计系统，包含：
+
+- **暖奶油画布** — 柔和的背景色调
+- **软圆 3D** — claymorphism 风格的圆角和阴影
+- **命名 swatch** — Matcha / Lemon / Pomegranate 等语义化颜色
+- **4-8pt 间距** — 统一的间距系统
+- **44px 触点** — 移动端友好的触摸目标
+
+详见 `src/theme/clay.css`。
+
+## 架构说明
+
+### 状态管理
+
+使用 React hooks 进行状态管理，无外部状态库：
+
+- `useAppState` — 核心状态 + localStorage 持久化
+- `useTasks` — 任务 CRUD 操作
+- `useStreak` — 连续天数派生值
+- `useSearch` — 搜索状态
+- `usePomodoro` — 番茄钟状态
+
+### 组件组织
+
+按功能模块组织组件：
+
+- **task/** — 任务相关组件
+- **sky/** — 天空视觉组件
+- **stats/** — 统计相关组件
+- **search/** — 搜索相关组件
+- **shared/** — 共享组件
+
+### 页面组件
+
+每个 Tab 对应一个页面组件：
+
+- `TodayPage` — 今天 Tab
+- `SkyPage` — 我的天空 Tab
+- `StatsPage` — 统计 Tab
+- `SettingsPage` — 设置 Tab
+
 ## 视觉特色
 
-- **主题型壳 + 任务型核**：卡片显示"📖 阅读云（壳）/ 读 2 页书（核）"
-- **奖励闭环**：完成后，天空会多一朵阅读云
 - **天空随坚持变丰盈**：晨雾 → 晨曦 → 晴空 → 暖阳 → 夕阳
 - **每朵云由日期 hash 生成**：同一日期永远同一朵云，不同日期不同
 - **8 种云的表情**：calm / smile / sleep / wink / tiny-smile / peeking / peaceful / neutral
-- **呼吸光环**：进度 0% 时大而慢，100% 时紧而金
 - **温柔文案系统**：每条文案都过"不骂你"审核
 
 ## 许可证

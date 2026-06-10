@@ -45,6 +45,16 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
         linear-gradient(180deg, var(--sky-dawn-1) 0%, var(--sky-dawn-2) 45%, var(--sky-dawn-3) 100%)
       `
     }}>
+      {/* 第四层晨光：极淡的暖黄在地平线上方 */}
+      <div style={{
+        position: 'absolute',
+        left: 0, right: 0, bottom: '15%',
+        height: '30%',
+        background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(255, 230, 180, 0.5) 0%, transparent 70%)',
+        zIndex: 0,
+        pointerEvents: 'none'
+      }} />
+
       {/* 远山轮廓 */}
       <svg
         viewBox="0 0 100 30"

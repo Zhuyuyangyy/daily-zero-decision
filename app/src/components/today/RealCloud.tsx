@@ -166,16 +166,27 @@ export default function RealCloud({
       {/* 中心层 — 让云更立体 */}
       <div style={{ ...puffStyle, position: 'absolute', bottom: '10%', left: '30%', width: '40%', height: '50%', background: `radial-gradient(ellipse at 50% 50%, ${colors.main} 0%, ${colors.shadow} 100%)`, zIndex: 3 }} />
 
-      {/* 高光层 — 更亮，更聚焦 */}
+      {/* 高光层 — 更亮，更聚焦，带点暖色 */}
       <div style={{
         position: 'absolute',
-        top: '8%', left: '20%',
-        width: '35%', height: '25%',
-        background: 'rgba(255,255,255,0.95)',
+        top: '6%', left: '18%',
+        width: '38%', height: '28%',
+        background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,1) 0%, rgba(255,240,220,0.6) 100%)',
         borderRadius: '50%',
-        filter: 'blur(3px)',
-        opacity: 0.9,
+        filter: 'blur(4px)',
+        opacity: 0.95,
         zIndex: 4
+      }} />
+
+      {/* 体积感阴影层 — 底部右侧加一个淡淡的投影 */}
+      <div style={{
+        position: 'absolute',
+        bottom: '5%', right: '10%',
+        width: '40%', height: '30%',
+        background: 'rgba(121, 98, 82, 0.12)',
+        borderRadius: '50%',
+        filter: 'blur(6px)',
+        zIndex: -1
       }} />
 
       {/* 外层 rim 光 */}

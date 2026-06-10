@@ -39,6 +39,7 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
 
   return (
     <div
+      className="clay-real-cloud"
       style={{
         width: px,
         height: px * 0.6,
@@ -46,6 +47,7 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
         cursor: 'pointer',
         transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         filter: 'drop-shadow(0 6px 12px rgba(121, 98, 82, 0.18))',
+        animation: 'real-cloud-breathe 6s ease-in-out infinite'
       }}
     >
       {/* 金边光感 — 早晨阳光从左上角打过来 */}
@@ -106,6 +108,10 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
         @keyframes breathe {
           0%, 100% { transform: scale(1); opacity: 0.7; }
           50% { transform: scale(1.08); opacity: 0.9; }
+        }
+        @keyframes real-cloud-breathe {
+          0%, 100% { transform: scale(1) translateY(0); }
+          50% { transform: scale(1.015) translateY(-3px); }
         }
       `}</style>
     </div>

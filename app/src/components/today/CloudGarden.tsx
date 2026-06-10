@@ -60,14 +60,16 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
 
       {/* 记忆云 */}
       {last7.slice(0, 5).map((day, i) => (
-        <div key={day.date} style={{
+        <div key={day.date} className="clay-cloud-drift" style={{
           position: 'absolute',
           left: `${10 + i * 15}%`,
           bottom: `${15 + i * 10}%`,
           opacity: 0.4 - i * 0.05,
           transform: `scale(${0.5 + i * 0.05})`,
           filter: 'blur(2px)',
-          zIndex: i
+          zIndex: i,
+          animationDelay: `${i * 2}s`, // 错开动画
+          animationDuration: `${10 + i * 5}s` // 不同云漂浮速度
         }}>
           <RealCloud
             size="sm"
@@ -146,6 +148,14 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
         @keyframes float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
+        }
+        @keyframes cloud-drift {
+          0%, 100% { transform: translateX(0) rotate(0); }
+          25% { transform: translateX(5px) rotate(0.5deg); }
+          75% { transform: translateX(-5px) rotate(-0.5deg); }
+        }
+        .clay-cloud-drift {
+          animation: cloud-drift 15s ease-in-out infinite alternate;
         }
       `}</style>
     </div>

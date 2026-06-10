@@ -5,9 +5,9 @@ import DailyQuote from '../components/shared/DailyQuote';
 import Pomodoro from '../components/shared/Pomodoro';
 import SkyProgress from '../components/sky/SkyProgress';
 import TodayDecisionCard from '../components/today/TodayDecisionCard';
-import EmptyCloudCard from '../components/today/EmptyCloudCard';
 import { SoftButton } from '../components/ui';
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction } from 'react';
+import CloudGarden from '../components/today/CloudGarden';
 
 interface TodayPageProps {
   state: AppState;
@@ -33,12 +33,6 @@ interface TodayPageProps {
   skyMood: import('../utils/skyMood').SkyMood;
 }
 
-/**
- * Today 页 — Round 5 重塑
- * 一、价值主张：每天不知道从哪开始？今天只做这一小步。
- * 二、唯一主角：今日最小行动卡（主题型壳 + 任务型核 + 奖励闭环）
- * 三、番茄钟降级成内联小按钮，不再独立成块
- */
 export default function TodayPage({
   state,
   today,
@@ -55,90 +49,34 @@ export default function TodayPage({
   handleDeleteTask: _handleDeleteTask,
   handleMoodSelect,
   handlePomodoroComplete,
-  handleReset: _handleReset,  // 完成态不再使用（避免"再养一朵"破坏"每日单卡"语义），保留给 App.tsx 接口兼容
+  handleReset: _handleReset,
   handleEasier,
   onNavigateToSky,
-  pomodoroExpanded: _pomodoroExpanded,
-  setPomodoroExpanded: _setPomodoroExpanded,
+  pomodoroExpanded,
+  setPomodoroExpanded,
   skyMood,
 }: TodayPageProps) {
-  void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks; void _pomodoroExpanded; void _setPomodoroExpanded;
-  const [pomodoroOpen, setPomodoroOpen] = useState(false);
+  void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks;
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
+
+  // 转换 allHistoryTasks 给 CloudGarden 用
+  const last7 = Object.entries(state.history)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .slice(0, 7)
+    .map(([date, tasks]) => ({ date, tasks }));
 
   return (
     <div
       className="clay-content clay-page"
       style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
     >
-      {/* 头部（不可滚动） */}
+      {/* 头部 */}
       <div
         className="w-full max-w-md mx-auto"
         style={{ flexShrink: 0, padding: '12px 16px 0' }}
       >
-        {/* 价值主张：3 秒内让客户知道这是干嘛的 */}
-        {todaysTasks.length === 0 ? (
-          <div style={{ marginBottom: 10, textAlign: 'center' }}>
-            <h1
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 20,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                margin: 0,
-                lineHeight: 1.3,
-              }}
-            >
-              每天不知道从哪开始？
-            </h1>
-            <p
-              style={{
-                color: 'var(--ink-light)',
-                fontSize: 12,
-                fontFamily: 'var(--font-body)',
-                lineHeight: 1.55,
-                margin: '4px 0 0',
-              }}
-            >
-              我帮你把想坚持的事，变成今天能完成的一小步。
-            </p>
-          </div>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 8,
-              padding: '0 4px',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 17,
-                fontWeight: 700,
-                color: 'var(--ink)',
-              }}
-            >
-              今日只做这一小步
-            </span>
-            <span
-              style={{
-                color: 'var(--ink-faint)',
-                fontSize: 11,
-                fontFamily: 'var(--font-body)',
-                flex: 1,
-                textAlign: 'right',
-              }}
-            >
-              ☁️ {state.streak.current} 天
-            </span>
-          </div>
-        )}
-
-        {/* SkyProgress 降级为小状态条（不在首屏占大块） */}
-        <div style={{ marginBottom: 4 }}>
+        {/* SkyProgress - 简化版天空条 */}
+        <div style={{ marginBottom: 8 }}>
           <SkyProgress
             mood={skyMood}
             completedCount={completedTasks.length}
@@ -153,92 +91,104 @@ export default function TodayPage({
           />
         </div>
 
+        {/* 价值主张头 */}
+        <div style={{ marginBottom: 8, textAlign: 'center' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
+            今天，从一朵云开始
+          </h1>
+          <p style={{ color: 'var(--ink-light)', fontSize: 12, margin: '4px 0 0' }}>
+            不用想太多，先养今天这一朵。
+          </p>
+        </div>
+
+        {/* 状态 chips */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+          <div className="clay-chip">🏆 最佳 {state.streak.best}</div>
+          <div className="clay-chip">☁️ 累计 {state.log.length}</div>
+        </div>
+
+        {/* CloudGarden - 云朵花园主视觉 */}
+        <CloudGarden
+          today={currentTask}
+          last7={last7}
+          onTodayComplete={currentTask && !currentTask.completedAt ? () => handleCompleteTask(currentTask.id) : handleEasier}
+          mood={currentTask?.completedAt ? 'celebrate' : skyMood === 'golden' ? 'happy' : 'calm'}
+        />
+
+        {/* 今日主行动卡 */}
         {currentTask ? (
           allTodaysTasksDone ? (
-            <div className="animate-fade-up" style={{ margin: '12px 0 0' }}>
-              <div className="clay-card clay-card--celebrate" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🎉</div>
-                <h2
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: 'var(--ink)',
-                    margin: '0 0 6px',
-                  }}
-                >
-                  {copy.completed(state.streak.current)}
-                </h2>
-                <p style={{ fontSize: 13, color: 'var(--ink-light)', margin: '0 0 16px' }}>
-                  今天的云长出来了 ☁️
-                </p>
-                <p style={{ fontSize: 12, color: 'var(--ink-light)', margin: '0 0 16px', lineHeight: 1.55 }}>
-                  你已经回来 {state.streak.current} 天了，
-                  天空里有 {state.log.length} 朵云。
-                  <br />
-                  明天不用多做，再回来养一朵就好。
-                </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                  <SoftButton
-                    variant="mint"
-                    size="md"
-                    onClick={onNavigateToSky}
-                  >
-                    ☁️ 看看我的天空
-                  </SoftButton>
-                </div>
-              </div>
+            <div className="animate-fade-up" style={{ margin: '16px 0', textAlign: 'center' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>
+                今天的云已经养好
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--ink-light)', margin: '0 0 16px' }}>
+                你只做了一小步，但它已经留下来了。
+              </p>
+              <SoftButton variant="ghost" size="md" onClick={onNavigateToSky}>
+                去看看我的天空
+              </SoftButton>
             </div>
           ) : (
             <TodayDecisionCard
               task={currentTask}
               onComplete={() => handleCompleteTask(currentTask.id)}
               onEasier={handleEasier}
-              onStartPomodoro={() => setPomodoroOpen((p) => !p)}
+              onStartPomodoro={() => setPomodoroExpanded(p => !p)}
             />
           )
         ) : (
-          <EmptyCloudCard
-            onGrow={handleEasier}
-            onSuggest={addWithValue}
-          />
-        )}
-
-        {/* 番茄钟下拉（被点击展开时显示完整组件） */}
-        {pomodoroOpen && !allTodaysTasksDone && currentTask && (
-          <div
-            className="animate-fade-up"
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginTop: 8,
-            }}
-          >
-            <Pomodoro onComplete={handlePomodoroComplete} />
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <p style={{ fontSize: 14, color: 'var(--ink-light)', margin: '0 0 12px' }}>
+              今天不用想太多，我帮你挑一朵轻的。
+            </p>
           </div>
         )}
-        {void _pomodoroExpanded}
       </div>
 
-      {/* 弱化区（可滚动） */}
-      <div
-        className="clay-scroll-area"
-        style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}
-      >
+      {/* 弱化区 */}
+      <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}>
         <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px' }}>
-          <div style={{ opacity: 0.7 }}>
+          {/* 快捷入口 */}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+            {[
+              { label: '读一点', hint: '读 2 页书' },
+              { label: '走一走', hint: '出门走走 5 分钟' },
+              { label: '写一句', hint: '写一行日记' },
+              { label: '随便养一朵', hint: '深呼吸三次' },
+            ].map(s => (
+              <button
+                key={s.label}
+                className="clay-suggest-chip"
+                onClick={() => addWithValue(s.hint)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 番茄钟折叠入口 */}
+          <button
+            onClick={() => setPomodoroExpanded((p) => !p)}
+            className="clay-collapse"
+          >
+            <span>⏱️ 番茄钟 · {state.pomodoroSessions || 0} 次专注</span>
+            <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
+              {pomodoroExpanded ? '收起 ▲' : '展开 ▼'}
+            </span>
+          </button>
+          {pomodoroExpanded && (
+            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
+              <Pomodoro onComplete={handlePomodoroComplete} />
+            </div>
+          )}
+
+          <div style={{ opacity: 0.7, marginTop: 16 }}>
             <DailyQuote />
           </div>
 
           <div style={{ marginTop: 24, textAlign: 'center', opacity: 0.5 }}>
-            <p
-              style={{
-                color: 'var(--ink-muted)',
-                fontSize: 12,
-                fontFamily: 'var(--font-body)',
-                margin: 0,
-              }}
-            >
+            <p style={{ color: 'var(--ink-muted)', fontSize: 12, fontFamily: 'var(--font-body)', margin: 0 }}>
               {copy.footer()}
             </p>
           </div>

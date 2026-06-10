@@ -148,6 +148,20 @@ export default function TodayPage({
           </div>
         )}
 
+        {/* 心情小记 — 增强"功能感" */}
+        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {['平静', '低落', '一般', '期待', '高兴'].map((mood, i) => (
+            <button
+              key={mood}
+              className="clay-chip"
+              onClick={() => handleMoodSelect(['calm', 'low', 'okay', 'hopeful', 'happy'][i] as Mood)}
+              style={{ fontSize: 12 }}
+            >
+              {['☁️', '🌧', '🌤', '🌈', '☀️'][i]} {mood}
+            </button>
+          ))}
+        </div>
+
         {/* 今日反馈 */}
         {allTodaysTasksDone && (
           <TodayFeedbackStrip
@@ -162,19 +176,25 @@ export default function TodayPage({
       <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}>
         <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px' }}>
           {/* 快捷入口 */}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
             {[
-              { label: '读一点', hint: '读 2 页书' },
-              { label: '走一走', hint: '出门走走 5 分钟' },
-              { label: '写一句', hint: '写一行日记' },
-              { label: '随便养一朵', hint: '深呼吸三次' },
+              { label: '读一点', hint: '读 2 页书', emoji: '📖' },
+              { label: '走一走', hint: '出门走走 5 分钟', emoji: '🏃' },
+              { label: '写一句', hint: '写一行日记', emoji: '📝' },
+              { label: '随便养一朵', hint: '深呼吸三次', emoji: '✨' },
             ].map(s => (
               <button
                 key={s.label}
-                className="clay-suggest-chip"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 16px', borderRadius: 16,
+                  background: 'var(--surface-1)', border: '1px solid var(--hairline)',
+                  cursor: 'pointer', transition: 'all 0.2s ease-out'
+                }}
                 onClick={() => addWithValue(s.hint)}
               >
-                {s.label}
+                <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{s.label}</span>
               </button>
             ))}
           </div>

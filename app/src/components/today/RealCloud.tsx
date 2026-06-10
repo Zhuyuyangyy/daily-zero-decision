@@ -5,6 +5,8 @@ interface RealCloudProps {
   color?: 'mint' | 'coral' | 'lavender' | 'warm';
   state?: 'default' | 'today' | 'completed';
   mood?: 'calm' | 'happy' | 'celebrate';
+  type?: 'reading' | 'exercise' | 'coding' | 'other';
+  expression?: 'calm' | 'happy' | 'sleep' | 'wink' | 'neutral';
 }
 
 const SIZE_MAP = {
@@ -17,8 +19,16 @@ const SIZE_MAP = {
 /**
  * RealCloud — CSS 实现的"真云"
  * 用多个 div + radial-gradient + blur 模拟体积/层叠/光感
+ * 通过 type 和 expression 参数实现差异化外观
  */
-export default function RealCloud({ size = 'md', color = 'warm', state = 'default', mood = 'calm' }: RealCloudProps) {
+export default function RealCloud({
+  size = 'md',
+  color = 'warm',
+  state = 'default',
+  mood = 'calm',
+  type = 'other',
+  expression = 'calm'
+}: RealCloudProps) {
   const px = SIZE_MAP[size];
   const isCelebrate = mood === 'celebrate' || state === 'completed';
 
@@ -37,17 +47,104 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
     transition: 'all 0.3s ease-out'
   };
 
+  // 根据 type 决定云的形状
+  const typeStyles = useMemo(() => {
+    switch (type) {
+      case 'reading': // 书页云：扁平一些
+        return {
+          width: px * 1.1,
+          height: px * 0.5,
+          borderRadius: '30% 70% 60% 40% / 50% 40% 60% 50%', // 不规则边缘
+        };
+      case 'exercise': // 散步云：更圆润，像棉花
+        return {
+          width: px * 0.9,
+          height: px * 0.65,
+          borderRadius: '50% 50% 50% 50%',
+        };
+      case 'coding': // 编码云：稍微方正一点
+        return {
+          width: px,
+          height: px * 0.55,
+          borderRadius: '20% 80% 40% 60% / 50% 30% 70% 50%',
+        };
+      default: // 其他：标准圆云
+        return {
+          width: px,
+          height: px * 0.6,
+          borderRadius: '50% 50% 50% 50%',
+        };
+    }
+  }, [type, px]);
+
+  // 表情实现（通过 CSS 伪元素或绝对定位的小圆点）
+  const renderExpression = () => {
+    if (isCelebrate) return null; // 庆祝态不显示表情
+
+    const eyeStyle: React.CSSProperties = {
+      position: 'absolute',
+      width: px * 0.06,
+      height: px * 0.06,
+      borderRadius: '50%',
+      background: 'var(--ink)',
+      zIndex: 10
+    };
+
+    const mouthStyle: React.CSSProperties = {
+      position: 'absolute',
+      width: px * 0.1,
+      height: px * 0.05,
+      borderRadius: '0 0 50% 50%',
+      border: `1.5px solid var(--ink)`,
+      zIndex: 10
+    };
+
+    switch (expression) {
+      case 'happy':
+        return (
+          <>
+            <div style={{ ...eyeStyle, top: '40%', left: '35%' }} />
+            <div style={{ ...eyeStyle, top: '40%', right: '35%' }} />
+            <div style={{ ...mouthStyle, top: '55%', left: '40%', width: '20%' }} />
+          </>
+        );
+      case 'sleep':
+        return (
+          <>
+            <div style={{ ...eyeStyle, top: '40%', left: '35%', height: px * 0.02, width: px * 0.08 }} />
+            <div style={{ ...eyeStyle, top: '40%', right: '35%', height: px * 0.02, width: px * 0.08 }} />
+          </>
+        );
+      case 'wink':
+        return (
+          <>
+            <div style={{ ...eyeStyle, top: '40%', left: '35%' }} />
+            <div style={{ ...eyeStyle, top: '40%', right: '35%', height: px * 0.02, width: px * 0.08 }} />
+            <div style={{ ...mouthStyle, top: '55%', left: '40%', width: '20%' }} />
+          </>
+        );
+      default: // calm / neutral
+        return (
+          <>
+            <div style={{ ...eyeStyle, top: '40%', left: '35%' }} />
+            <div style={{ ...eyeStyle, top: '40%', right: '35%' }} />
+          </>
+        );
+    }
+  };
+
   return (
     <div
       className="clay-real-cloud"
       style={{
-        width: px,
-        height: px * 0.6,
+        width: typeStyles.width,
+        height: typeStyles.height,
         position: 'relative',
         cursor: 'pointer',
         transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         filter: 'drop-shadow(0 6px 12px rgba(121, 98, 82, 0.18))',
-        animation: 'real-cloud-breathe 6s ease-in-out infinite'
+        animation: 'real-cloud-breathe 6s ease-in-out infinite',
+        borderRadius: typeStyles.borderRadius
       }}
     >
       {/* 金边光感 — 早晨阳光从左上角打过来 */}
@@ -55,7 +152,7 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
         position: 'absolute',
         inset: '10% 15% 25% 20%',
         background: 'rgba(255, 245, 220, 0.55)',
-        borderRadius: '50%',
+        borderRadius: 'inherit',
         filter: 'blur(12px)',
         zIndex: 0
       }} />
@@ -85,7 +182,7 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
       <div style={{
         position: 'absolute',
         inset: '-5%',
-        borderRadius: '50%',
+        borderRadius: 'inherit',
         boxShadow: `0 0 20px 4px ${colors.rim}`,
         opacity: isCelebrate ? 0.8 : 0.4,
         transition: 'opacity 0.5s ease-out',
@@ -103,6 +200,9 @@ export default function RealCloud({ size = 'md', color = 'warm', state = 'defaul
           zIndex: 6
         }} />
       )}
+
+      {/* 表情 */}
+      {renderExpression()}
 
       <style>{`
         @keyframes breathe {

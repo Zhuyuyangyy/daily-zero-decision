@@ -74,6 +74,8 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
           <RealCloud
             size="sm"
             color={getCloudColor(day.tasks[0]?.type || 'other')}
+            type={day.tasks[0]?.type || 'other'}
+            expression={['happy', 'calm', 'sleep', 'wink', 'neutral'][i % 5] as any}
             state="default"
           />
         </div>

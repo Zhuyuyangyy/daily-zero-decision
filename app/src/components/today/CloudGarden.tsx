@@ -1,5 +1,7 @@
 import RealCloud from './RealCloud';
+import CloudSparkles from './CloudSparkles';
 import type { Task } from '../../types';
+import { useState, useEffect } from 'react';
 
 interface CloudGardenProps {
   today: Task | null;
@@ -12,9 +14,20 @@ interface CloudGardenProps {
  * CloudGarden — "今日云朵花园"
  * 承载"资产感"：
  * - 今日主云（中心、大、交互）
- * - 记忆云（左右两侧，淡、小、层叠）
+ * - 记忆云（左右两侧，淡、远、层叠）
  */
 export default function CloudGarden({ today, last7, onTodayComplete, mood }: CloudGardenProps) {
+  const [sparkles, setSparkles] = useState(false);
+
+  // 检测完成动作
+  useEffect(() => {
+    if (today?.completedAt) {
+      setSparkles(true);
+      const timer = setTimeout(() => setSparkles(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [today?.completedAt]);
+
   return (
     <div style={{
       position: 'relative',
@@ -49,6 +62,8 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
         position: 'relative',
         zIndex: 10,
         animation: 'float 6s ease-in-out infinite',
+        transform: today?.completedAt ? 'scale(1.05)' : 'scale(1)',
+        transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
       }}>
         <RealCloud
           size="lg"
@@ -56,6 +71,8 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
           state={today?.completedAt ? 'completed' : 'default'}
           mood={mood}
         />
+
+        <CloudSparkles active={sparkles} />
 
         {/* 如果没任务，中间显示引导 */}
         {!today && (

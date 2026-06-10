@@ -5,6 +5,7 @@ import DailyQuote from '../components/shared/DailyQuote';
 import Pomodoro from '../components/shared/Pomodoro';
 import SkyProgress from '../components/sky/SkyProgress';
 import TodayDecisionCard from '../components/today/TodayDecisionCard';
+import TodayFeedbackStrip from '../components/today/TodayFeedbackStrip';
 import { SoftButton } from '../components/ui';
 import { type Dispatch, type SetStateAction } from 'react';
 import CloudGarden from '../components/today/CloudGarden';
@@ -130,19 +131,30 @@ export default function TodayPage({
               </SoftButton>
             </div>
           ) : (
-            <TodayDecisionCard
-              task={currentTask}
-              onComplete={() => handleCompleteTask(currentTask.id)}
-              onEasier={handleEasier}
-              onStartPomodoro={() => setPomodoroExpanded(p => !p)}
-            />
+            <div className="clay-fade-up">
+              <TodayDecisionCard
+                task={currentTask}
+                onComplete={() => handleCompleteTask(currentTask.id)}
+                onEasier={handleEasier}
+                onStartPomodoro={() => setPomodoroExpanded(p => !p)}
+              />
+            </div>
           )
         ) : (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+          <div className="clay-fade-up" style={{ textAlign: 'center', padding: '16px 0' }}>
             <p style={{ fontSize: 14, color: 'var(--ink-light)', margin: '0 0 12px' }}>
               今天不用想太多，我帮你挑一朵轻的。
             </p>
           </div>
+        )}
+
+        {/* 今日反馈 */}
+        {allTodaysTasksDone && (
+          <TodayFeedbackStrip
+            completed={true}
+            streak={state.streak.current}
+            total={state.log.length}
+          />
         )}
       </div>
 

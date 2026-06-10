@@ -29,15 +29,35 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
   }, [today?.completedAt]);
 
   return (
-    <div style={{
+    <div className="clay-noise" style={{
       position: 'relative',
       height: 260,
       width: '100%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      // 早晨天空三层 radial-gradient
+      background: `
+        radial-gradient(ellipse 70% 50% at 50% 85%, rgba(255, 190, 110, 0.45) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 30% at 30% 70%, rgba(255, 215, 175, 0.40) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 25% at 70% 65%, rgba(255, 200, 165, 0.35) 0%, transparent 60%),
+        linear-gradient(180deg, var(--sky-dawn-1) 0%, var(--sky-dawn-2) 45%, var(--sky-dawn-3) 100%)
+      `
     }}>
+      {/* 远山轮廓 */}
+      <svg
+        viewBox="0 0 100 30"
+        preserveAspectRatio="none"
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: '25%', zIndex: 0 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M0 25 Q 15 15, 30 20 T 55 18 T 80 22 T 100 20 L 100 30 L 0 30 Z"
+          fill="rgba(180, 130, 110, 0.25)"
+        />
+      </svg>
+
       {/* 记忆云 */}
       {last7.slice(0, 5).map((day, i) => (
         <div key={day.date} style={{

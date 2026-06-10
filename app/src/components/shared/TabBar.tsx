@@ -18,7 +18,7 @@ function TabIcon({ id }: { id: TabId }) {
   switch (id) {
     case 'today':
       return (
-        <svg viewBox="0 0 24 24" width="22" height="22" viewBox-aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <g fill="currentColor">
             <ellipse cx="7"  cy="15" rx="5"  ry="4" />
             <ellipse cx="13" cy="11" rx="5.5" ry="5" />

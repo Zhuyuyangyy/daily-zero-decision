@@ -55,6 +55,15 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
         pointerEvents: 'none'
       }} />
 
+      {/* 第五层晨光：极淡的粉色在最底层，模拟大气散射 */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(180deg, rgba(255, 240, 225, 0.1) 0%, rgba(255, 230, 210, 0.2) 100%)',
+        zIndex: 0,
+        pointerEvents: 'none'
+      }} />
+
       {/* 远山轮廓 */}
       <svg
         viewBox="0 0 100 30"

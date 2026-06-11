@@ -189,13 +189,13 @@ export default function RealCloud({
         zIndex: -1
       }} />
 
-      {/* 外层 rim 光 */}
+      {/* 外层 rim 光 — 增加空气感 */}
       <div style={{
         position: 'absolute',
-        inset: '-5%',
+        inset: '-3%',
         borderRadius: 'inherit',
-        boxShadow: `0 0 20px 4px ${colors.rim}`,
-        opacity: isCelebrate ? 0.8 : 0.4,
+        boxShadow: `0 0 15px 6px rgba(255, 255, 255, 0.5), 0 0 30px 10px ${colors.rim}`,
+        opacity: isCelebrate ? 0.9 : 0.6,
         transition: 'opacity 0.5s ease-out',
         zIndex: 5
       }} />

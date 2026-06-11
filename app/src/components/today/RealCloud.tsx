@@ -157,11 +157,19 @@ export default function RealCloud({
         zIndex: 0
       }} />
 
-      {/* 基础云体 4-6 个圆团 — 更强的阴影/高光对比 */}
-      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', left: '10%', width: '30%', height: '45%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)` }} />
-      <div style={{ ...puffStyle, position: 'absolute', bottom: '20%', left: '25%', width: '35%', height: '55%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)`, zIndex: 2 }} />
-      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', right: '15%', width: '28%', height: '40%', background: `radial-gradient(ellipse at 70% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)`, zIndex: 1 }} />
-      <div style={{ ...puffStyle, position: 'absolute', bottom: '0', left: '5%', right: '5%', height: '35%', background: `radial-gradient(ellipse, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)` }} />
+      {/* 基础云体 4-6 个圆团 — 更强的阴影/高光对比 + 核心高光 */}
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', left: '10%', width: '30%', height: '45%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)` }}>
+        <div style={{ position: 'absolute', top: '20%', left: '25%', width: '30%', height: '30%', background: `radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%)`, borderRadius: '50%', filter: 'blur(2px)' }} />
+      </div>
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '20%', left: '25%', width: '35%', height: '55%', background: `radial-gradient(ellipse at 30% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)`, zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '15%', left: '30%', width: '35%', height: '35%', background: `radial-gradient(circle, rgba(255,255,255,0.7) 0%, transparent 70%)`, borderRadius: '50%', filter: 'blur(3px)' }} />
+      </div>
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '15%', right: '15%', width: '28%', height: '40%', background: `radial-gradient(ellipse at 70% 25%, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)`, zIndex: 1 }}>
+        <div style={{ position: 'absolute', top: '20%', left: '25%', width: '30%', height: '30%', background: `radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%)`, borderRadius: '50%', filter: 'blur(2px)' }} />
+      </div>
+      <div style={{ ...puffStyle, position: 'absolute', bottom: '0', left: '5%', right: '5%', height: '35%', background: `radial-gradient(ellipse, ${colors.main} 0%, ${colors.shadow} 100%)`, boxShadow: `inset 4px 4px 8px rgba(255,255,255,0.95), inset -4px -4px 8px rgba(121, 98, 82, 0.12)` }}>
+        <div style={{ position: 'absolute', top: '15%', left: '30%', width: '40%', height: '40%', background: `radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)`, borderRadius: '50%', filter: 'blur(3px)' }} />
+      </div>
 
       {/* 中心层 — 让云更立体 */}
       <div style={{ ...puffStyle, position: 'absolute', bottom: '10%', left: '30%', width: '40%', height: '50%', background: `radial-gradient(ellipse at 50% 50%, ${colors.main} 0%, ${colors.shadow} 100%)`, zIndex: 3 }} />

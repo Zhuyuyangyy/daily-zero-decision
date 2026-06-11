@@ -11,7 +11,7 @@ export default function TodayFeedbackStrip({ completed, streak, total }: TodayFe
 
   useEffect(() => {
     if (completed) {
-      const timer = setTimeout(() => setVisible(true), 400); // 等动画
+      const timer = setTimeout(() => setVisible(true), 600); // 等云朵动画和光晕结束
       return () => clearTimeout(timer);
     }
     setVisible(false);
@@ -21,21 +21,38 @@ export default function TodayFeedbackStrip({ completed, streak, total }: TodayFe
 
   return (
     <div className="clay-fade-up" style={{
-      marginTop: 16,
-      padding: '12px 16px',
-      borderRadius: 16,
-      background: 'var(--mint-cloud-light)',
-      border: '1px solid rgba(74, 181, 116, 0.2)',
+      marginTop: 20,
+      padding: '16px 20px',
+      borderRadius: 20,
+      background: 'linear-gradient(135deg, rgba(255, 240, 210, 0.8) 0%, rgba(255, 220, 130, 0.6) 100%)',
+      border: '1px solid rgba(255, 210, 100, 0.4)',
       display: 'flex',
       alignItems: 'center',
-      gap: 12
+      gap: 16,
+      boxShadow: 'inset 0 2px 6px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(200, 160, 80, 0.15)',
     }}>
-      <div style={{ fontSize: 24 }}>☁️</div>
+      {/* 图标 */}
+      <div style={{
+        width: 48,
+        height: 48,
+        borderRadius: '50%',
+        background: 'rgba(255, 255, 255, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: 'inset 0 2px 4px rgba(255, 255, 255, 0.9)',
+        fontSize: 24,
+        flexShrink: 0,
+      }}>
+        ☁️
+      </div>
+
+      {/* 文案 */}
       <div>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--mint-cloud-text)' }}>
+        <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
           {streak > 1 ? `这是你连续第 ${streak} 天留下云朵` : '今天养成了第一朵云'}
         </p>
-        <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--ink-light)' }}>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--ink-light)', lineHeight: 1.4 }}>
           天空中现在有 {total} 朵云了。
         </p>
       </div>

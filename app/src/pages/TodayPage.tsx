@@ -174,15 +174,23 @@ export default function TodayPage({
 
       {/* 弱化区 */}
       <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px', position: 'relative' }}>
-        {/* Dawn Aura — 顶部金色渐变融入天空 */}
-        <div style={{
+        {/* Dawn Aura — 顶部金色渐变融入天空（带缓慢呼吸） */}
+        <div className="clay-dawn-aura" style={{
           position: 'absolute',
-          top: 0, left: 0, right: 0,
-          height: '100px',
-          background: 'linear-gradient(180deg, rgba(255, 230, 180, 0.3) 0%, transparent 100%)',
+          top: '-20px', left: '50%', width: '120%',
+          height: '120px',
+          transform: 'translateX(-50%)',
+          background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255, 230, 180, 0.4) 0%, transparent 70%)',
           pointerEvents: 'none',
-          zIndex: 0
+          zIndex: 0,
+          animation: 'dawn-aura-breathe 10s ease-in-out infinite'
         }} />
+        <style>{`
+          @keyframes dawn-aura-breathe {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; }
+            50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+          }
+        `}</style>
         <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px', position: 'relative', zIndex: 1 }}>
           {/* 快捷入口 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>

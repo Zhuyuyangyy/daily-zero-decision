@@ -173,8 +173,17 @@ export default function TodayPage({
       </div>
 
       {/* 弱化区 */}
-      <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}>
-        <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px' }}>
+      <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px', position: 'relative' }}>
+        {/* Dawn Aura — 顶部金色渐变融入天空 */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: '100px',
+          background: 'linear-gradient(180deg, rgba(255, 230, 180, 0.3) 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
+        <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px', position: 'relative', zIndex: 1 }}>
           {/* 快捷入口 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
             {[

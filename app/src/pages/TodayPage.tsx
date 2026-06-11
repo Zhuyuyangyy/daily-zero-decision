@@ -93,7 +93,7 @@ export default function TodayPage({
         </div>
 
         {/* 价值主张头 */}
-        <div style={{ marginBottom: 8, textAlign: 'center' }}>
+        <div className="clay-fade-up" style={{ marginBottom: 8, textAlign: 'center' }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
             今天，从一朵云开始
           </h1>
@@ -185,6 +185,7 @@ export default function TodayPage({
             ].map(s => (
               <button
                 key={s.label}
+                className="clay-quick-suggest"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 16px', borderRadius: 16,

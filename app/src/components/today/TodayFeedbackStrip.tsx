@@ -31,19 +31,22 @@ export default function TodayFeedbackStrip({ completed, streak, total }: TodayFe
       gap: 16,
       boxShadow: 'inset 0 2px 6px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(200, 160, 80, 0.15)',
     }}>
-      {/* 图标 */}
-      <div style={{
-        width: 48,
-        height: 48,
-        borderRadius: '50%',
-        background: 'rgba(255, 255, 255, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: 'inset 0 2px 4px rgba(255, 255, 255, 0.9)',
-        fontSize: 24,
-        flexShrink: 0,
-      }}>
+      {/* 图标 — 带缓慢呼吸 */}
+      <div
+        className="clay-feedback-cloud-breathe"
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: 'inset 0 2px 4px rgba(255, 255, 255, 0.9)',
+          fontSize: 24,
+          flexShrink: 0,
+        }}
+      >
         ☁️
       </div>
 
@@ -56,6 +59,16 @@ export default function TodayFeedbackStrip({ completed, streak, total }: TodayFe
           天空中现在有 {total} 朵云了。
         </p>
       </div>
+
+      <style>{`
+        .clay-feedback-cloud-breathe {
+          animation: feedback-cloud-breathe 4s ease-in-out infinite;
+        }
+        @keyframes feedback-cloud-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      `}</style>
     </div>
   );
 }

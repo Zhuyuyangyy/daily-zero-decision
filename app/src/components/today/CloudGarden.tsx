@@ -37,8 +37,9 @@ export default function CloudGarden({ today, last7, onTodayComplete, mood }: Clo
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-      // 早晨天空三层 radial-gradient
+      // 早晨天空四层 radial-gradient (加了太阳光晕)
       background: `
+        radial-gradient(ellipse 40% 30% at 50% 10%, rgba(255, 245, 220, 0.6) 0%, transparent 70%),
         radial-gradient(ellipse 70% 50% at 50% 85%, rgba(255, 190, 110, 0.45) 0%, transparent 70%),
         radial-gradient(ellipse 60% 30% at 30% 70%, rgba(255, 215, 175, 0.40) 0%, transparent 60%),
         radial-gradient(ellipse 50% 25% at 70% 65%, rgba(255, 200, 165, 0.35) 0%, transparent 60%),

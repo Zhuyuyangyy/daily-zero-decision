@@ -1,0 +1,63 @@
+# SkillHub 提交文案
+
+## 作品名称
+
+official-document-assistant
+
+> 必须与 `SKILL.md` frontmatter 中的 `name` 完全一致。
+
+## 80 字简介
+
+面向政务、办公室和学生组织的公文材料助手，支持通知、请示、函、会议纪要的格式审查、模板起草、风险评分和督办事项提取。
+
+## 作品详情
+
+official-document-assistant 是一个面向政务公文智能处理场景的轻量 Skill，聚焦基层办公中高频出现的正式材料起草、格式检查和会议督办问题。
+
+它支持三类核心能力：
+
+1. 公文格式审查：识别通知、请示、报告、函、会议纪要等文种，检查标题、主送机关、落款单位、落款日期、日期格式、附件说明、正式语气和强制性表述依据。
+2. 公文模板起草：根据 JSON 或一句话需求生成通知、请示、函、会议纪要等可编辑草稿，保留日期、地点等必要占位，避免编造未提供的信息。
+3. 会议督办提取：从会议纪要和工作材料中提取责任方、截止时间和事项描述，帮助用户把会议要求转化为可跟踪清单。
+
+作品采用纯 Python 标准库实现，无第三方依赖，便于部署和复用。输出支持 Markdown 与 JSON 两种格式，既适合用户直接阅读，也方便后续系统编排。v0.2 已补充多文种示例、异常输入兜底和自动化测试，覆盖空输入、短文本、坏 JSON、控制字符、自然语言起草、个人敏感信息、涉密材料提示和本地脱敏预览等情况，目标是在复杂政务办公场景下稳定运行。
+
+## 推荐标签
+
+政务公文、公文起草、公文审查、会议纪要、督办提取、行政办公、学生会材料、格式检查
+
+## 封面/展示标题
+
+公文格式检查与材料起草助手
+
+## 展示副标题
+
+通知、请示、函、会议纪要，一次完成模板起草、格式体检和督办提取。
+
+## 上传页面填写提示
+
+- 作品名称：填 `official-document-assistant`
+- 上传文件：选择 `D:\ZYY Project\_contest\official-document-assistant-v0.2.zip`
+- 作品简介：复制“80 字简介”
+- 作品详情：复制“作品详情”
+- 标签：优先选政务、公文、办公、会议纪要、效率工具相关标签
+- 发布链接：https://skill.xfyun.cn/space/global/official-document-assistant?returnTo=%2Fdashboard%2Fskills
+
+## 已发布链接
+
+https://skill.xfyun.cn/space/global/official-document-assistant?returnTo=%2Fdashboard%2Fskills
+
+## 提交前检查清单
+
+- 已从赛事页面进入提交入口，不是直接去 SkillHub 单独上传
+- ZIP 根目录存在 `SKILL.md`
+- 上传作品名称与 `SKILL.md` 的 `name` 一致
+- ZIP 体积小于 100 MB，单文件小于 10 MB
+- 文本文件为 UTF-8，无 NUL 字节
+- README 能说明用途、运行方式和示例
+- 上传后进入“我的技能”查看审核进度
+
+
+## ?????
+
+https://skill.xfyun.cn/space/global/official-document-assistant?returnTo=%2Fdashboard%2Fskills

@@ -8,7 +8,9 @@ import TodayFeedbackStrip from '../components/today/TodayFeedbackStrip';
 import { SoftButton } from '../components/ui';
 import { type Dispatch, type SetStateAction } from 'react';
 import CloudGarden from '../components/today/CloudGarden';
-import { SkyScene, SkyHeaderContent, SkyProgressMini } from '../components/sky/SkyScene';
+import { SkyScene } from '../components/sky/SkyScene';
+import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
+import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
 
 interface TodayPageProps {

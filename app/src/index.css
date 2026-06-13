@@ -1,3 +1,22 @@
+/* === Round 6 M1: reduced-motion 兜底 (M1 强制位置) === */
+@media (prefers-reduced-motion: reduce) {
+  .sky-bird,
+  .sky-balloon,
+  .sky-cloud-drift,
+  .sky-sparkle,
+  .sky-atmosphere,
+  .clay-cloud-drift,
+  .dawn-aura-breathe,
+  .cloud-drift,
+  .float,
+  .sky-breathe {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* === 以下为原 index.css 内容 === */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

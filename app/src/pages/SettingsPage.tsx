@@ -55,6 +55,22 @@ export default function SettingsPage({
           设置
         </h1>
 
+        <section style={{ padding: '16px', margin: '0 0 16px', background: 'rgba(255, 230, 180, 0.3)', borderRadius: 16, border: '1px solid rgba(255, 200, 100, 0.4)' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 8px', color: 'var(--ink)' }}>
+            🎉 v0.1.0 更新
+          </h2>
+          <ul style={{ fontSize: 13, color: 'var(--ink-light)', margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
+            <li>首屏重塑："今天只做这一小步"</li>
+            <li>每日只生成 1 张卡（最多）</li>
+            <li>新增 SkyScene 天空场景</li>
+            <li>完成后只显示"去看看我的天空 / 明天再来"</li>
+            <li>支持 reduced-motion 减少动画</li>
+          </ul>
+          <p style={{ fontSize: 11, color: 'var(--ink-faint)', margin: '8px 0 0' }}>
+            详见 <code>app/CHANGELOG.md</code>
+          </p>
+        </section>
+
         {/* 字体偏好 */}
         <section className="clay-settings-section">
           <h2 className="clay-settings-section__title">字体偏好</h2>

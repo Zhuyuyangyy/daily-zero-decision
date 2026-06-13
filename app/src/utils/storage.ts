@@ -39,7 +39,35 @@ export function loadState(): AppState {
     if (!parsed.settings.customPresets) parsed.settings.customPresets = [];
     if (!parsed.moods) parsed.moods = {};
     if (parsed.pomodoroSessions == null) parsed.pomodoroSessions = 0;
+    // H9: onboarded 三态兼容 — 显式 true / false 保留，缺失走 defaultState.onboarded
     if (parsed.onboarded == null) parsed.onboarded = false;
+
+    // H8: 老用户 backfill — 同步 importState 行为
+    const backfillType = (task: any) => {
+      if (!task || task.type !== 'other') return task;
+      const lower = (task.title || '').toLowerCase();
+      if (lower.includes('书') || lower.includes('读') || lower.includes('页') || lower.includes('新词') || lower.includes('单词')) {
+        return { ...task, type: 'reading' };
+      }
+      if (lower.includes('走') || lower.includes('跑') || lower.includes('运动') || lower.includes('健身') || lower.includes('瑜伽')) {
+        return { ...task, type: 'exercise' };
+      }
+      if (lower.includes('代码') || lower.includes('编程')) {
+        return { ...task, type: 'coding' };
+      }
+      return task;
+    };
+    if (Array.isArray(parsed.tasks)) {
+      parsed.tasks = parsed.tasks.map(backfillType);
+    }
+    if (parsed.history && typeof parsed.history === 'object') {
+      for (const [date, tasks] of Object.entries(parsed.history)) {
+        if (Array.isArray(tasks)) {
+          (parsed.history as any)[date] = (tasks as any[]).map(backfillType);
+        }
+      }
+    }
+
     return { ...defaultState, ...parsed };
   } catch {
     return defaultState;

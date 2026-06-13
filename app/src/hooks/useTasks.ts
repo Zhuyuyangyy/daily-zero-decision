@@ -189,10 +189,20 @@ export function useTasks(
     };
 
     setState((prev) => {
-      const todayIncomplete = prev.tasks.find(
-        (t) => t.createdAt === today && !t.completedAt
-      );
-      if (!todayIncomplete) {
+      const allTodays = prev.tasks.filter((t) => t.createdAt === today);
+      const todaysCount = allTodays.length;
+      const hasIncomplete = allTodays.some((t) => !t.completedAt);
+
+      if (todaysCount > 1) {
+        console.warn(`[handleEasier] tasks 数组今日项数 (${todaysCount}) 超过 MAX`);
+        return prev;
+      }
+
+      if (todaysCount === 1 && !hasIncomplete) {
+        return prev;
+      }
+
+      if (todaysCount === 0) {
         const seed = prev.tasks.length;
         const tpl = LIGHT_TEMPLATES[seed % LIGHT_TEMPLATES.length];
         const newTask: Task = {
@@ -210,10 +220,11 @@ export function useTasks(
         };
         return { ...prev, tasks: [...prev.tasks, newTask] };
       }
+
       return {
         ...prev,
         tasks: prev.tasks.map((t) => {
-          if (t.id !== todayIncomplete.id) return t;
+          if (t.completedAt) return t;
           const minMatch = t.time?.match(/(\d+)/);
           const newMinutes = minMatch ? halved(parseInt(minMatch[1], 10)) : 5;
           const newPages = t.pagesPerSession ? halved(t.pagesPerSession) : undefined;
@@ -239,6 +250,18 @@ export function useTasks(
 
   const handleOnboardingFinish = useCallback(() => {
     setState((prev) => ({ ...prev, onboarded: true }));
+    setTimeout(() => {
+      try {
+        const stored = localStorage.getItem('daily-zero-decision');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          parsed.onboarded = true;
+          localStorage.setItem('daily-zero-decision', JSON.stringify(parsed));
+        }
+      } catch (e) {
+        console.warn('[handleOnboardingFinish] failed to save', e);
+      }
+    }, 0);
   }, [setState]);
 
   const handlePomodoroComplete = useCallback((sessionType: 'focus' | 'shortBreak' | 'longBreak') => {

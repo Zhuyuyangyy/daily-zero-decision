@@ -71,18 +71,49 @@ export function importState(json: string): AppState | null {
     if (!Array.isArray(parsed.log)) return null;
     if (!parsed.streak || typeof parsed.streak.current !== 'number') return null;
 
+    // H9: onboarded 三态规则
+    let onboarded: boolean;
+    if (parsed.onboarded === true) onboarded = true;
+    else if (parsed.onboarded === false) onboarded = false;
+    else onboarded = defaultState.onboarded;
+
+    // H8: 老用户 backfill
+    const backfillType = (task: any) => {
+      if (!task || task.type !== 'other') return task;
+      const lower = (task.title || '').toLowerCase();
+      if (lower.includes('书') || lower.includes('读') || lower.includes('页') || lower.includes('新词') || lower.includes('单词')) {
+        return { ...task, type: 'reading' as const };
+      }
+      if (lower.includes('走') || lower.includes('跑') || lower.includes('运动') || lower.includes('健身') || lower.includes('瑜伽')) {
+        return { ...task, type: 'exercise' as const };
+      }
+      if (lower.includes('代码') || lower.includes('编程')) {
+        return { ...task, type: 'coding' as const };
+      }
+      return task;
+    };
+
+    const history: Record<string, Task[]> = {};
+    if (parsed.history && typeof parsed.history === 'object') {
+      for (const [date, tasks] of Object.entries(parsed.history)) {
+        history[date] = Array.isArray(tasks) ? (tasks as any[]).map(backfillType) : [];
+      }
+    }
+    const tasks = Array.isArray(parsed.tasks) ? (parsed.tasks as any[]).map(backfillType) : [];
+
     return {
       ...defaultState,
       ...parsed,
+      tasks,
       settings: {
         ...defaultState.settings,
         ...(parsed.settings || {}),
       },
       achievements: parsed.achievements || [],
-      history: parsed.history || {},
+      history,
       moods: parsed.moods || {},
       pomodoroSessions: parsed.pomodoroSessions ?? 0,
-      onboarded: parsed.onboarded ?? true,
+      onboarded,
     };
   } catch {
     return null;
@@ -194,12 +225,31 @@ export function parseTaskFromInput(input: string): Partial<Task> {
     type = 'exercise';
   }
 
+  // === Round 6 H2: time 推算（不修改 Partial<Task> 返回类型）===
+  // 优先级: minuteMatch > 背单词特例 > pagesPerSession 推算 > 深呼吸特例 > type 默认
+  let finalTime: string;
+  if (minuteMatch) {
+    finalTime = `${Number(minuteMatch[1])} 分钟`;
+  } else if (lower.includes('新词') || lower.includes('背词') || lower.includes('单词')) {
+    // 背单词特例：绕过 pagesPerSession 推算
+    finalTime = '5 分钟';
+  } else if (lower.includes('深呼吸')) {
+    finalTime = '1 分钟';
+  } else if (type === 'reading' || type === 'exercise' || type === 'coding') {
+    finalTime = pagesPerSession && pagesPerSession <= 2 ? '5 分钟'
+         : pagesPerSession && pagesPerSession <= 10 ? '15 分钟'
+         : '30 分钟';
+  } else {
+    // type === 'other' 且无 minute / 关键词特例
+    finalTime = '3 分钟';
+  }
+
   return {
     type,
     bookName: bookName || undefined,
     pagesPerSession,
     startPage,
-    time,
+    time: finalTime,
   };
 }
 

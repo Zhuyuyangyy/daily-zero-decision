@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Celebration } from './components/shared/Celebration';
 import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
@@ -28,6 +28,16 @@ export default function App() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('today');
+  const [showChangelogOverlay, setShowChangelogOverlay] = useState(false);
+
+  useEffect(() => {
+    if (state.onboarded && state.log.length > 0) {
+      const shown = localStorage.getItem('daily-zero-decision:lastShownChangelog');
+      if (shown !== 'v0.1.0') {
+        setShowChangelogOverlay(true);
+      }
+    }
+  }, [state.onboarded, state.log.length]);
 
   // Celebration handler
   const handleCelebrationComplete = useCallback(() => {
@@ -226,6 +236,51 @@ export default function App() {
           font={font}
           onFontChange={setFont}
         />
+      )}
+
+      {/* Changelog overlay (v0.1.0 one-time) */}
+      {showChangelogOverlay && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.4)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}
+          onClick={() => {
+            localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
+            setShowChangelogOverlay(false);
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--surface-1, white)', borderRadius: 24, padding: 32,
+              maxWidth: 360, width: '100%', textAlign: 'center',
+            }}
+          >
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--ink)' }}>
+              🎉 v0.1.0 上线了
+            </h2>
+            <p style={{ fontSize: 14, color: 'var(--ink-light)', margin: '0 0 16px', lineHeight: 1.6 }}>
+              首屏换成"今天只做这一小步"了。
+              <br />
+              每天只生成一张卡，完成后去看看天空。
+            </p>
+            <button
+              onClick={() => {
+                localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
+                setShowChangelogOverlay(false);
+              }}
+              style={{
+                padding: '10px 24px', borderRadius: 16, border: 'none',
+                background: 'var(--mint-cloud-cta, #4AB574)', color: 'white',
+                fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              开始
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Bottom Tab Bar */}

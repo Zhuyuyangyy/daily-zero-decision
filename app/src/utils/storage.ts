@@ -218,16 +218,12 @@ export function parseTaskFromInput(input: string): Partial<Task> {
   let bookName = '';
   let pagesPerSession = 10;
   let startPage = 0;
-  let time: string | undefined;
 
   // 1) 抽取"X 页"和"X 分钟"这种量化指标
   const pageMatch = input.match(/(\d+)\s*页/);
   if (pageMatch) pagesPerSession = Number(pageMatch[1]);
 
   const minuteMatch = input.match(/(\d+)\s*(分钟|min)/i);
-  if (minuteMatch) {
-    time = `${Number(minuteMatch[1])} 分钟`;
-  }
 
   // 2) 主题归类（顺序：先看更具体的"散步/新词"，再回退到原关键词）
   if (lower.includes('散步') || lower.includes('走走') || lower.includes('出门走')) {

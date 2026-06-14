@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Task, AppState } from '../types';
 import { getToday, isYesterday } from '../utils/storage';
 import { skyMoodFromStreak, type SkyMood } from '../utils/skyMood';
@@ -17,6 +17,12 @@ export function useStreak(state: AppState, hasCompletedToday: boolean) {
     if (isYesterday(last)) return false;
     return true;
   }, [state.log, today]);
+
+  // 保护卡保护状态：昨天断了但有保护卡
+  const hasProtectionForYesterday = useMemo(() => {
+    if (!missedRecently) return false;
+    return state.premium.protectionCards > 0;
+  }, [missedRecently, state.premium.protectionCards]);
 
   const skyMood: SkyMood = useMemo(
     () => skyMoodFromStreak(hasCompletedToday, missedRecently, isFirstEver, state.streak.current),
@@ -43,6 +49,7 @@ export function useStreak(state: AppState, hasCompletedToday: boolean) {
 
   return {
     missedRecently,
+    hasProtectionForYesterday,
     skyMood,
     totalDays,
     hasLog,

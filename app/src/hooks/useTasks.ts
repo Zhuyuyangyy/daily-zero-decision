@@ -100,7 +100,27 @@ export function useTasks(
       );
 
       const newLog = prev.log.includes(today) ? prev.log : [...prev.log, today];
-      const newStreak = calculateStreak(newLog);
+
+      // 天空投资保护卡逻辑
+      // 如果昨天断了但有保护卡，消耗一张卡并保留昨天的log
+      let finalLog = newLog;
+      let protectionUsed = false;
+      if (prev.log.length > 0) {
+        const lastLogDate = prev.log[prev.log.length - 1];
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        if (lastLogDate !== today && lastLogDate !== yesterdayStr) {
+          // 昨天断了
+          if (prev.premium.protectionCards > 0) {
+            // 有保护卡：保留昨天的记录（虚拟恢复），消耗一张卡
+            finalLog = [...prev.log, yesterdayStr, today];
+            protectionUsed = true;
+          }
+        }
+      }
+
+      const newStreak = calculateStreak(finalLog);
 
       const newSettings = {
         ...prev.settings,
@@ -113,14 +133,22 @@ export function useTasks(
       if (!newHistory[today]) newHistory[today] = [];
       newHistory[today] = [...newHistory[today], updatedTask];
 
-      const newState = {
+      const newState: AppState = {
         ...prev,
         tasks: updatedTasks,
-        log: newLog,
+        log: finalLog,
         streak: newStreak,
         settings: newSettings,
         history: newHistory,
       };
+
+      // 如果用了保护卡，减少一张卡
+      if (protectionUsed) {
+        newState.premium = {
+          ...prev.premium,
+          protectionCards: prev.premium.protectionCards - 1,
+        };
+      }
 
       // Check achievements
       const unlocked = checkAchievements(newState);

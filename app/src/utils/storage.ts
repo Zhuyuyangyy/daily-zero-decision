@@ -21,6 +21,10 @@ const defaultState: AppState = {
   moods: {},
   pomodoroSessions: 0,
   onboarded: false,
+  premium: {
+    protectionCards: 0,
+    subscription: null,
+  },
 };
 
 export function loadState(): AppState {
@@ -68,7 +72,11 @@ export function loadState(): AppState {
       }
     }
 
-    return { ...defaultState, ...parsed };
+    return {
+      ...defaultState,
+      ...parsed,
+      premium: parsed.premium || defaultState.premium,
+    };
   } catch {
     return defaultState;
   }
@@ -142,6 +150,7 @@ export function importState(json: string): AppState | null {
       moods: parsed.moods || {},
       pomodoroSessions: parsed.pomodoroSessions ?? 0,
       onboarded,
+      premium: parsed.premium || defaultState.premium,
     };
   } catch {
     return null;

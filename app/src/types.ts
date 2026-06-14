@@ -55,6 +55,20 @@ export interface AppState {
   moods: Record<string, string>;
   pomodoroSessions: number;
   onboarded: boolean;
+  /** Premium features */
+  premium: PremiumState;
+}
+
+export interface PremiumState {
+  protectionCards: number;  // 天空投资保护卡数量
+  subscription: Subscription | null;
+}
+
+export interface Subscription {
+  active: boolean;
+  startDate: string;
+  expiresAt: string;
+  plan: 'monthly' | 'yearly';
 }
 
 export type Mood = 'down' | 'low' | 'okay' | 'gloomy' | 'hopeful';

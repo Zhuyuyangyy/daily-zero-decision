@@ -75,7 +75,7 @@ const TYPE_TAG_TEXT: Record<string, string> = {
  * 弱化：搜索 / 历史 / 成就（用叙事化描述代替）
  */
 export default function SkyPage({
-  state: _state,
+  state,
   skyMood: _skyMood,
   totalDays: _totalDays,
   hasLog,
@@ -87,7 +87,7 @@ export default function SkyPage({
   setSearchType: _setSearchType,
   onNavigateToToday: _onNavigateToToday,
 }: SkyPageProps) {
-  void _state; void _totalDays; void _searchQuery; void _setSearchQuery; void _searchType; void _setSearchType; void _onNavigateToToday;
+  void _totalDays; void _searchQuery; void _setSearchQuery; void _searchType; void _setSearchType; void _onNavigateToToday;
   const [openedDate, setOpenedDate] = useState<string | null>(null);
 
   // 最近 7 天（含今天）
@@ -246,6 +246,63 @@ export default function SkyPage({
           </div>
         )}
 
+        {/* 安心卡保护日期显示 — 回顾里"温柔提醒" */}
+        {state.peace?.protectedDates && state.peace.protectedDates.length > 0 && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: '12px 16px',
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, rgba(209, 250, 229, 0.4), rgba(167, 243, 208, 0.3))',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 18 }}>☁️</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#047857',
+                }}
+              >
+                {state.peace.protectedDates.length === 1
+                  ? '有 1 天，天空被安心卡温柔保护了'
+                  : `有 ${state.peace.protectedDates.length} 天，天空被安心卡温柔保护了`}
+              </span>
+            </div>
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 12,
+                color: '#065f46',
+                margin: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              昨天没有长新云，但天空没有责怪你。
+              <br />
+              明天回来也没关系。
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 11,
+                color: '#6b7280',
+                margin: '8px 0 0',
+                fontStyle: 'italic',
+              }}
+            >
+              📅 被保护的日子：
+              {state.peace.protectedDates
+                .slice(-3)
+                .map((d) => d.replace(/-/g, '/'))
+                .join('、')}
+            </p>
+          </div>
+        )}
+
         {/* 最近长出的云（叙事列表） */}
         {hasLog && (
           <div style={{ marginTop: 16 }}>
@@ -265,6 +322,74 @@ export default function SkyPage({
                 const tasks = allHistoryTasks[date] ?? [];
                 const first = tasks[0];
                 if (!first) return null;
+                // 安心卡保护的日子显示"休息"标签，不显示具体任务
+                const isProtected = state.peace?.protectedDates?.includes(date) ?? false;
+                if (isProtected) {
+                  return (
+                    <div
+                      key={date}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: 14,
+                        background: 'linear-gradient(135deg, rgba(209, 250, 229, 0.2), rgba(167, 243, 208, 0.15))',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 20,
+                          width: 28,
+                          textAlign: 'center',
+                        }}
+                        aria-hidden
+                      >
+                        ☁️
+                      </span>
+                      <span style={{ flex: 1 }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-body)',
+                            fontSize: 12,
+                            color: 'var(--ink-faint)',
+                            display: 'block',
+                          }}
+                        >
+                          {date === new Date().toISOString().slice(0, 10) ? '今天' : `${date}`}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-body)',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: '#047857',
+                            display: 'block',
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              borderRadius: 999,
+                              background: 'rgba(209, 250, 229, 0.6)',
+                              border: '1px solid rgba(16, 185, 129, 0.3)',
+                              color: '#047857',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              marginRight: 6,
+                            }}
+                          >
+                            休息被保护
+                          </span>
+                          天空在等你
+                        </span>
+                      </span>
+                    </div>
+                  );
+                }
                 return (
                   <button
                     key={date}

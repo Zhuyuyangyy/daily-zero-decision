@@ -21,9 +21,11 @@ const defaultState: AppState = {
   moods: {},
   pomodoroSessions: 0,
   onboarded: false,
-  premium: {
-    protectionCards: 0,
-    subscription: null,
+  // 新用户默认2张安心卡
+  peace: {
+    cards: 2,
+    protectedDates: [],
+    lastRewardedDate: null,
   },
 };
 
@@ -75,7 +77,7 @@ export function loadState(): AppState {
     return {
       ...defaultState,
       ...parsed,
-      premium: parsed.premium || defaultState.premium,
+      peace: parsed.peace || parsed.premium || defaultState.peace,
     };
   } catch {
     return defaultState;
@@ -150,7 +152,7 @@ export function importState(json: string): AppState | null {
       moods: parsed.moods || {},
       pomodoroSessions: parsed.pomodoroSessions ?? 0,
       onboarded,
-      premium: parsed.premium || defaultState.premium,
+      peace: parsed.peace || parsed.premium || defaultState.peace,
     };
   } catch {
     return null;

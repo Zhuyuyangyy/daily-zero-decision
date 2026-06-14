@@ -1,4 +1,4 @@
-.protection-card-container {
+.peace-card-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,52 +9,52 @@
   transition: transform 0.2s, background 0.2s;
 }
 
-.protection-card-container:hover {
+.peace-card-container:hover {
   transform: scale(1.05);
   background: rgba(255, 255, 255, 0.1);
 }
 
-.protection-card {
+.peace-card {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
   border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.protection-icon {
-  color: #d97706;
+.peace-icon {
+  color: #059669;
   display: flex;
   align-items: center;
 }
 
-.protection-info {
+.peace-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.protection-count {
+.peace-count {
   font-size: 18px;
   font-weight: 700;
-  color: #92400e;
+  color: #047857;
   line-height: 1;
 }
 
-.protection-label {
+.peace-label {
   font-size: 10px;
-  color: #b45309;
+  color: #065f46;
   line-height: 1;
 }
 
-.protection-hint {
+.peace-hint {
   font-size: 11px;
-  color: #9ca3af;
+  color: #6b7280;
   text-align: center;
 }
 
-.protection-card-container:hover .protection-hint {
-  color: #6b7280;
+.peace-card-container:hover .peace-hint {
+  color: #9ca3af;
 }

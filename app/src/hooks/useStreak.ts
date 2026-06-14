@@ -18,11 +18,11 @@ export function useStreak(state: AppState, hasCompletedToday: boolean) {
     return true;
   }, [state.log, today]);
 
-  // 保护卡保护状态：昨天断了但有保护卡
+  // 安心卡保护状态：昨天断了但有安心卡
   const hasProtectionForYesterday = useMemo(() => {
     if (!missedRecently) return false;
-    return state.premium.protectionCards > 0;
-  }, [missedRecently, state.premium.protectionCards]);
+    return state.peace.cards > 0;
+  }, [missedRecently, state.peace.cards]);
 
   const skyMood: SkyMood = useMemo(
     () => skyMoodFromStreak(hasCompletedToday, missedRecently, isFirstEver, state.streak.current),

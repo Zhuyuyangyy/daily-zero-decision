@@ -101,10 +101,10 @@ export function useTasks(
 
       const newLog = prev.log.includes(today) ? prev.log : [...prev.log, today];
 
-      // 天空投资保护卡逻辑
-      // 如果昨天断了但有保护卡，消耗一张卡并保留昨天的log
-      let finalLog = newLog;
-      let protectionUsed = false;
+      // 安心卡逻辑：如果昨天断了但有安心卡，记录被保护的日子
+      // 注意：不伪造log，保持数据诚实
+      let peaceUsed = false;
+      let yesterdayWasProtected = false;
       if (prev.log.length > 0) {
         const lastLogDate = prev.log[prev.log.length - 1];
         const yesterday = new Date();
@@ -112,15 +112,15 @@ export function useTasks(
         const yesterdayStr = yesterday.toISOString().split('T')[0];
         if (lastLogDate !== today && lastLogDate !== yesterdayStr) {
           // 昨天断了
-          if (prev.premium.protectionCards > 0) {
-            // 有保护卡：保留昨天的记录（虚拟恢复），消耗一张卡
-            finalLog = [...prev.log, yesterdayStr, today];
-            protectionUsed = true;
+          if (prev.peace.cards > 0) {
+            // 有安心卡：记录被保护的日子，消耗一张卡
+            peaceUsed = true;
+            yesterdayWasProtected = true;
           }
         }
       }
 
-      const newStreak = calculateStreak(finalLog);
+      const newStreak = calculateStreak(newLog);
 
       const newSettings = {
         ...prev.settings,
@@ -136,17 +136,21 @@ export function useTasks(
       const newState: AppState = {
         ...prev,
         tasks: updatedTasks,
-        log: finalLog,
+        log: newLog,  // 不伪造log，保持诚实
         streak: newStreak,
         settings: newSettings,
         history: newHistory,
       };
 
-      // 如果用了保护卡，减少一张卡
-      if (protectionUsed) {
-        newState.premium = {
-          ...prev.premium,
-          protectionCards: prev.premium.protectionCards - 1,
+      // 如果用了安心卡，减少一张卡，并记录被保护的日子
+      if (peaceUsed) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        newState.peace = {
+          ...prev.peace,
+          cards: prev.peace.cards - 1,
+          protectedDates: [...prev.peace.protectedDates, yesterdayStr],
         };
       }
 

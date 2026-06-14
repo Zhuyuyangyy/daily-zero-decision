@@ -55,20 +55,20 @@ export interface AppState {
   moods: Record<string, string>;
   pomodoroSessions: number;
   onboarded: boolean;
-  /** Premium features */
-  premium: PremiumState;
+  /** 安心卡系统 */
+  peace: PeaceState;
 }
 
-export interface PremiumState {
-  protectionCards: number;  // 天空投资保护卡数量
-  subscription: Subscription | null;
+export interface PeaceState {
+  cards: number;  // 安心卡数量，最多2张
+  protectedDates: string[];  // 被安心卡保护的日子（不伪造log）
+  lastRewardedDate: string | null;  // 上次获得奖励的日期
 }
 
-export interface Subscription {
-  active: boolean;
-  startDate: string;
-  expiresAt: string;
-  plan: 'monthly' | 'yearly';
+/** 安心卡使用记录 */
+export interface PeaceUse {
+  date: string;
+  consumedAt: string;
 }
 
 export type Mood = 'down' | 'low' | 'okay' | 'gloomy' | 'hopeful';

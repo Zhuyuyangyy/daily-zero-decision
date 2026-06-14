@@ -13,6 +13,7 @@ const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   moods: {},
   pomodoroSessions: 0,
   onboarded: true,
+  peace: { cards: 2, protectedDates: [], lastRewardedDate: null },
   ...overrides,
 });
 

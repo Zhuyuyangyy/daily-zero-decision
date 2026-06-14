@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { AppState, Task } from '../types';
 import type { Mood } from '../components/shared/MoodWidget';
 import { copy } from '../utils/copy';
@@ -12,6 +13,8 @@ import { SkyScene } from '../components/sky/SkyScene';
 import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
 import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
+import { PeaceCard } from '../components/premium/PeaceCard';
+import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
 
 interface TodayPageProps {
   state: AppState;
@@ -67,6 +70,10 @@ export default function TodayPage({
     .sort(([a], [b]) => b.localeCompare(a))
     .slice(0, 7)
     .map(([date, tasks]) => ({ date, tasks }));
+
+  // 安心卡状态管理
+  const [showPeaceInfo, setShowPeaceInfo] = useState(false);
+  const peaceCards = state.peace?.cards ?? 0;
 
   return (
     <div
@@ -143,6 +150,10 @@ export default function TodayPage({
         <TodayFeedbackStrip completed streak={state.streak.current} total={state.log.length} />
       )}
 
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+        <PeaceCard count={peaceCards} onInfo={() => setShowPeaceInfo(true)} />
+      </div>
+
       <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}>
         <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
@@ -192,6 +203,12 @@ export default function TodayPage({
           </div>
         </div>
       </div>
+
+      <PeaceCardInfoModal
+        isOpen={showPeaceInfo}
+        onClose={() => setShowPeaceInfo(false)}
+        cards={peaceCards}
+      />
     </div>
   );
 }

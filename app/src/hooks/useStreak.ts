@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { Task, AppState } from '../types';
 import { getToday, isYesterday } from '../utils/storage';
 import { skyMoodFromStreak, type SkyMood } from '../utils/skyMood';

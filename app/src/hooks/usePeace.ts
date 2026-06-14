@@ -22,7 +22,7 @@ export function usePeace(
   state: AppState,
   setState: React.Dispatch<React.SetStateAction<AppState>>
 ): UsePeace {
-  const { cards, protectedDates, lastRewardedDate } = state.peace;
+  const { cards, protectedDates } = state.peace;
   const hasCard = cards > 0;
 
   // 消耗安心卡（断签时调用）
@@ -52,9 +52,7 @@ export function usePeace(
     if (cards >= 2) return false;  // 最多2张
 
     const today = new Date().toISOString().split('T')[0];
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+    // Note: 7-day check uses state.log.slice(-7) below; no precomputed date string needed.
 
     // 检查过去7天是否每天都回来了
     const recentDays = state.log.slice(-7);

@@ -104,7 +104,6 @@ export function useTasks(
       // 安心卡逻辑：如果昨天断了但有安心卡，记录被保护的日子
       // 注意：不伪造log，保持数据诚实
       let peaceUsed = false;
-      let yesterdayWasProtected = false;
       if (prev.log.length > 0) {
         const lastLogDate = prev.log[prev.log.length - 1];
         const yesterday = new Date();
@@ -115,7 +114,6 @@ export function useTasks(
           if (prev.peace.cards > 0) {
             // 有安心卡：记录被保护的日子，消耗一张卡
             peaceUsed = true;
-            yesterdayWasProtected = true;
           }
         }
       }

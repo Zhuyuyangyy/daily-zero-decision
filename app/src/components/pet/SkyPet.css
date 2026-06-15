@@ -57,13 +57,13 @@
   animation: none;
 }
 
-/* 4 帧切帧：每帧停留 1/4 时间，linear 让 1% 间隔瞬切 */
+/* 4 帧切帧：每帧 25% 关键帧 + step-end 在关键帧边界硬切 */
 .sky-pet__sprite--idle,
 .sky-pet__sprite--waiting,
 .sky-pet__sprite--encouraging,
 .sky-pet__sprite--celebrating,
 .sky-pet__sprite--sleeping {
-  animation: sky-pet-step-4 var(--duration, 1.6s) linear infinite;
+  animation: sky-pet-step-4 var(--duration, 1.6s) step-end infinite;
 }
 
 .sky-pet__sprite--reduced {
@@ -71,13 +71,19 @@
   transform: translateX(0) !important;
 }
 
-/* 4 帧等距停留 24%，用 1% 的瞬切模拟硬切帧 */
+/* 4 个关键帧，step-end 模式在每个关键帧边界瞬切：
+   - 0% 起点：帧1
+   - 25% 切到帧2
+   - 50% 切到帧3
+   - 75% 切到帧4
+   - 75%-100% 持续帧4（25% 时间）
+   - 100% 末自然回到 0%（从 -75% 跳到 0% = 循环 snap，无法避免）
+   - 接受这次 snap 因为它每 1.6s 一次 + 持续 25% 停留 */
 @keyframes sky-pet-step-4 {
-  0%,  24%  { transform: translateX(0); }      /* 帧1 停留 */
-  25%, 49%  { transform: translateX(-25%); }   /* 帧2 停留 */
-  50%, 74%  { transform: translateX(-50%); }   /* 帧3 停留 */
-  75%, 99%  { transform: translateX(-75%); }   /* 帧4 停留 */
-  100%      { transform: translateX(0); }      /* 1% 内回到帧1，看不见 */
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-25%); }
+  50%  { transform: translateX(-50%); }
+  75%  { transform: translateX(-75%); }
 }
 
 /* ============ 6 mood 微动效（叠加在 sprite 动画之上） ============ */

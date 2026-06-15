@@ -57,13 +57,13 @@
   animation: none;
 }
 
-/* 4 帧切帧：每帧 -25% 步进 */
+/* 4 帧切帧：每帧停留 1/4 时间，linear 让 1% 间隔瞬切 */
 .sky-pet__sprite--idle,
 .sky-pet__sprite--waiting,
 .sky-pet__sprite--encouraging,
 .sky-pet__sprite--celebrating,
 .sky-pet__sprite--sleeping {
-  animation: sky-pet-step-4 var(--duration, 1.6s) steps(4) infinite;
+  animation: sky-pet-step-4 var(--duration, 1.6s) linear infinite;
 }
 
 .sky-pet__sprite--reduced {
@@ -71,12 +71,13 @@
   transform: translateX(0) !important;
 }
 
+/* 4 帧等距停留 24%，用 1% 的瞬切模拟硬切帧 */
 @keyframes sky-pet-step-4 {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-25%); }
-  50%  { transform: translateX(-50%); }
-  75%  { transform: translateX(-75%); }
-  100% { transform: translateX(0); }
+  0%,  24%  { transform: translateX(0); }      /* 帧1 停留 */
+  25%, 49%  { transform: translateX(-25%); }   /* 帧2 停留 */
+  50%, 74%  { transform: translateX(-50%); }   /* 帧3 停留 */
+  75%, 99%  { transform: translateX(-75%); }   /* 帧4 停留 */
+  100%      { transform: translateX(0); }      /* 1% 内回到帧1，看不见 */
 }
 
 /* ============ 6 mood 微动效（叠加在 sprite 动画之上） ============ */

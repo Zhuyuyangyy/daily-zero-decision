@@ -21,35 +21,56 @@ interface SkyPetProps {
 }
 
 /**
- * 6 mood → PNG 资源映射
- *  - waiting 复用 idle（同样静坐）
- *  - celebrating 在 trusted 阶段换 stars 版（抱小云带星星）
+ * 6 mood → sprite sheet 资源
+ * - 每张 sprite 是 4 帧横排
+ * - idle: 呼吸 + 偶尔眨眼  (4 帧 × 1.6s)
+ * - waiting: 静坐          (复用 idle)
+ * - encouraging: 转头/抖耳  (4 帧 × 0.8s)
+ * - celebrating (new/familiar): 跳起/抖动  (4 帧 × 0.4s 快)
+ * - celebrating (trusted): 抱云+星星+爱    (4 帧 × 1.0s)
+ * - resting: 静态           (单图)
+ * - sleeping: 打呼          (4 帧 × 1.2s)
+ *
+ * 注意：所有 sprite sheet 都是 4 帧等宽 25% 步进切帧
  */
-const PET_IMAGES: Record<PetMood, { regular: string; trusted?: string }> = {
-  idle:         { regular: '/pet/pet-idle.png' },
-  waiting:      { regular: '/pet/pet-idle.png' },            // 复用
-  encouraging:  { regular: '/pet/pet-encouraging.png' },
-  celebrating:  { regular: '/pet/pet-celebrating.png', trusted: '/pet/pet-celebrating-stars.png' },
-  resting:      { regular: '/pet/pet-resting.png' },
-  sleeping:     { regular: '/pet/pet-sleeping.png' },
+type Sprite = { src: string; frames: number; durationSec: number };
+
+const SPRITES: Record<PetMood, Sprite> = {
+  idle:         { src: '/pet/anim-idle-breath.png',   frames: 4, durationSec: 1.6 },
+  waiting:      { src: '/pet/anim-idle-breath.png',   frames: 4, durationSec: 1.6 },
+  encouraging:  { src: '/pet/anim-encouraging.png',   frames: 4, durationSec: 0.8 },
+  celebrating:  { src: '/pet/anim-celebrating-jump.png', frames: 4, durationSec: 0.4 },
+  resting:      { src: '/pet/pet-resting.png',         frames: 1, durationSec: 0   },
+  sleeping:     { src: '/pet/anim-sleeping.png',      frames: 4, durationSec: 1.2 },
 };
 
-function pickImageSrc(mood: PetMood, affection: number): string {
-  const entry = PET_IMAGES[mood];
-  if (mood === 'celebrating' && entry.trusted && getPetStage(affection) === 'trusted') {
-    return entry.trusted;
+/**
+ * Trusted 阶段 celebrating 用更亲密的图（抱云+星星+爱眼）
+ */
+const TRUSTED_CELEBRATING: Sprite = {
+  src: '/pet/anim-celebrating-stars.png',
+  frames: 4,
+  durationSec: 1.0,
+};
+
+function pickSprite(mood: PetMood, affection: number): Sprite {
+  if (mood === 'celebrating' && getPetStage(affection) === 'trusted') {
+    return TRUSTED_CELEBRATING;
   }
-  return entry.regular;
+  return SPRITES[mood];
 }
 
 /**
- * SkyPet — 一只住在天空里的云猫
+ * SkyPet — 一只住在天空里的云猫（带 sprite 动画）
  *
- * 设计要点：
- * - 6 mood → 6 张 PNG（提供方：用户 / ChatGPT Image）
- * - idle/waiting 同一张；celebrating 在 trusted 用 stars 版
- * - 微动效：庆祝小跳、点击 bump；reduced-motion 全部禁用
- * - 呼吸 / 眨眼 / 尾巴摆 改为整体"轻微浮动"（不依赖具体身体部位，因为是位图）
+ * 工作原理：
+ * - 渲染一张 4 帧横排大图作为 <img>
+ * - CSS animation 切 `background-position` / `transform: translateX(-X%)`
+ *   + `animation-timing-function: steps(N)` 做硬切帧（不是平滑插值）
+ * - 这样就是"一帧一帧"的真实动画
+ * - 切 mood → 换 src + 重新启动动画
+ *
+ * 注：因为是 <img>，我们要用 wrapper overflow:hidden + img width: 400% 来切。
  */
 export function SkyPet({
   mood,
@@ -64,21 +85,19 @@ export function SkyPet({
   const [bump, setBump] = useState(false);
   const [bubbleOverride, setBubbleOverride] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
-  const [imgLoaded, setImgLoaded] = useState(false);
 
   // 切 mood 时清掉 override
   useEffect(() => {
     setBubbleOverride(null);
   }, [mood]);
 
-  // 受控/非受控气泡
   const activeBubble =
     bubbleText !== undefined ? bubbleText : bubbleOverride;
 
   const handleClick = () => {
     if (!onClick) return;
     setBump(true);
-    setTimeout(() => setBump(false), 800);
+    setTimeout(() => setBump(false), 600);
 
     const line = onClick();
     if (line) {
@@ -95,7 +114,9 @@ export function SkyPet({
   const reduced = !!reducedMotion;
   const isInteractive = !!onClick;
   const Tag: any = isInteractive ? 'button' : 'div';
-  const src = pickImageSrc(mood, affection);
+  const sprite = pickSprite(mood, affection);
+  const FRAMES = sprite.frames;
+  const DURATION = sprite.durationSec;
 
   return (
     <div className={`sky-pet-wrap sky-pet-wrap--${size}`}>
@@ -113,18 +134,36 @@ export function SkyPet({
           reduced ? 'sky-pet--reduced' : '',
           bump ? 'sky-pet--bump' : '',
           isInteractive ? 'sky-pet--interactive' : '',
-          imgLoaded ? 'sky-pet--loaded' : 'sky-pet--loading',
         ].filter(Boolean).join(' ')}
         onClick={isInteractive ? handleClick : undefined}
       >
-        <img
-          src={src}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          onLoad={() => setImgLoaded(true)}
-          className="sky-pet__img"
-        />
+        {/*
+          viewport: 容器 overflow:hidden，宽度 100%（一帧）
+          stage:    内部 <img> 宽度 400%（4 帧横排），animation 切 translateX
+        */}
+        <div
+          className="sky-pet__viewport"
+          style={{
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          <img
+            src={sprite.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className={[
+              'sky-pet__sprite',
+              `sky-pet__sprite--${mood}`,
+              reduced ? 'sky-pet__sprite--reduced' : '',
+            ].filter(Boolean).join(' ')}
+            style={{ '--duration': `${DURATION}s` } as React.CSSProperties}
+            data-frames={FRAMES}
+          />
+        </div>
       </Tag>
     </div>
   );

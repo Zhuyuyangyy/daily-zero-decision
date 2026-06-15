@@ -45,6 +45,7 @@ export function SkyScene({ mood, density, variant, reducedMotion: propReducedMot
       style={{
         position: 'relative',
         width: '100%',
+        minHeight: 240,
         display: 'flex',
         flexDirection: 'column',
       }}

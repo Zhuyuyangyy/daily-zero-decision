@@ -123,7 +123,7 @@ export default function TodayPage({
       className="clay-content clay-page"
       style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
     >
-      <div className="w-full max-w-md mx-auto" style={{ flexShrink: 0 }}>
+      <div className="w-full max-w-md mx-auto" style={{ flexShrink: 0, position: 'relative' }}>
         <SkyScene mood={skyMood} density="comfortable" variant="today">
           <SkyHeaderContent
             title={currentTask ? '今天只做这一小步' : '每天不知道从哪开始？'}
@@ -153,9 +153,9 @@ export default function TodayPage({
             <div
               style={{
                 position: 'absolute',
-                right: 8,
-                bottom: 24,
-                zIndex: 6,
+                left: 12,
+                bottom: 4,
+                zIndex: 30,
                 pointerEvents: 'auto',
               }}
             >

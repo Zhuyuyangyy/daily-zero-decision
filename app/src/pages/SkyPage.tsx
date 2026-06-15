@@ -133,6 +133,7 @@ export default function SkyPage({
                 size="skyline"
                 bubbleText={null}
                 reducedMotion={reducedMotion}
+                affection={state.pet.affection}
                 onClick={pet.pickGreeting}
               />
             </div>

@@ -165,6 +165,7 @@ export default function TodayPage({
                 size="mobile"
                 bubbleText={pet.petLine}
                 reducedMotion={reducedMotion}
+                affection={state.pet.affection}
                 onClick={pet.pickGreeting}
               />
             </div>

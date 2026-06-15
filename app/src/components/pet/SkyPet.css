@@ -1,6 +1,6 @@
-/* SkyPet — 天空里的云猫
+/* SkyPet — 天空里的云猫（位图版）
    三个尺寸档：mobile (72px) / desktop (88px) / skyline (110px)
-   6 个 mood + reduced-motion 降级
+   6 mood 通过切换 src 实现；这里只管"姿态"和"互动"
 */
 
 .sky-pet-wrap {
@@ -24,6 +24,28 @@
   transform-origin: center bottom;
   transition: transform 0.4s ease-out, filter 0.4s ease-out;
   filter: drop-shadow(0 4px 10px rgba(180, 130, 110, 0.18));
+  position: relative;
+}
+
+/* 占位：图片未加载完时给一个柔和圆形色块，避免 layout shift */
+.sky-pet--loading::before {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 245, 235, 0.6), rgba(220, 200, 220, 0.3));
+  filter: blur(6px);
+  z-index: -1;
+}
+
+.sky-pet__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 .sky-pet--interactive {
@@ -40,36 +62,37 @@
   transform: translateY(0);
 }
 
-/* ============ 6 个 mood 的姿态 ============ */
+/* ============ 6 个 mood 的姿态（位图版只用 CSS 姿态） ============ */
 
-.sky-pet--idle .sky-pet__tail {
-  animation: sky-pet-tail-sway 4s ease-in-out infinite;
-  transform-origin: 24px 50px;
+/* idle 静坐 → 4s 呼吸：轻微上下浮动 */
+.sky-pet--idle {
+  animation: sky-pet-float 4s ease-in-out infinite;
 }
-
 .sky-pet--waiting {
-  transform: translateX(0) rotate(0deg);
-}
-.sky-pet--waiting .sky-pet__eye--left,
-.sky-pet--waiting .sky-pet__eye--right {
-  animation: sky-pet-blink 10s ease-in-out infinite;
+  animation: sky-pet-float 4s ease-in-out infinite;
 }
 
+/* encouraging → 微微朝卡片方向（这里表现为轻微左倾） */
 .sky-pet--encouraging {
   transform: rotate(-3deg);
+  animation: sky-pet-float 4s ease-in-out infinite;
 }
 
+/* celebrating → 跳一下（一次性 0.8s），由 useTasks 触发后短暂播放 */
 .sky-pet--celebrating {
   animation: sky-pet-jump 0.8s ease-out;
 }
 
+/* resting → 整体亮度低一点 + 轻微下移（蜷起的感觉） */
 .sky-pet--resting {
   filter: drop-shadow(0 3px 8px rgba(120, 100, 150, 0.22)) brightness(0.97);
   transform: translateY(2px);
 }
 
-.sky-pet--sleeping .sky-pet__tail {
-  animation: none;
+/* sleeping → 极轻微呼吸 */
+.sky-pet--sleeping {
+  animation: sky-pet-float 6s ease-in-out infinite;
+  filter: drop-shadow(0 3px 8px rgba(120, 100, 150, 0.18)) brightness(0.96);
 }
 
 /* bump：点击瞬时反馈 */
@@ -77,16 +100,10 @@
   animation: sky-pet-bump 0.6s ease-out;
 }
 
-/* 尾巴云朵轻摆 */
-@keyframes sky-pet-tail-sway {
-  0%, 100% { transform: rotate(-3deg); }
-  50%      { transform: rotate(6deg); }
-}
-
-/* 眨眼 */
-@keyframes sky-pet-blink {
-  0%, 88%, 100% { transform: scaleY(1); }
-  92%           { transform: scaleY(0.1); }
+/* 整体轻微浮动（呼吸） */
+@keyframes sky-pet-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
 }
 
 /* 庆祝小跳 */
@@ -105,31 +122,18 @@
   100% { transform: scale(1) rotate(0deg); }
 }
 
-/* 星星粒子 fade */
-.sky-pet__sparkle {
-  animation: sky-pet-sparkle 1.2s ease-out forwards;
-  transform-origin: center;
-}
-@keyframes sky-pet-sparkle {
-  0%   { opacity: 0; transform: scale(0.5); }
-  20%  { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.2); }
-}
-
 /* ============ reduced-motion 降级 ============ */
 
 @media (prefers-reduced-motion: reduce) {
   .sky-pet,
-  .sky-pet__tail,
-  .sky-pet__eye--left,
-  .sky-pet__eye--right,
-  .sky-pet__sparkle {
-    animation: none !important;
-    transform: none !important;
-  }
+  .sky-pet--idle,
+  .sky-pet--waiting,
+  .sky-pet--encouraging,
   .sky-pet--celebrating,
+  .sky-pet--sleeping,
   .sky-pet--bump {
     animation: none !important;
+    transform: none !important;
   }
   .sky-pet--interactive:hover {
     transform: none !important;

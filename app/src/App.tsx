@@ -13,6 +13,8 @@ import { useStreak } from './hooks/useStreak';
 import { useSearch } from './hooks/useSearch';
 import { usePomodoro } from './hooks/usePomodoro';
 import { useFont } from './hooks/useFont';
+import { usePet } from './hooks/usePet';
+import { useReducedMotion } from './hooks/useReducedMotion';
 
 // Extracted pages
 import TodayPage from './pages/TodayPage';
@@ -87,6 +89,27 @@ export default function App() {
 
   // Font preference
   const { font, setFont } = useFont();
+
+  // Pet system
+  const pet = usePet(state, setState);
+  const reducedMotion = useReducedMotion();
+
+  // Mark pet met on first task creation
+  useEffect(() => {
+    if (state.tasks.length > 0 && !state.pet.firstMetAt) {
+      pet.markPetMet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tasks.length]);
+
+  // Protected yesterday?
+  const protectedYesterday = state.peace.protectedDates.includes(
+    (() => {
+      const y = new Date();
+      y.setDate(y.getDate() - 1);
+      return y.toISOString().split('T')[0];
+    })()
+  );
 
   return (
     <div
@@ -186,6 +209,9 @@ export default function App() {
           pomodoroExpanded={pomodoroExpanded}
           setPomodoroExpanded={setPomodoroExpanded}
           onNavigateToSky={() => setActiveTab('sky')}
+          pet={pet}
+          reducedMotion={reducedMotion}
+          protectedYesterday={protectedYesterday}
         />
       )}
 
@@ -205,6 +231,8 @@ export default function App() {
           searchType={searchType}
           setSearchType={setSearchType}
           onNavigateToToday={() => setActiveTab('today')}
+          pet={pet}
+          reducedMotion={reducedMotion}
         />
       )}
 
@@ -235,6 +263,7 @@ export default function App() {
           onImport={handleImportData}
           font={font}
           onFontChange={setFont}
+          pet={pet}
         />
       )}
 

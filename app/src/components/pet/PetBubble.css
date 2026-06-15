@@ -1,0 +1,49 @@
+/* PetBubble — 宠物气泡
+   圆角矩形 + 下指三角；左侧（不挡住云猫）
+*/
+
+.pet-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  background: #FFFAF1;
+  color: var(--ink, #3A2E26);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  max-width: 220px;
+  box-shadow: 0 4px 12px rgba(180, 130, 110, 0.15);
+  z-index: 20;
+  pointer-events: none;
+  animation: pet-bubble-fade 0.3s ease-out;
+}
+
+.pet-bubble__text {
+  font-family: var(--font-body, system-ui);
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.pet-bubble__tail {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: #FFFAF1;
+  box-shadow: 1px 1px 2px rgba(180, 130, 110, 0.10);
+}
+
+@keyframes pet-bubble-fade {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-bubble { animation: none; }
+}

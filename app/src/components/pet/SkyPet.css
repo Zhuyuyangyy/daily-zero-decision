@@ -1,0 +1,137 @@
+/* SkyPet — 天空里的云猫
+   三个尺寸档：mobile (72px) / desktop (88px) / skyline (110px)
+   6 个 mood + reduced-motion 降级
+*/
+
+.sky-pet-wrap {
+  position: relative;
+  display: inline-block;
+  pointer-events: auto;
+}
+
+.sky-pet-wrap--mobile  { width: 72px;  height: 72px;  }
+.sky-pet-wrap--desktop { width: 88px;  height: 88px;  }
+.sky-pet-wrap--skyline { width: 110px; height: 110px; }
+
+.sky-pet {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+  transform-origin: center bottom;
+  transition: transform 0.4s ease-out, filter 0.4s ease-out;
+  filter: drop-shadow(0 4px 10px rgba(180, 130, 110, 0.18));
+}
+
+.sky-pet--interactive {
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.sky-pet--interactive:hover {
+  filter: drop-shadow(0 6px 14px rgba(180, 130, 110, 0.28));
+  transform: translateY(-2px);
+}
+
+.sky-pet--interactive:active {
+  transform: translateY(0);
+}
+
+/* ============ 6 个 mood 的姿态 ============ */
+
+.sky-pet--idle .sky-pet__tail {
+  animation: sky-pet-tail-sway 4s ease-in-out infinite;
+  transform-origin: 24px 50px;
+}
+
+.sky-pet--waiting {
+  transform: translateX(0) rotate(0deg);
+}
+.sky-pet--waiting .sky-pet__eye--left,
+.sky-pet--waiting .sky-pet__eye--right {
+  animation: sky-pet-blink 10s ease-in-out infinite;
+}
+
+.sky-pet--encouraging {
+  transform: rotate(-3deg);
+}
+
+.sky-pet--celebrating {
+  animation: sky-pet-jump 0.8s ease-out;
+}
+
+.sky-pet--resting {
+  filter: drop-shadow(0 3px 8px rgba(120, 100, 150, 0.22)) brightness(0.97);
+  transform: translateY(2px);
+}
+
+.sky-pet--sleeping .sky-pet__tail {
+  animation: none;
+}
+
+/* bump：点击瞬时反馈 */
+.sky-pet--bump {
+  animation: sky-pet-bump 0.6s ease-out;
+}
+
+/* 尾巴云朵轻摆 */
+@keyframes sky-pet-tail-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(6deg); }
+}
+
+/* 眨眼 */
+@keyframes sky-pet-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  92%           { transform: scaleY(0.1); }
+}
+
+/* 庆祝小跳 */
+@keyframes sky-pet-jump {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-10px) scale(1.05); }
+  60%  { transform: translateY(0) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 点击瞬时反馈 */
+@keyframes sky-pet-bump {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.08) rotate(-2deg); }
+  60%  { transform: scale(0.98) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* 星星粒子 fade */
+.sky-pet__sparkle {
+  animation: sky-pet-sparkle 1.2s ease-out forwards;
+  transform-origin: center;
+}
+@keyframes sky-pet-sparkle {
+  0%   { opacity: 0; transform: scale(0.5); }
+  20%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+/* ============ reduced-motion 降级 ============ */
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-pet,
+  .sky-pet__tail,
+  .sky-pet__eye--left,
+  .sky-pet__eye--right,
+  .sky-pet__sparkle {
+    animation: none !important;
+    transform: none !important;
+  }
+  .sky-pet--celebrating,
+  .sky-pet--bump {
+    animation: none !important;
+  }
+  .sky-pet--interactive:hover {
+    transform: none !important;
+  }
+}

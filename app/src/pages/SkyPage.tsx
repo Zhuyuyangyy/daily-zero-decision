@@ -4,6 +4,9 @@ import type { SkyMood } from '../utils/skyMood';
 import { CLOUD_TYPE_PRESET } from '../utils/cloudSeed';
 import Cloud from '../components/sky/Cloud';
 import { SoftButton } from '../components/ui';
+import { SkyPet } from '../components/pet/SkyPet';
+import type { UsePetResult } from '../hooks/usePet';
+import { getPetStage } from '../types';
 
 interface SkyPageProps {
   state: AppState;
@@ -17,6 +20,8 @@ interface SkyPageProps {
   searchType: 'all' | TaskType;
   setSearchType: Dispatch<SetStateAction<'all' | TaskType>>;
   onNavigateToToday: () => void;
+  pet?: UsePetResult;
+  reducedMotion?: boolean;
 }
 
 // Cloud type → 心情表达（与 cloudSeed 视觉语言一致）
@@ -86,6 +91,8 @@ export default function SkyPage({
   searchType: _searchType,
   setSearchType: _setSearchType,
   onNavigateToToday: _onNavigateToToday,
+  pet,
+  reducedMotion,
 }: SkyPageProps) {
   void _totalDays; void _searchQuery; void _setSearchQuery; void _searchType; void _setSearchType; void _onNavigateToToday;
   const [openedDate, setOpenedDate] = useState<string | null>(null);
@@ -93,6 +100,9 @@ export default function SkyPage({
   // 最近 7 天（含今天）
   const last7 = todayLog.slice(-7);
   const openedTasks = openedDate ? allHistoryTasks[openedDate] ?? [] : [];
+
+  // 宠物成长阶段
+  const petStage = pet ? getPetStage(pet.pet.affection) : 'new';
 
   return (
     <div
@@ -107,6 +117,26 @@ export default function SkyPage({
       <div className="w-full max-w-md mx-auto" style={{ padding: '12px 16px' }}>
         {/* 上半屏：沉浸式天空画布（奖励页主角） */}
         <div className="clay-sky-canvas" aria-label="我的天空">
+          {pet && state.pet.enabled && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 6,
+                pointerEvents: 'auto',
+              }}
+            >
+              <SkyPet
+                mood={hasLog ? 'idle' : 'waiting'}
+                name={state.pet.name}
+                size="skyline"
+                bubbleText={null}
+                reducedMotion={reducedMotion}
+                onClick={pet.pickGreeting}
+              />
+            </div>
+          )}
           <div className="clay-sky-canvas__title">
             <h1
               className="clay-balance"
@@ -462,6 +492,50 @@ export default function SkyPage({
                   </button>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* 宠物视角回顾（不评判） */}
+        {hasLog && state.pet.enabled && pet && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: '12px 16px',
+              borderRadius: 14,
+              background: 'rgba(255, 250, 241, 0.7)',
+              border: '1px dashed rgba(180, 130, 110, 0.25)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+            }}
+          >
+            <div style={{ flexShrink: 0, fontSize: 22 }} aria-hidden>🐱</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 12,
+                  color: 'var(--ink-light)',
+                  margin: 0,
+                  lineHeight: 1.65,
+                  fontStyle: 'italic',
+                }}
+              >
+                {state.pet.name}说：这周你回来 {last7.length} 天，已经很不容易了。
+              </p>
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 11,
+                  color: 'var(--ink-faint)',
+                  margin: '4px 0 0',
+                }}
+              >
+                {petStage === 'new' && '它刚来到你的天空，安静坐着。'}
+                {petStage === 'familiar' && '它已经会靠近你养的云了。'}
+                {petStage === 'trusted' && '它会抱住你新长出的每一朵云。'}
+              </p>
             </div>
           </div>
         )}

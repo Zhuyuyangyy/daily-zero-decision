@@ -158,6 +158,17 @@ export function useTasks(
         newState.achievements = [...new Set([...newState.achievements, ...unlocked])];
       }
 
+      // 天空宠物奖励：完成今日卡 +1 亲密度（防同日重复）
+      if (prev.pet.lastRewardDate !== today) {
+        newState.pet = {
+          ...prev.pet,
+          affection: prev.pet.affection + 1,
+          mood: 'celebrating',
+          lastRewardDate: today,
+          lastInteractionAt: today,
+        };
+      }
+
       return newState;
     });
 

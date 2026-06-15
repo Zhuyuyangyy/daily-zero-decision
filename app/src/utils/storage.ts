@@ -1,4 +1,4 @@
-import { AppState, Task } from '../types';
+import { AppState, Task, defaultPetState } from '../types';
 
 const STORAGE_KEY = 'daily-zero-decision';
 
@@ -27,6 +27,8 @@ const defaultState: AppState = {
     protectedDates: [],
     lastRewardedDate: null,
   },
+  // 天空宠物系统（cloud_cat MVP）
+  pet: defaultPetState,
 };
 
 export function loadState(): AppState {
@@ -78,6 +80,7 @@ export function loadState(): AppState {
       ...defaultState,
       ...parsed,
       peace: parsed.peace || parsed.premium || defaultState.peace,
+      pet: { ...defaultPetState, ...(parsed.pet || {}) },
     };
   } catch {
     return defaultState;
@@ -153,6 +156,7 @@ export function importState(json: string): AppState | null {
       pomodoroSessions: parsed.pomodoroSessions ?? 0,
       onboarded,
       peace: parsed.peace || parsed.premium || defaultState.peace,
+      pet: { ...defaultPetState, ...(parsed.pet || {}) },
     };
   } catch {
     return null;

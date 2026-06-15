@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTasks } from '../useTasks';
 import type { AppState } from '../../types';
+import { defaultPetState } from '../../types';
 
 const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   tasks: [],
@@ -14,6 +15,7 @@ const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   pomodoroSessions: 0,
   onboarded: true,
   peace: { cards: 2, protectedDates: [], lastRewardedDate: null },
+  pet: { ...defaultPetState },
   ...overrides,
 });
 

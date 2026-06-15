@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { exportState } from '../utils/storage';
 import { copy } from '../utils/copy';
 import type { AppState, Preset } from '../types';
 import type { FontPref } from '../hooks/useFont';
 import { SoftButton } from '../components/ui';
+import { PetNameModal } from '../components/pet/PetNameModal';
+import type { UsePetResult } from '../hooks/usePet';
 
 interface SettingsPageProps {
   state: AppState;
@@ -11,6 +14,7 @@ interface SettingsPageProps {
   onImport: () => void;
   font: FontPref;
   onFontChange: (next: FontPref) => void;
+  pet?: UsePetResult;
 }
 
 interface FontOption {
@@ -39,8 +43,11 @@ export default function SettingsPage({
   onImport,
   font,
   onFontChange,
+  pet,
 }: SettingsPageProps) {
   void _presets; void _onUpdatePresets;
+
+  const [showPetName, setShowPetName] = useState(false);
 
   return (
     <div
@@ -105,6 +112,60 @@ export default function SettingsPage({
           </div>
         </section>
 
+        {/* 天空宠物 */}
+        {pet && (
+          <section className="clay-settings-section">
+            <h2 className="clay-settings-section__title">天空宠物</h2>
+            <p className="clay-settings-section__desc">
+              你的云猫住在天空里，陪你完成每一小步。
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                名字：<strong>{state.pet.name}</strong>
+              </div>
+              <SoftButton variant="ghost" size="sm" onClick={() => setShowPetName(true)}>
+                修改名字
+              </SoftButton>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                显示天空宠物
+              </div>
+              <button
+                role="switch"
+                aria-checked={state.pet.enabled}
+                onClick={() => pet.setPetEnabled(!state.pet.enabled)}
+                style={{
+                  width: 48, height: 26, borderRadius: 13,
+                  border: 'none', cursor: 'pointer',
+                  background: state.pet.enabled ? 'var(--mint, #6FBE8C)' : 'var(--hairline, #DDD)',
+                  position: 'relative', transition: 'background 0.2s',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 3, left: state.pet.enabled ? 25 : 3,
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: '#FFFAF1', transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }}
+                />
+              </button>
+            </div>
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-faint)',
+                margin: '8px 0 0',
+                fontStyle: 'italic',
+              }}
+            >
+              宠物是陪伴者，不是监工。关闭后数据会保留。
+            </p>
+          </section>
+        )}
+
         {/* 数据管理 */}
         <section className="clay-settings-section">
           <h2 className="clay-settings-section__title">数据管理</h2>
@@ -168,6 +229,16 @@ export default function SettingsPage({
           </p>
         </div>
       </div>
+
+      {pet && (
+        <PetNameModal
+          isOpen={showPetName}
+          currentName={state.pet.name}
+          isFirstMeet={false}
+          onConfirm={pet.renamePet}
+          onClose={() => setShowPetName(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AppState, Task } from '../types';
 import type { Mood } from '../components/shared/MoodWidget';
 import { copy } from '../utils/copy';
@@ -15,6 +15,9 @@ import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
 import { PeaceCard } from '../components/premium/PeaceCard';
 import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
+import { SkyPet } from '../components/pet/SkyPet';
+import { PetNameModal } from '../components/pet/PetNameModal';
+import { derivePetMood, type UsePetResult } from '../hooks/usePet';
 
 interface TodayPageProps {
   state: AppState;
@@ -38,6 +41,9 @@ interface TodayPageProps {
   pomodoroExpanded: boolean;
   setPomodoroExpanded: Dispatch<SetStateAction<boolean>>;
   skyMood: import('../utils/skyMood').SkyMood;
+  pet: UsePetResult;
+  reducedMotion?: boolean;
+  protectedYesterday?: boolean;
 }
 
 export default function TodayPage({
@@ -62,6 +68,9 @@ export default function TodayPage({
   pomodoroExpanded,
   setPomodoroExpanded,
   skyMood,
+  pet,
+  reducedMotion,
+  protectedYesterday,
 }: TodayPageProps) {
   void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks; void _handleReset; void _today; void _todaysTasks;
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
@@ -74,6 +83,40 @@ export default function TodayPage({
   // 安心卡状态管理
   const [showPeaceInfo, setShowPeaceInfo] = useState(false);
   const peaceCards = state.peace?.cards ?? 0;
+
+  // 宠物相关 UI
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [hasShownNamePrompt, setHasShownNamePrompt] = useState(() => {
+    try { return !!localStorage.getItem('pet:renamePrompted'); } catch { return false; }
+  });
+
+  // 推导 mood（不写回 state，避免在 render 中 setState）
+  const derivedMood = derivePetMood({
+    hasCurrentTask: !!currentTask,
+    todayCompleted: allTodaysTasksDone,
+    protectedYesterday: !!protectedYesterday,
+  });
+  // 显示用：state.pet.mood 优先（rewardPetForCompletion 会写 celebrating），否则用推导值
+  const displayMood = state.pet.mood === 'celebrating'
+    ? 'celebrating'
+    : derivedMood;
+
+  // 完成今日卡后第一次 → 弹"给宠物取个名字"
+  useEffect(() => {
+    if (allTodaysTasksDone && !hasShownNamePrompt && !state.pet.renamed) {
+      // 延时让庆祝动画先出现
+      const t = window.setTimeout(() => {
+        setShowNameModal(true);
+        setHasShownNamePrompt(true);
+        try { localStorage.setItem('pet:renamePrompted', '1'); } catch { /* noop */ }
+      }, 1200);
+      return () => window.clearTimeout(t);
+    }
+  }, [allTodaysTasksDone, hasShownNamePrompt, state.pet.renamed]);
+
+  const handlePetNameConfirm = (name: string): boolean => {
+    return pet.renamePet(name);
+  };
 
   return (
     <div
@@ -105,6 +148,27 @@ export default function TodayPage({
             onTodayComplete={() => currentTask && handleCompleteTask(currentTask.id)}
             mood={toCloudGardenMood(skyMood, !!currentTask?.completedAt)}
           />
+
+          {state.pet.enabled && (
+            <div
+              style={{
+                position: 'absolute',
+                right: 8,
+                bottom: 24,
+                zIndex: 6,
+                pointerEvents: 'auto',
+              }}
+            >
+              <SkyPet
+                mood={displayMood}
+                name={state.pet.name}
+                size="mobile"
+                bubbleText={pet.petLine}
+                reducedMotion={reducedMotion}
+                onClick={pet.pickGreeting}
+              />
+            </div>
+          )}
         </SkyScene>
       </div>
 
@@ -208,6 +272,14 @@ export default function TodayPage({
         isOpen={showPeaceInfo}
         onClose={() => setShowPeaceInfo(false)}
         cards={peaceCards}
+      />
+
+      <PetNameModal
+        isFirstMeet
+        isOpen={showNameModal}
+        currentName={state.pet.name}
+        onConfirm={handlePetNameConfirm}
+        onClose={() => setShowNameModal(false)}
       />
     </div>
   );

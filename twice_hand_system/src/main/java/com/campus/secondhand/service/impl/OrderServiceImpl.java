@@ -19,8 +19,8 @@ import java.util.UUID;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired private OrderMapper orderMapper;
-    @Autowired private GoodsService goodsService;
+    @Autowired OrderMapper orderMapper;
+    @Autowired GoodsService goodsService;
 
     private static final DateTimeFormatter NO_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 

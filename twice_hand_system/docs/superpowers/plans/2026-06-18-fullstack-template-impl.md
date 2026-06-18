@@ -3833,6 +3833,20 @@ git commit -m "docs: refresh TODO.md; mark stale roadmap docs as pending replace
 
 ---
 
+## Pre-execution note (added 2026-06-18)
+
+The subproject lives in a monorepo (`D:/ZYY Project/`) where the parent `.gitignore` was excluding the entire `twice_hand_system/` tree. Two prerequisite commits were made before dispatching implementer subagents:
+
+1. `b64d3f7` (already committed during planning): design spec.
+2. `41205e5` (already committed during planning): implementation plan.
+3. `cfdeb3d` (added 2026-06-18, baseline for all implementation work): the parent monorepo's `.gitignore` was edited to un-ignore `twice_hand_system/`, and the 54 subproject source files (excluding the 42MB demo video) were committed as the baseline.
+
+The worktree is at `D:/ZYY Project/twice-hand-system-template/`, branch `feature/scaffold-template`, based on `cfdeb3d`. All implementer subagents work in `D:/ZYY Project/twice-hand-system-template/twice_hand_system/`.
+
+If you re-run this plan from scratch, do the pre-exec note's third commit first.
+
+---
+
 ## Self-Review
 
 1. **Spec coverage:** Spec §2 (architecture) → P1, P2; §3 (directory) → Tasks 1.4-1.15, 2.1-2.6, 3.1-3.4, 5.1-5.5; §4 (data flow) → Tasks 1.7-1.9, 3.2; §5 (error handling) → Task 1.12; §6 (testing) → Phase P4; §7 (docs) → Phase P5.

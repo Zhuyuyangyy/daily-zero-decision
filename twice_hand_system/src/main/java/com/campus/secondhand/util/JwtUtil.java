@@ -9,69 +9,68 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
-/**
- * JWT 工具类：生成Token、验证Token、解析Token中的用户ID
- */
 @Component
 public class JwtUtil {
 
-    // JWT密钥（建议在application.yml配置，这里先写死，后续可优化）
-    @Value("${jwt.secret:campusSecondhandSecretKey1234567890}")
+    public static final String CLAIM_TOKEN_TYPE = "type";
+    public static final String TYPE_ACCESS = "access";
+    public static final String TYPE_REFRESH = "refresh";
+
+    @Value("${jwt.secret}")
     private String secret;
 
-    // Token过期时间：24小时（单位：毫秒）
-    @Value("${jwt.expire:86400000}")
-    private long expireTime;
+    @Value("${jwt.access-expire-seconds}")
+    private long accessExpireSeconds;
 
-    /**
-     * 生成Token（传入用户ID）
-     */
-    public String generateToken(Long userId) {
-        // 创建加密密钥
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    @Value("${jwt.refresh-expire-seconds}")
+    private long refreshExpireSeconds;
 
-        // 生成Token
+    private SecretKey key() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String generateAccessToken(Long userId) {
+        return buildToken(userId, TYPE_ACCESS, accessExpireSeconds);
+    }
+
+    public String generateRefreshToken(Long userId) {
+        return buildToken(userId, TYPE_REFRESH, refreshExpireSeconds);
+    }
+
+    private String buildToken(Long userId, String type, long ttlSeconds) {
+        long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setSubject(userId.toString()) // 将用户ID存在subject字段
-                .setIssuedAt(new Date()) // 签发时间
-                .setExpiration(new Date(System.currentTimeMillis() + expireTime)) // 过期时间
-                .signWith(key) // 签名
+                .setSubject(userId.toString())
+                .claim(CLAIM_TOKEN_TYPE, type)
+                .setId(UUID.randomUUID().toString())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + ttlSeconds * 1000L))
+                .signWith(key())
                 .compact();
     }
 
-    /**
-     * 验证Token是否有效（核心：解决找不到validateToken方法的报错）
-     */
-    public boolean validateToken(String token) {
+    public Claims parse(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public boolean validate(String token, String expectedType) {
         try {
-            // 解析Token，若解析失败（过期/签名错误）会抛出异常
-            Claims claims = parseToken(token);
-            // 检查Token是否过期
-            return !claims.getExpiration().before(new Date());
+            Claims c = parse(token);
+            if (c.getExpiration().before(new Date())) return false;
+            Object type = c.get(CLAIM_TOKEN_TYPE);
+            return expectedType.equals(type);
         } catch (Exception e) {
-            // 任何异常都表示Token无效
             return false;
         }
     }
 
-    /**
-     * 从Token中解析出用户ID
-     */
     public Long getUserIdFromToken(String token) {
-        Claims claims = parseToken(token);
-        return Long.parseLong(claims.getSubject());
-    }
-
-    /**
-     * 私有方法：解析Token获取Claims（核心逻辑）
-     */
-    private Claims parseToken(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        return Long.parseLong(parse(token).getSubject());
     }
 }

@@ -1,19 +1,25 @@
 package com.campus.secondhand.exception;
 
-public class BusinessException extends RuntimeException {
-    private Integer code;
+import com.campus.secondhand.enums.ErrorCode;
+import lombok.Getter;
 
+@Getter
+public class BusinessException extends RuntimeException {
+    private final ErrorCode errorCode;
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+
+    public BusinessException(ErrorCode errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    @Deprecated
     public BusinessException(String message) {
         super(message);
-        this.code = 500;
-    }
-
-    public BusinessException(Integer code, String message) {
-        super(message);
-        this.code = code;
-    }
-
-    public Integer getCode() {
-        return code;
+        this.errorCode = ErrorCode.INTERNAL;
     }
 }

@@ -1,25 +1,51 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: campus-secondhand
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
 server:
   port: 8080
-
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/school_secondary
-    username: root
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    context-path: /
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.campus.secondhand.entity
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET:please-change-me-this-is-a-dev-only-secret-32bytes-min}
+  access-expire-seconds: 900
+  refresh-expire-seconds: 604800
+
+template:
+  cache:    { enabled: false }
+  search:   { enabled: false }
+  storage:  { enabled: false }
+  ratelimit:{ enabled: false }
+  audit:    { enabled: false }
+
 logging:
   level:
-    com.campus.secondhand: debug
+    root: INFO
+    com.campus.secondhand: DEBUG

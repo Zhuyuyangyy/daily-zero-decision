@@ -16,16 +16,22 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/user/login", "/api/user/register");
+                .addPathPatterns("/api/v1/**")
+                .excludePathPatterns(
+                        "/api/v1/auth/login",
+                        "/api/v1/auth/refresh",
+                        "/api/v1/goods",
+                        "/api/v1/goods/**"
+                );
     }
 }

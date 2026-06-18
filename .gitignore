@@ -667,3 +667,5 @@ _skill/
 /twice_hand_system/.idea/
 # Negate the monorepo's scripts/ ignores for the subproject
 !/twice_hand_system/scripts/
+# Negate monorepo's storage/ ignore — twice_hand_system has its own storage package
+!/twice_hand_system/src/main/java/com/campus/secondhand/storage/

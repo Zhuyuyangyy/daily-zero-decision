@@ -655,6 +655,13 @@ LuYangyang_project_Anzhongyi/
 TCM_ai_writing_project/
 ZHi_Guang_project/
 _embodied-robot-brain/
-twice_hand_system/
 xainyu_make_money/
 _skill/
+
+# twice_hand_system is now tracked (scaffold refactor). Exclude heavy residue only.
+/twice_hand_system/相关功能测试.mp4
+/twice_hand_system/frontend/node_modules/
+/twice_hand_system/frontend/dist/
+/twice_hand_system/frontend/.vite/
+/twice_hand_system/target/
+/twice_hand_system/.idea/

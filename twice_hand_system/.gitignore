@@ -89,3 +89,12 @@ services.txt
 
 # JFR files
 *.jfr
+
+# Frontend (Vite)
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/coverage/
+
+# Lockfiles are checked in; uncomment to ignore package-lock.json
+# /frontend/package-lock.json

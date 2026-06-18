@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二手交易平台</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; color: #333; }
+    .header { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header h1 { font-size: 1.4em; }
+    .header-right { display: flex; gap: 12px; align-items: center; }
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-primary { background: white; color: #ff6b6b; }
+    .btn-secondary { background: rgba(255,255,255,0.2); color: white; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+    .nav-tabs { background: white; border-radius: 8px; padding: 0 16px; margin-bottom: 20px; display: flex; gap: 8px; }
+    .nav-tab { padding: 14px 20px; border: none; background: none; cursor: pointer; font-size: 15px; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .nav-tab.active { color: #ff6b6b; border-bottom-color: #ff6b6b; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card-title { font-size: 1.1em; font-weight: 600; margin-bottom: 16px; color: #333; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: #666; font-size: 14px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .goods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .goods-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s; }
+    .goods-card:hover { transform: translateY(-4px); }
+    .goods-img { height: 160px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 3em; }
+    .goods-info { padding: 12px; }
+    .goods-name { font-weight: 600; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .goods-price { color: #ff6b6b; font-size: 1.1em; font-weight: 600; }
+    .goods-meta { font-size: 12px; color: #999; margin-top: 6px; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .status-0 { background: #fff3cd; color: #856404; }
+    .status-1 { background: #d4edda; color: #155724; }
+    .status-2 { background: #f8d7da; color: #721c24; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 1.2em; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #999; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 8px; z-index: 2000; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .table th { background: #fafafa; font-weight: 600; color: #666; }
+    .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 6px; }
+    .action-btn.primary { background: #ff6b6b; color: white; }
+    .action-btn.danger { background: #dc3545; color: white; }
+    .action-btn.success { background: #28a745; color: white; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>校园二手交易市场</h1>
+      <div class="header-right">
+        <span v-if="currentUser">{{ currentUser.username }}</span>
+        <button v-if="!currentUser" class="btn btn-primary" @click="showLogin=true">登录</button>
+        <button v-if="!currentUser" class="btn btn-secondary" @click="showRegister=true">注册</button>
+        <button v-if="currentUser" class="btn btn-secondary" @click="logout">退出</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="nav-tabs">
+        <button class="nav-tab" :class="{active: activeTab==='home'}" @click="activeTab='home'">首页</button>
+        <button class="nav-tab" :class="{active: activeTab==='goods'}" @click="activeTab='goods'">商品管理</button>
+        <button class="nav-tab" :class="{active: activeTab==='orders'}" @click="activeTab='orders'">订单管理</button>
+        <button class="nav-tab" :class="{active: activeTab==='my'}" @click="activeTab='my'">我的发布</button>
+      </div>
+
+      <div v-if="activeTab==='home'">
+        <div class="card">
+          <div class="card-title">发布闲置物品</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>物品名称</label>
+              <input v-model="newGoods.name" placeholder="例如：二手教材">
+            </div>
+            <div class="form-group">
+              <label>价格 (元)</label>
+              <input v-model.number="newGoods.price" type="number" placeholder="0.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>物品描述</label>
+            <textarea v-model="newGoods.description" placeholder="描述一下物品的新旧程度、转手原因等..."></textarea>
+          </div>
+          <button class="btn btn-primary" @click="publishGoods" style="background:#ff6b6b;color:white;">发布商品</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">全部商品</div>
+          <div class="goods-grid" v-if="goodsList.length">
+            <div class="goods-card" v-for="goods in goodsList" :key="goods.id">
+              <div class="goods-img">物</div>
+              <div class="goods-info">
+                <div class="goods-name">{{ goods.name }}</div>
+                <div class="goods-price">¥{{ goods.price }}</div>
+                <div class="goods-meta">
+                  <span class="status-badge" :class="'status-'+goods.status">
+                    {{ statusText[goods.status] }}
+                  </span>
+                  {{ formatDate(goods.createTime) }}
+                </div>
+                <button v-if="currentUser && goods.userId !== currentUser.id && goods.status === 0" 
+                  class="action-btn primary" style="margin-top:8px;" @click="createOrder(goods)">立即购买</button>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" v-else>暂无商品，试试发布一个吧</div>
+        </div>
+      </div>
+
+      <div v-if="activeTab==='goods'">
+        <div class="card">
+          <div class="card-title">商品列表管理</div>
+          <table class="table" v-if="goodsList.length">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>名称</th>
+                <th>价格</th>
+                <th>状态</th>
+                <th>发布时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="goods in goodsList" :key="goods.id">
+                <td>{{ goods.id }}</td>
+                <td>{{ goods.name }}</td>
+                <td>¥{{ goods.price }}</td>
+                <td><span class="status-badge" :class="'status-'+goods.status">{{ statusText[goods.status] }}</span></td>
+                <td>{{ formatDate(goods.createTime) }}</td>
+                <td>
+                  <button v-if="goods.status===0" class="action-btn danger" @click="updateGoodsStatus(goods.id, 2)">下架</button>
+                  <button v-if="goods.status===2" class="action-btn success" @click="updateGoodsStatus(goods.id, 0)">重新上架</button>
+                  <button class="action-btn danger" @click="deleteGoods(goods.id)">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="empty-state" v-else>暂无商品</div>
+        </div>
+      </div>
+
+      <div v-if="activeTab==='orders'">
+        <div class="card">
+          <div class="card-title">我的订单</div>
+          <table class="table" v-if="orderList.length">
+            <thead>
+              <tr>
+                <th>订单ID</th>
+                <th>商品</th>
+                <th>卖家</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in orderList" :key="order.id">
+                <td>{{ order.id }}</td>
+                <td>{{ order.goodsId }}</td>
+                <td>{{ order.sellerId }}</td>
+                <td><span class="status-badge" :class="'status-'+order.status">{{ orderStatusText[order.status] }}</span></td>
+                <td>{{ formatDate(order.createTime) }}</td>
+                <td>
+                  <template v-if="order.buyerId === currentUser?.id && order.status === 0">
+                    <button class="action-btn success" @click="updateOrderStatus(order.id, 1)">确认</button>
+                    <button class="action-btn danger" @click="updateOrderStatus(order.id, 2)">取消</button>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="empty-state" v-else>暂无订单</div>
+        </div>
+      </div>
+
+      <div v-if="activeTab==='my'">
+        <div class="card">
+          <div class="card-title">我发布的商品</div>
+          <div class="goods-grid" v-if="myGoodsList.length">
+            <div class="goods-card" v-for="goods in myGoodsList" :key="goods.id">
+              <div class="goods-img">物</div>
+              <div class="goods-info">
+                <div class="goods-name">{{ goods.name }}</div>
+                <div class="goods-price">¥{{ goods.price }}</div>
+                <div class="goods-meta">
+                  <span class="status-badge" :class="'status-'+goods.status">{{ statusText[goods.status] }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" v-else>您还没有发布商品</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" v-if="showLogin" @click.self="showLogin=false">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">用户登录</span>
+          <button class="modal-close" @click="showLogin=false">x</button>
+        </div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input v-model="loginForm.username" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input v-model="loginForm.password" type="password" placeholder="请输入密码">
+        </div>
+        <button class="btn btn-primary" style="width:100%;background:#ff6b6b;color:white;" @click="login">登录</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" v-if="showRegister" @click.self="showRegister=false">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">用户注册</span>
+          <button class="modal-close" @click="showRegister=false">x</button>
+        </div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input v-model="registerForm.username" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input v-model="registerForm.password" type="password" placeholder="请输入密码">
+        </div>
+        <div class="form-group">
+          <label>手机号</label>
+          <input v-model="registerForm.phone" placeholder="请输入手机号">
+        </div>
+        <button class="btn btn-primary" style="width:100%;background:#ff6b6b;color:white;" @click="register">注册</button>
+      </div>
+    </div>
+
+    <div class="toast" v-if="toast.show">{{ toast.message }}</div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+    
+    createApp({
+      setup() {
+        const API_BASE = 'http://localhost:8080';
+        
+        const activeTab = ref('home');
+        const showLogin = ref(false);
+        const showRegister = ref(false);
+        const currentUser = ref(null);
+        const goodsList = ref([]);
+        const myGoodsList = ref([]);
+        const orderList = ref([]);
+        const newGoods = ref({ name: '', price: 0, description: '' });
+        const loginForm = ref({ username: '', password: '' });
+        const registerForm = ref({ username: '', password: '', phone: '' });
+        const toast = ref({ show: false, message: '' });
+        
+        const statusText = { 0: '在售', 1: '已售', 2: '已下架' };
+        const orderStatusText = { 0: '待确认', 1: '已完成', 2: '已取消' };
+        
+        let token = localStorage.getItem('token');
+        
+        const showToast = (msg) => {
+          toast.value = { show: true, message: msg };
+          setTimeout(() => { toast.value.show = false; }, 3000);
+        };
+        
+        const getHeaders = () => token ? { headers: { token } } : {};
+        
+        const loadGoods = async () => {
+          try {
+            const res = await axios.get(`${API_BASE}/goods/list?page=1&size=100`, getHeaders());
+            if (res.data.code === 200) goodsList.value = res.data.data.records || [];
+          } catch (e) { console.error(e); }
+        };
+        
+        const loadMyGoods = async () => {
+          if (!currentUser.value) return;
+          try {
+            const res = await axios.get(`${API_BASE}/goods/my`, getHeaders());
+            if (res.data.code === 200) myGoodsList.value = res.data.data || [];
+          } catch (e) { console.error(e); }
+        };
+        
+        const loadOrders = async () => {
+          if (!currentUser.value) return;
+          try {
+            const res = await axios.get(`${API_BASE}/order/my`, getHeaders());
+            if (res.data.code === 200) orderList.value = res.data.data || [];
+          } catch (e) { console.error(e); }
+        };
+        
+        const loadUserInfo = async () => {
+          if (!token) return;
+          try {
+            const res = await axios.get(`${API_BASE}/user/info`, { headers: { token } });
+            if (res.data.code === 200) currentUser.value = res.data.data;
+          } catch (e) { localStorage.removeItem('token'); token = null; }
+        };
+        
+        const login = async () => {
+          try {
+            const res = await axios.post(`${API_BASE}/user/login`, loginForm.value);
+            if (res.data.code === 200) {
+              token = res.data.data.token;
+              localStorage.setItem('token', token);
+              currentUser.value = res.data.data.user;
+              showLogin.value = false;
+              showToast('登录成功');
+            } else { showToast(res.data.message || '登录失败'); }
+          } catch (e) { showToast('登录失败'); }
+        };
+        
+        const register = async () => {
+          try {
+            const res = await axios.post(`${API_BASE}/user/register`, registerForm.value);
+            if (res.data.code === 200) {
+              showRegister.value = false;
+              showToast('注册成功，请登录');
+            } else { showToast(res.data.message || '注册失败'); }
+          } catch (e) { showToast('注册失败'); }
+        };
+        
+        const logout = () => {
+          token = null;
+          currentUser.value = null;
+          localStorage.removeItem('token');
+          showToast('已退出');
+        };
+        
+        const publishGoods = async () => {
+          if (!currentUser.value) { showToast('请先登录'); showLogin.value = true; return; }
+          if (!newGoods.value.name || !newGoods.value.price) { showToast('请填写完整信息'); return; }
+          try {
+            const res = await axios.post(`${API_BASE}/goods/publish`, newGoods.value, getHeaders());
+            if (res.data.code === 200) {
+              showToast('发布成功');
+              newGoods.value = { name: '', price: 0, description: '' };
+              loadGoods();
+              loadMyGoods();
+            } else { showToast(res.data.message || '发布失败'); }
+          } catch (e) { showToast('发布失败'); }
+        };
+        
+        const createOrder = async (goods) => {
+          if (!currentUser.value) { showToast('请先登录'); showLogin.value = true; return; }
+          try {
+            const res = await axios.post(`${API_BASE}/order/create`, { goodsId: goods.id }, getHeaders());
+            if (res.data.code === 200) { showToast('下单成功'); loadOrders(); }
+            else { showToast(res.data.message || '下单失败'); }
+          } catch (e) { showToast('下单失败'); }
+        };
+        
+        const updateGoodsStatus = async (id, status) => {
+          try {
+            const res = await axios.put(`${API_BASE}/goods/status/${id}?status=${status}`, {}, getHeaders());
+            if (res.data.code === 200) { showToast('更新成功'); loadGoods(); loadMyGoods(); }
+            else { showToast(res.data.message || '更新失败'); }
+          } catch (e) { showToast('更新失败'); }
+        };
+        
+        const deleteGoods = async (id) => {
+          if (!confirm('确定要删除吗?')) return;
+          try {
+            const res = await axios.delete(`${API_BASE}/goods/${id}`, getHeaders());
+            if (res.data.code === 200) { showToast('删除成功'); loadGoods(); loadMyGoods(); }
+            else { showToast(res.data.message || '删除失败'); }
+          } catch (e) { showToast('删除失败'); }
+        };
+        
+        const updateOrderStatus = async (id, status) => {
+          try {
+            const res = await axios.put(`${API_BASE}/order/status/${id}?status=${status}`, {}, getHeaders());
+            if (res.data.code === 200) { showToast('更新成功'); loadOrders(); }
+            else { showToast(res.data.message || '更新失败'); }
+          } catch (e) { showToast('更新失败'); }
+        };
+        
+        const formatDate = (dateStr) => {
+          if (!dateStr) return '';
+          const d = new Date(dateStr);
+          return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        };
+        
+        onMounted(async () => {
+          await loadUserInfo();
+          await loadGoods();
+          if (currentUser.value) {
+            await loadMyGoods();
+            await loadOrders();
+          }
+        });
+        
+        return {
+          activeTab, showLogin, showRegister, currentUser, goodsList, myGoodsList, orderList,
+          newGoods, loginForm, registerForm, toast, statusText, orderStatusText,
+          login, register, logout, publishGoods, createOrder, updateGoodsStatus, deleteGoods,
+          updateOrderStatus, formatDate
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

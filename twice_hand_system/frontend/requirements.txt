@@ -1,0 +1,16 @@
+# Vue 3 Frontend Dependencies (CDN-based, no npm required)
+
+# This frontend uses CDN-hosted Vue 3 and Axios.
+# No pip/Node.js dependencies needed for the frontend itself.
+
+# If you want to serve via a Python HTTP server instead of opening HTML directly:
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# For production build with npm:
+# vue@3.4.0
+# @vitejs/plugin-vue@5.0.0
+# vite@5.0.0
+# axios@1.6.0
+# vue-router@4.2.0
+# pinia@2.1.0

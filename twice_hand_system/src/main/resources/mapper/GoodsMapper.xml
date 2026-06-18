@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.campus.secondhand.mapper.GoodsMapper">
+    <!-- 1. 补全getList的SQL（分页+条件查询） -->
+    <select id="getList" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods
+        WHERE 1=1
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 2. 补全getBySellerId的SQL（对应seller_id，即数据库的user_id） -->
+    <select id="getBySellerId" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods WHERE user_id = #{sellerId}
+    </select>
+
+    <!-- 3. 补全updateStatus的SQL -->
+    <update id="updateStatus">
+        UPDATE goods SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <!-- 4. 补全increaseViewCount的SQL（假设数据库有view_count字段，没有则先加字段） -->
+    <update id="increaseViewCount">
+        UPDATE goods SET view_count = view_count + 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <!-- 5. 补全selectAll的SQL -->
+    <select id="selectAll" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods
+    </select>
+
+    <!-- 6. 补全selectByUserId的SQL -->
+    <select id="selectByUserId" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods WHERE user_id = #{userId}
+    </select>
+
+    <!-- 7. 补全selectById的SQL -->
+    <select id="selectById" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods WHERE id = #{id}
+    </select>
+
+    <!-- 8. 补全insert的SQL -->
+    <insert id="insert">
+        INSERT INTO goods (user_id, name, description, price, status, create_time, update_time)
+        VALUES (#{userId}, #{name}, #{description}, #{price}, #{status}, NOW(), NOW())
+    </insert>
+
+    <!-- 9. 补全updateById的SQL -->
+    <update id="updateById">
+        UPDATE goods
+        SET name = #{name}, price = #{price}, description = #{description}, status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 10. 补全deleteById的SQL -->
+    <delete id="deleteById">
+        DELETE FROM goods WHERE id = #{id}
+    </delete>
+</mapper>

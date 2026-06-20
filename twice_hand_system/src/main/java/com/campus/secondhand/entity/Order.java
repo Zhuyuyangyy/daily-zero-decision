@@ -1,15 +1,38 @@
 package com.campus.secondhand.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data // Lombok自动生成getter/setter
-public class Order {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName("orders")
+public class Order extends BaseEntity {
+    @TableId(type = IdType.AUTO)
     private Long id;
-    private Long buyerId; // 买家ID
-    private Long sellerId; // 卖家ID
-    private Long goodsId; // 商品ID
-    private Integer status; // 订单状态（0-待确认，1-已确认，2-已取消）
-    private LocalDateTime createTime; // 创建时间
-    private LocalDateTime updateTime; // 更新时间
+    private String orderNo;
+    private Long goodsId;
+    private String goodsTitle;
+    private BigDecimal goodsPrice;
+    private Long sellerId;
+    private Long buyerId;
+    private String buyerName;
+    private String buyerPhone;
+    private String buyerAddress;
+    private String remark;
+    private Integer status;
+    @TableField("payment_time")
+    private LocalDateTime paymentTime;
+    @TableField("delivery_time")
+    private LocalDateTime deliveryTime;
+    @TableField("receive_time")
+    private LocalDateTime receiveTime;
+    @TableField("complete_time")
+    private LocalDateTime completeTime;
 }

@@ -2,38 +2,47 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- namespace必须和OrderMapper接口全类名一致 -->
 <mapper namespace="com.campus.secondhand.mapper.OrderMapper">
 
-    <!-- 1. 按买家ID查订单 -->
     <select id="selectByBuyerId" parameterType="java.lang.Long" resultType="com.campus.secondhand.entity.Order">
-        SELECT * FROM `order` WHERE buyer_id = #{buyerId}
+        SELECT * FROM `orders` WHERE buyer_id = #{buyerId} AND deleted = 0 ORDER BY create_time DESC
     </select>
 
-    <!-- 2. 按卖家ID查订单 -->
     <select id="selectBySellerId" parameterType="java.lang.Long" resultType="com.campus.secondhand.entity.Order">
-        SELECT * FROM `order` WHERE seller_id = #{sellerId}
+        SELECT * FROM `orders` WHERE seller_id = #{sellerId} AND deleted = 0 ORDER BY create_time DESC
     </select>
 
-    <!-- 3. 按ID查订单 -->
     <select id="selectById" parameterType="java.lang.Long" resultType="com.campus.secondhand.entity.Order">
-        SELECT * FROM `order` WHERE id = #{id}
+        SELECT * FROM `orders` WHERE id = #{id} AND deleted = 0
     </select>
 
-    <!-- 4. 插入订单 -->
-    <insert id="insert" parameterType="com.campus.secondhand.entity.Order">
-        INSERT INTO `order` (
-            buyer_id, seller_id, goods_id, status, create_time, update_time
+    <insert id="insert" parameterType="com.campus.secondhand.entity.Order" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `orders` (
+            order_no, goods_id, goods_title, goods_price, seller_id, buyer_id,
+            buyer_name, buyer_phone, buyer_address, remark, status,
+            create_time, update_time, deleted
         ) VALUES (
-                     #{buyerId}, #{sellerId}, #{goodsId}, #{status}, NOW(), NOW()
-                 )
+            #{orderNo}, #{goodsId}, #{goodsTitle}, #{goodsPrice}, #{sellerId}, #{buyerId},
+            #{buyerName}, #{buyerPhone}, #{buyerAddress}, #{remark}, #{status},
+            NOW(), NOW(), 0
+        )
     </insert>
 
-    <!-- 5. 更新订单 -->
     <update id="updateById" parameterType="com.campus.secondhand.entity.Order">
-        UPDATE `order`
-        SET status = #{status}, update_time = NOW()
-        WHERE id = #{id}
+        UPDATE `orders`
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="buyerName != null">buyer_name = #{buyerName},</if>
+            <if test="buyerPhone != null">buyer_phone = #{buyerPhone},</if>
+            <if test="buyerAddress != null">buyer_address = #{buyerAddress},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="paymentTime != null">payment_time = #{paymentTime},</if>
+            <if test="deliveryTime != null">delivery_time = #{deliveryTime},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
     </update>
 
 </mapper>

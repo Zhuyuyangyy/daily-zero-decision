@@ -1,19 +1,23 @@
 package com.campus.secondhand.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 
-@Data // Lombok自动生成getter/setter，解决setSchool/setStudentId找不到的问题
-public class User {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName("users")
+public class User extends BaseEntity {
+    @TableId(type = IdType.AUTO)
     private Long id;
-    private String username; // 用户名
-    private String password; // 密码（MD5加密）
-    private String nickname; // 昵称
-    private String phone; // 手机号
-    private String email; // 邮箱
-    private String school; // 补充：学校字段
-    private String studentId; // 补充：学号字段
-    private Integer status; // 状态：1-正常，0-禁用
-    private LocalDateTime createTime; // 创建时间
-    private LocalDateTime updateTime; // 更新时间
+    private String username;
+    private String password;
+    private String nickname;
+    private String phone;
+    private String email;
+    private String school;
+    private String studentId;
+    private Integer status;
 }

@@ -1,64 +1,67 @@
 package com.campus.secondhand.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.campus.secondhand.dto.PageResponse;
 import com.campus.secondhand.entity.Goods;
+import com.campus.secondhand.interceptor.JwtInterceptor;
 import com.campus.secondhand.response.Result;
 import com.campus.secondhand.service.GoodsService;
-import com.campus.secondhand.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
-@RequestMapping("/goods")
+@RequestMapping("/api/v1/goods")
 public class GoodsController {
 
     @Autowired
     private GoodsService goodsService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @GetMapping("/my")
-    public Result<List<Goods>> getMyGoods(@RequestHeader("token") String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        List<Goods> goodsList = goodsService.getGoodsByUserId(userId);
-        return Result.success(goodsList);
+    @GetMapping
+    public Result<PageResponse<Goods>> list(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
+        IPage<Goods> p = goodsService.list(page, size, keyword, status);
+        return Result.ok(PageResponse.of(p));
     }
 
-    @GetMapping("/detail/{id}")
-    public Result<Goods> getGoodsDetail(@PathVariable Long id) {
-        Goods goods = goodsService.getGoodsById(id);
-        return Result.success(goods);
-    }
-    /**
-     * 公开接口：查询所有在售商品（买家选货用，无需token）
-     * 路径：GET /goods/list
-     */
-    @GetMapping("/list")
-    public Result<List<Goods>> getAllOnSaleGoods() {
-        // 调用Service查询status=1（在售）的所有商品
-        List<Goods> goodsList = goodsService.getAllOnSaleGoods();
-        return Result.success(goodsList);
+    @GetMapping("/{id}")
+    public Result<Goods> detail(@PathVariable Long id) {
+        return Result.ok(goodsService.getById(id));
     }
 
-    @PostMapping("/create")
-    public Result<Goods> createGoods(@RequestBody Goods goods, @RequestHeader("token") String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        goods.setUserId(userId);
-        Goods created = goodsService.createGoods(goods);
-        return Result.success(created);
+    @GetMapping("/mine")
+    public Result<List<Goods>> mine(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute(JwtInterceptor.ATTR_USER_ID);
+        return Result.ok(goodsService.listByUserId(userId));
     }
 
-    @PutMapping("/update")
-    public Result<Goods> updateGoods(@RequestBody Goods goods, @RequestHeader("token") String token) {
-        Goods updated = goodsService.updateGoods(goods);
-        return Result.success(updated);
+    @PostMapping
+    public Result<Goods> create(@RequestBody Goods goods, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute(JwtInterceptor.ATTR_USER_ID);
+        return Result.ok(goodsService.create(goods, userId));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public Result<Void> deleteGoods(@PathVariable Long id) {
-        goodsService.deleteGoods(id);
-        return Result.success(null);
+    @PutMapping("/{id}")
+    public Result<Goods> update(@PathVariable Long id, @RequestBody Goods goods) {
+        goods.setId(id);
+        return Result.ok(goodsService.update(goods));
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        goodsService.delete(id);
+        return Result.ok();
+    }
+
+    @PutMapping("/{id}/status")
+    public Result<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute(JwtInterceptor.ATTR_USER_ID);
+        goodsService.updateStatus(id, status, userId);
+        return Result.ok();
     }
 }

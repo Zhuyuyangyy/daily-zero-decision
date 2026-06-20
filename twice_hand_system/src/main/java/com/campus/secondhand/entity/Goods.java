@@ -1,18 +1,29 @@
 package com.campus.secondhand.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.math.BigDecimal;
-import java.util.Date;
 
 @Data
-public class Goods {
+@EqualsAndHashCode(callSuper = true)
+@TableName("goods")
+public class Goods extends BaseEntity {
+    @TableId(type = IdType.AUTO)
     private Long id;
-    private Long userId; // 对应数据库的user_id
-    private String name; // 对应数据库的name（不是title）
-    private BigDecimal price; // 对应数据库的price
-    private String description; // 对应数据库的description
-    private Integer status; // 对应数据库的status
-    private Date createTime; // 对应数据库的create_time
-    private Date updateTime; // 对应数据库的update_time
-    // 不要加images/category/sellerId/title等不存在的字段
+    private Long userId;
+    private String name;
+    private String description;
+    private Long categoryId;
+    private String categoryName;
+    private BigDecimal price;
+    private BigDecimal originalPrice;
+    private String images;
+    private Integer condition;
+    private Integer status;
+    private Integer viewCount;
+    private Integer wantCount;
 }

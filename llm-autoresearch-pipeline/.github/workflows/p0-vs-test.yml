@@ -1,0 +1,22 @@
+name: p0-vs TypeScript Tests
+on:
+  push:
+    paths:
+      - 'p0-vs/**'
+  pull_request:
+    paths:
+      - 'p0-vs/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: p0-vs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npx tsx src/test.ts

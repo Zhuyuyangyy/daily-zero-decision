@@ -1,0 +1,10 @@
+- [x] pytest.ini 配置文件存在且 testpaths 指向 tests/
+- [x] requirements-dev.txt 包含 pytest 和 scipy 依赖
+- [x] tests/conftest.py 包含 JSONL 数据加载 fixture
+- [x] audit_v3/stats.py 导出 compute_stats, confidence_interval, one_sample_ttest 三个纯函数
+- [x] JSONL 数据完整性测试覆盖：格式合法性、必需字段、gap 一致性、子集关系
+- [x] 统计计算测试覆盖：n=7 clean (mean≈35.4, median=37.0)、n=7 contaminated (mean≈39.1, median=43.0)、置信区间、t 检验、边界情况
+- [x] Provenance 判定测试覆盖：BYTE_TRACEABLE、SELF_ONLY_TRACEABLE、contamination_risk、usable_clean
+- [x] 论文修改脚本测试覆盖：fix_paper_v66.py 8 个替换、apply_v66_patch.py changelog+Abstract、generate_paper_v66.py 输出
+- [x] 论文数据一致性测试覆盖：paper_v6.6.md 数字与 JSONL 一致、manual_validation 与 JSONL 一致、final_estimates 与计算一致
+- [x] `pytest tests/ -v` 全部通过，69 个测试 0 失败

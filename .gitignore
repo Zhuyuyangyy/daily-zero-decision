@@ -671,3 +671,8 @@ _skill/
 !/twice_hand_system/src/main/java/com/campus/secondhand/storage/
 # Negate monorepo's docs/ ignore — twice_hand_system has its own docs
 !/twice_hand_system/docs/
+
+# llm-autoresearch-pipeline overrides
+!/llm-autoresearch-pipeline/tests/
+!/llm-autoresearch-pipeline/p0-vs/
+!/llm-autoresearch-pipeline/docs/

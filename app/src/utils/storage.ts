@@ -1,8 +1,9 @@
-import { AppState, Task, defaultPetState } from '../types';
+import { AppState, Task, defaultPetState, CURRENT_SCHEMA_VERSION } from '../types';
 
 const STORAGE_KEY = 'daily-zero-decision';
 
 const defaultState: AppState = {
+  schemaVersion: CURRENT_SCHEMA_VERSION,
   tasks: [],
   log: [],
   streak: {
@@ -79,6 +80,7 @@ export function loadState(): AppState {
     return {
       ...defaultState,
       ...parsed,
+      schemaVersion: parsed.schemaVersion ?? CURRENT_SCHEMA_VERSION,
       peace: parsed.peace || parsed.premium || defaultState.peace,
       pet: { ...defaultPetState, ...(parsed.pet || {}) },
     };
@@ -155,6 +157,7 @@ export function importState(json: string): AppState | null {
       moods: parsed.moods || {},
       pomodoroSessions: parsed.pomodoroSessions ?? 0,
       onboarded,
+      schemaVersion: parsed.schemaVersion ?? CURRENT_SCHEMA_VERSION,
       peace: parsed.peace || parsed.premium || defaultState.peace,
       pet: { ...defaultPetState, ...(parsed.pet || {}) },
     };
@@ -164,7 +167,11 @@ export function importState(json: string): AppState | null {
 }
 
 export function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function isToday(dateStr: string): boolean {

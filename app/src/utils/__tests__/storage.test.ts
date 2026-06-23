@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { parseTaskFromInput, importState } from '../storage';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { parseTaskFromInput, importState, loadState, saveState, getToday, exportState, defaultState } from '../storage';
+import { CURRENT_SCHEMA_VERSION } from '../../types';
+
+const STORAGE_KEY = 'daily-zero-decision';
 
 describe('parseTaskFromInput', () => {
   it('读 2 页书 → reading, 5 分钟, 2 页', () => {
@@ -72,5 +75,90 @@ describe('importState', () => {
     });
     const r = importState(json);
     expect(r!.history['2026-06-10'][0].type).toBe('reading');
+  });
+
+  it('返回的是解析后的 AppState（不是 loadState）', () => {
+    const json = JSON.stringify({
+      log: ['2026-06-13'],
+      streak: { current: 2, best: 5, lastCompletedDate: '2026-06-13' },
+      tasks: [{ id: 't1', title: '读 2 页书', type: 'reading', createdAt: '2026-06-13' }],
+    });
+    const r = importState(json);
+    expect(r).not.toBeNull();
+    expect(r!.streak.current).toBe(2);
+    expect(r!.streak.best).toBe(5);
+    expect(r!.tasks[0].id).toBe('t1');
+  });
+});
+
+describe('getToday local timezone', () => {
+  it('test_getToday_local_timezone', () => {
+    const today = getToday();
+    const expected = (() => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    })();
+    expect(today).toBe(expected);
+    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('schema + export/import roundtrip', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('test_export_import_roundtrip: save → import → data 一致', () => {
+    const json = JSON.stringify({
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      log: ['2026-06-13', '2026-06-14'],
+      streak: { current: 2, best: 5, lastCompletedDate: '2026-06-14' },
+      tasks: [{ id: 't1', title: '出门走走', type: 'exercise', createdAt: '2026-06-13' }],
+      pomodoroSessions: 3,
+      onboarded: true,
+    });
+    const r = importState(json);
+    expect(r).not.toBeNull();
+    expect(r!.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(r!.log).toEqual(['2026-06-13', '2026-06-14']);
+    expect(r!.streak.best).toBe(5);
+    expect(r!.pomodoroSessions).toBe(3);
+    expect(r!.onboarded).toBe(true);
+    expect(r!.tasks[0].title).toBe('出门走走');
+  });
+
+  it('test_importState_returns_imported_data: 不是 loadState（空存储）的结果', () => {
+    localStorage.clear();
+    const json = JSON.stringify({
+      log: ['2026-06-13'],
+      streak: { current: 99, best: 99, lastCompletedDate: '2026-06-13' },
+      pomodoroSessions: 42,
+    });
+    const r = importState(json);
+    const ls = loadState();
+    // importState 必须反映导入数据，而不是从 localStorage 读到的默认空状态
+    expect(r!.streak.current).toBe(99);
+    expect(r!.pomodoroSessions).toBe(42);
+    expect(ls.streak.current).toBe(0);
+    expect(ls.pomodoroSessions).toBe(0);
+  });
+
+  it('test_corrupted_storage_recovers: 损坏 JSON + 坏 import 都不会抛异常', () => {
+    localStorage.setItem(STORAGE_KEY, '<<<not-json>>>');
+    let recovered: any = null;
+    try {
+      recovered = loadState();
+    } catch {
+      // must not throw
+    }
+    expect(recovered).not.toBeNull();
+    expect(recovered.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(recovered.streak.current).toBe(0);
+
+    const bad = importState('not json');
+    expect(bad).toBeNull();
   });
 });

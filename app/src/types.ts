@@ -45,6 +45,7 @@ export interface Settings {
 }
 
 export interface AppState {
+  schemaVersion: number;
   tasks: Task[];
   log: string[];
   streak: StreakState;
@@ -60,6 +61,8 @@ export interface AppState {
   /** 天空宠物系统（cloud_cat MVP） */
   pet: PetState;
 }
+
+export const CURRENT_SCHEMA_VERSION = 2;
 
 export interface PeaceState {
   cards: number;  // 安心卡数量，最多2张

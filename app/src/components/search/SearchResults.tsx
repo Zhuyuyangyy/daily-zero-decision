@@ -335,17 +335,22 @@ function highlight(text: string, query: string): React.ReactNode {
 }
 
 function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  const now = new Date();
-  const diffDays = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  // 用 split 解析 YYYY-MM-DD，避免 `new Date('2026-06-23')` 在 UTC+ 时区下被推到前一天
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return dateStr;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  // 本地时区中午构造，避免任何边界 DST 漂移
+  const date = new Date(y, mo - 1, d, 12, 0, 0);
+  // 用 localDateString 计算差，避免跨时区 + DST
+  const todayLocal = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+  const todayMs = Date.UTC(Number(todayLocal.slice(0, 4)), Number(todayLocal.slice(5, 7)) - 1, Number(todayLocal.slice(8, 10)), 12, 0, 0);
+  const dateMs = Date.UTC(y, mo - 1, d, 12, 0, 0);
+  const diffDays = Math.round((todayMs - dateMs) / 86400000);
   if (diffDays === 0) return '今天';
   if (diffDays === 1) return '昨天';
   if (diffDays < 7) return `${diffDays} 天前`;
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
   const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-  return `${month}月${day}日 周${weekdays[date.getDay()]}`;
+  return `${mo}月${d}日 周${weekdays[date.getDay()]}`;
 }

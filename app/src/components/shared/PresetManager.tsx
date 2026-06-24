@@ -88,6 +88,8 @@ export default function PresetManager({ presets, onUpdate }: PresetManagerProps)
         </h2>
         <button
           onClick={() => setShowAdd(!showAdd)}
+          aria-label={showAdd ? '收起添加预设表单' : '展开添加预设表单'}
+          aria-expanded={showAdd}
           style={{
             width: '36px',
             height: '36px',
@@ -145,7 +147,10 @@ export default function PresetManager({ presets, onUpdate }: PresetManagerProps)
               {EMOJI_OPTIONS.map((emoji) => (
                 <button
                   key={emoji}
+                  type="button"
                   onClick={() => setNewIcon(emoji)}
+                  aria-label={`选择图标 ${emoji}`}
+                  aria-pressed={newIcon === emoji}
                   style={{
                     width: '36px',
                     height: '36px',
@@ -163,7 +168,7 @@ export default function PresetManager({ presets, onUpdate }: PresetManagerProps)
                     justifyContent: 'center',
                   }}
                 >
-                  {emoji}
+                  <span aria-hidden="true">{emoji}</span>
                 </button>
               ))}
             </div>
@@ -377,7 +382,9 @@ export default function PresetManager({ presets, onUpdate }: PresetManagerProps)
                     {preset.value}
                   </span>
                   <button
+                    type="button"
                     onClick={() => startEdit(preset)}
+                    aria-label={`编辑预设：${preset.label}`}
                     style={{
                       padding: '4px 10px',
                       borderRadius: '8px',
@@ -391,7 +398,9 @@ export default function PresetManager({ presets, onUpdate }: PresetManagerProps)
                     编辑
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDelete(preset.id)}
+                    aria-label={`删除预设：${preset.label}`}
                     style={{
                       padding: '4px 10px',
                       borderRadius: '8px',

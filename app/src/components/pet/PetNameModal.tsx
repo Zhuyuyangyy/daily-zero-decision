@@ -23,6 +23,19 @@ export function PetNameModal({ isOpen, currentName, isFirstMeet, onConfirm, onCl
     if (isOpen) setName(currentName);
   }, [isOpen, currentName]);
 
+  // Escape 关闭
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = () => {
@@ -39,10 +52,10 @@ export function PetNameModal({ isOpen, currentName, isFirstMeet, onConfirm, onCl
         className="pet-name-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={isFirstMeet ? '给天空宠物取个名字' : '修改宠物名字'}
+        aria-labelledby="pet-name-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="pet-name-modal__title">
+        <h2 className="pet-name-modal__title" id="pet-name-modal-title">
           {isFirstMeet ? '它今天陪你完成了第一步' : '给宠物改个名字'}
         </h2>
         <p className="pet-name-modal__desc">
@@ -50,7 +63,11 @@ export function PetNameModal({ isOpen, currentName, isFirstMeet, onConfirm, onCl
             ? '要给它取个名字吗？也可以以后再说。'
             : '新名字会代替现在的称呼。'}
         </p>
+        <label htmlFor="pet-name-modal-input" className="pet-name-modal__label" style={{ position: 'absolute', left: -9999 }}>
+          宠物名字
+        </label>
         <input
+          id="pet-name-modal-input"
           className="pet-name-modal__input"
           type="text"
           maxLength={8}
@@ -59,6 +76,7 @@ export function PetNameModal({ isOpen, currentName, isFirstMeet, onConfirm, onCl
           onKeyDown={handleKey}
           placeholder="比如：豆豆 / 小云 / 阿白"
           autoFocus
+          aria-label="宠物名字（最多 8 字）"
         />
         <p className="pet-name-modal__hint">最多 8 个字</p>
         <div className="pet-name-modal__actions">

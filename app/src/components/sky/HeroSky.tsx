@@ -156,12 +156,12 @@ function MiniCloudSVG({ cloud, shadowColor }: { cloud: MiniCloud; shadowColor: s
 
 // ---- component ---------------------------------------------------------
 
-export default function HeroSky({ mood, streakCurrent: _streakCurrent, className = '' }: HeroSkyProps) {
+export default function HeroSky({ mood, streakCurrent, className = '' }: HeroSkyProps) {
   const t = MOOD_GRADIENT[mood] ?? MOOD_GRADIENT.morning;
   const clouds = useMemo(buildClouds, []);
   const isGolden = t.sunRays;
-  // streakCurrent 当前未直接参与布局；为后续"连击天数→金度微调"预留接口
-  void _streakCurrent;
+  // streak 越高，太阳 glow 越强（最多 +0.15 alpha），强化"养久了天更亮"的反馈
+  const streakBoost = Math.min(0.15, streakCurrent * 0.015);
 
   return (
     <div className={`w-full ${className}`}>
@@ -192,7 +192,7 @@ export default function HeroSky({ mood, streakCurrent: _streakCurrent, className
             width: 200,
             height: 200,
             transform: 'translate(0, 0)',
-            background: `radial-gradient(circle, ${t.sunGlow} 0%, rgba(255, 220, 180, 0.18) 45%, transparent 72%)`,
+            background: `radial-gradient(circle, rgba(255, 220, 180, ${0.18 + streakBoost}) 0%, rgba(255, 220, 180, ${0.06 + streakBoost * 0.3}) 45%, transparent 72%)`,
             filter: 'blur(10px)',
             pointerEvents: 'none',
             transition: 'background 1.6s var(--ease-out-quart)',

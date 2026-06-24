@@ -1,9 +1,20 @@
+import { useMemo } from 'react';
+
 interface CloudSparklesProps {
   active: boolean;
   count?: number;
 }
 
 export default function CloudSparkles({ active, count = 8 }: CloudSparklesProps) {
+  // 用 useMemo 在 mount 时一次确定 sparkle 位置；避免 active 切换时随机数重置导致视觉抖动
+  const sparklePositions = useMemo(
+    () => Array.from({ length: count }, () => ({
+      left: 30 + Math.random() * 40,
+      top: 20 + Math.random() * 40,
+    })),
+    [count]
+  );
+
   if (!active) return null;
 
   return (
@@ -17,13 +28,13 @@ export default function CloudSparkles({ active, count = 8 }: CloudSparklesProps)
         zIndex: 0
       }} />
 
-      {Array.from({ length: count }).map((_, i) => (
+      {sparklePositions.map((pos, i) => (
         <div
           key={i}
           style={{
             position: 'absolute',
-            left: `${30 + Math.random() * 40}%`,
-            top: `${20 + Math.random() * 40}%`,
+            left: `${pos.left}%`,
+            top: `${pos.top}%`,
             width: 8,
             height: 8,
             borderRadius: '50%',

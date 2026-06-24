@@ -21,7 +21,6 @@ export interface SkyProgressProps {
   streak: number;
   bestStreak: number;
   totalDays: number;
-  today: string;
   selectedMood?: Mood;
   onMoodSelect: (mood: Mood) => void;
   compact?: boolean;
@@ -113,12 +112,10 @@ export default function SkyProgress({
   streak,
   bestStreak,
   totalDays,
-  today: _today,
   selectedMood,
   onMoodSelect,
   compact = false,
 }: SkyProgressProps) {
-  void _today;
   const t = MOOD_CONFIG[mood] ?? MOOD_CONFIG.morning;
   const isComplete = totalCount > 0 && completedCount === totalCount;
   const hasData = streak > 0 || totalDays > 0;

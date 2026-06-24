@@ -51,27 +51,19 @@ export default function App() {
 
   // Task operations
   const {
-    input,
-    setInput,
     completingTaskId,
     hasCompletedToday,
-    todaysTasks,
     incompleteTasks,
     completedTasks,
     allTodaysTasksDone,
-    atMaxTasks,
-    handleAddTask,
     addWithValue,
     handleCompleteTask,
     handleConfirmComplete,
     handleCancelComplete,
-    handleDeleteTask,
-    handleReset,
     handleMoodSelect,
     handleOnboardingFinish,
     handlePomodoroComplete,
     handleEasier,
-    today,
   } = useTasks(state, setState, () => setShowCelebration(true));
 
   // Streak + sky mood
@@ -246,21 +238,14 @@ export default function App() {
       {activeTab === 'today' && (
         <TodayPage
           state={state}
-          today={today}
-          skyMood={skyMood}          todaysTasks={todaysTasks}
+          skyMood={skyMood}
           incompleteTasks={incompleteTasks}
           completedTasks={completedTasks}
           allTodaysTasksDone={allTodaysTasksDone}
-          atMaxTasks={atMaxTasks}
-          input={input}
-          setInput={setInput}
-          handleAddTask={handleAddTask}
           addWithValue={addWithValue}
           handleCompleteTask={handleCompleteTask}
-          handleDeleteTask={handleDeleteTask}
           handleMoodSelect={handleMoodSelect}
           handlePomodoroComplete={handlePomodoroComplete}
-          handleReset={handleReset}
           handleEasier={handleEasier}
           pomodoroExpanded={pomodoroExpanded}
           setPomodoroExpanded={setPomodoroExpanded}

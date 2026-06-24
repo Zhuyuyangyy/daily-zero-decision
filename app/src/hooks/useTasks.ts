@@ -9,6 +9,10 @@ import {
 import { checkAchievements } from '../utils/achievements';
 import type { Mood } from '../components/shared/MoodWidget';
 
+function localDateString(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // 每日只做 1 小步：与"今天只做这一小步"产品定位对齐
 // （Round 7：从 5 降到 1；原代码里残留的 5 是历史默认）
 const MAX_TASKS_PER_DAY = 1;
@@ -81,11 +85,14 @@ export function useTasks(
     setCompletingTaskId(taskId);
   }, []);
 
-  const handleConfirmComplete = useCallback((note: string) => {
-    if (!completingTaskId) return;
+  const handleConfirmComplete = useCallback((note: string, explicitTaskId?: string) => {
+    // 优先用 explicitTaskId（来自 App.tsx 当时的 completingTaskId），
+    // 避免闭包陷阱：用户连点不同任务的"完成"时，completingTaskId state 可能尚未更新
+    const taskId = explicitTaskId ?? completingTaskId;
+    if (!taskId) return;
 
     setState((prev) => {
-      const task = prev.tasks.find((t) => t.id === completingTaskId);
+      const task = prev.tasks.find((t) => t.id === taskId);
       if (!task) return prev;
 
       const updatedTask: Task = {
@@ -96,25 +103,22 @@ export function useTasks(
       };
 
       const updatedTasks = prev.tasks.map((t) =>
-        t.id === completingTaskId ? updatedTask : t
+        t.id === taskId ? updatedTask : t
       );
 
       const newLog = prev.log.includes(today) ? prev.log : [...prev.log, today];
 
-      // 安心卡逻辑：如果昨天断了但有安心卡，记录被保护的日子
-      // 注意：不伪造log，保持数据诚实
+      // 安心卡逻辑：只在 setState updater 内读 prev（prev.log.length / prev.peace.cards / prev.pet），
+      // 不再用外层闭包的 today 派生 yesterday（避免时区问题 + stale 风险）
       let peaceUsed = false;
       if (prev.log.length > 0) {
         const lastLogDate = prev.log[prev.log.length - 1];
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-        if (lastLogDate !== today && lastLogDate !== yesterdayStr) {
-          // 昨天断了
-          if (prev.peace.cards > 0) {
-            // 有安心卡：记录被保护的日子，消耗一张卡
-            peaceUsed = true;
-          }
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayStr = localDateString(yesterdayDate);
+        if (lastLogDate !== today && lastLogDate !== yesterdayStr && prev.peace.cards > 0) {
+          // 昨天断了 + 有安心卡：记录被保护的日子，消耗一张卡
+          peaceUsed = true;
         }
       }
 
@@ -142,9 +146,9 @@ export function useTasks(
 
       // 如果用了安心卡，减少一张卡，并记录被保护的日子
       if (peaceUsed) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayStr = localDateString(yesterdayDate);
         newState.peace = {
           ...prev.peace,
           cards: prev.peace.cards - 1,
@@ -159,6 +163,7 @@ export function useTasks(
       }
 
       // 天空宠物奖励：完成今日卡 +1 亲密度（防同日重复）
+      // 在 updater 内读 prev，守卫可靠（与 F6 usePet 修法同构）
       if (prev.pet.lastRewardDate !== today) {
         newState.pet = {
           ...prev.pet,
@@ -176,7 +181,7 @@ export function useTasks(
 
     // Check if all tasks done — trigger celebration
     const remaining = todaysTasks.filter(
-      (t) => t.id !== completingTaskId && !t.completedAt
+      (t) => t.id !== taskId && !t.completedAt
     );
     if (remaining.length === 0) {
       onAllTasksComplete();

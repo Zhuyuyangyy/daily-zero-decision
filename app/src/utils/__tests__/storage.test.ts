@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { parseTaskFromInput, importState, getToday, isYesterday, calculateStreak, generateId } from '../storage';
+import { parseTaskFromInput, importState, getToday, isYesterday, calculateStreak, generateId, getLastNDays, sanitizeVisibleText } from '../storage';
 
 describe('parseTaskFromInput', () => {
   it('读 2 页书 → reading, 5 分钟, 2 页', () => {
@@ -160,5 +160,58 @@ describe('generateId', () => {
   it('生成的 ID 是非空字符串', () => {
     expect(generateId()).toMatch(/^[a-zA-Z0-9-]+$/);
     expect(generateId().length).toBeGreaterThan(0);
+  });
+});
+
+describe('getLastNDays', () => {
+  it('返回最近 N 个日历日（含今天）', () => {
+    const result = getLastNDays({}, 7, '2026-06-23');
+    expect(result).toHaveLength(7);
+    expect(result[0].date).toBe('2026-06-23');
+    expect(result[6].date).toBe('2026-06-17');
+    // 所有日期连续，无重复
+    const dates = result.map((r) => r.date);
+    expect(new Set(dates).size).toBe(7);
+  });
+
+  it('缺失的日期填空数组', () => {
+    const result = getLastNDays({
+      '2026-06-21': [{ id: '1', title: '读', type: 'reading', createdAt: '2026-06-21' }],
+    }, 3, '2026-06-23');
+    expect(result).toHaveLength(3);
+    expect(result[0].tasks).toEqual([]);  // 2026-06-23 缺失
+    expect(result[1].tasks).toEqual([]);  // 2026-06-22 缺失
+    expect(result[2].tasks).toHaveLength(1);  // 2026-06-21 有数据
+  });
+
+  it('跨月边界正确', () => {
+    const result = getLastNDays({}, 5, '2026-07-02');
+    expect(result.map((r) => r.date)).toEqual([
+      '2026-07-02', '2026-07-01', '2026-06-30', '2026-06-29', '2026-06-28',
+    ]);
+  });
+});
+
+describe('sanitizeVisibleText', () => {
+  it('移除控制字符但保留 \\n \\r \\t', () => {
+    const input = 'hello\x00world\x07\nline2\r\nline3\tend';
+    const out = sanitizeVisibleText(input);
+    expect(out).toBe('helloworld\nline2\r\nline3\tend');
+  });
+
+  it('移除 ESC 字符（0x1B，CSI 转义前缀）', () => {
+    const input = 'normal\x1B[31mred\x1B[0m text';
+    // ESC 本身被删；[31m 是普通 ASCII 字符保留
+    expect(sanitizeVisibleText(input)).toBe('normal[31mred[0m text');
+  });
+
+  it('移除 DEL 和 C1 控制字符', () => {
+    const input = 'a\x7Fb\x80c';
+    expect(sanitizeVisibleText(input)).toBe('abc');
+  });
+
+  it('折叠连续 3+ 空行为 2', () => {
+    const input = 'a\n\n\n\nb';
+    expect(sanitizeVisibleText(input)).toBe('a\n\nb');
   });
 });

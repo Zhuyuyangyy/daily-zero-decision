@@ -13,6 +13,7 @@ import { SkyScene } from '../components/sky/SkyScene';
 import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
 import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
+import { getLastNDays } from '../utils/storage';
 import { PeaceCard } from '../components/premium/PeaceCard';
 import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
 import { SkyPet } from '../components/pet/SkyPet';
@@ -75,10 +76,7 @@ export default function TodayPage({
   void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks; void _handleReset; void _today; void _todaysTasks;
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
 
-  const last7 = Object.entries(state.history)
-    .sort(([a], [b]) => b.localeCompare(a))
-    .slice(0, 7)
-    .map(([date, tasks]) => ({ date, tasks }));
+  const last7 = getLastNDays(state.history, 7);
 
   // 安心卡状态管理
   const [showPeaceInfo, setShowPeaceInfo] = useState(false);

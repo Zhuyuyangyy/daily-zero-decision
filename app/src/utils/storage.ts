@@ -321,3 +321,30 @@ export function generateId(): string {
   // 兜底：极旧浏览器 / 非 https 场景
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + '-' + Math.random().toString(36).slice(2, 10);
 }
+
+/**
+ * 生成最近 N 个日历日（含今天），缺失的日期填空数组。
+ * 解决：用户间断使用时 history 缺失日期导致 last7 不足 7 项。
+ */
+export function getLastNDays(history: Record<string, Task[]>, n: number, today: string = getToday()): Array<{ date: string; tasks: Task[] }> {
+  const result: Array<{ date: string; tasks: Task[] }> = [];
+  const [y, m, d] = today.split('-').map(Number);
+  for (let i = 0; i < n; i++) {
+    const dt = new Date(y, m - 1, d - i);
+    const dateStr = localDateString(dt);
+    result.push({ date: dateStr, tasks: history[dateStr] ?? [] });
+  }
+  return result;
+}
+
+// 控制字符 regex：保留 \t(0x09) \n(0x0A) \r(0x0D)
+// 用字符串构造规避编辑工具对字面控制字符的吞字
+const CTRL_CHARS_RE = new RegExp('[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F]', 'g');
+
+/**
+ * 去除控制字符（保留 \t \n \r），折叠多于 2 个的空行。
+ * 用于剪贴板、分享文案等用户可见字符串，防止 ANSI / 零宽字符注入。
+ */
+export function sanitizeVisibleText(s: string): string {
+  return s.replace(CTRL_CHARS_RE, '').replace(/\n{3,}/g, '\n\n');
+}

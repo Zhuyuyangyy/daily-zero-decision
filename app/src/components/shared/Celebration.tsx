@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 interface CelebrationProps {
+  streak?: number;
   onComplete?: () => void;
 }
 
@@ -28,20 +29,6 @@ const SOFT_PALETTE = [
 ];
 
 const EASE_BACK = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
-
-// 减弱模式下不读取 localStorage（少一次 IO）
-function readStreak(): number {
-  if (typeof window === 'undefined') return 0;
-  try {
-    const raw = window.localStorage.getItem('daily-zero-decision');
-    if (!raw) return 0;
-    const parsed = JSON.parse(raw);
-    const n = parsed?.streak?.current;
-    return typeof n === 'number' && n > 0 ? n : 0;
-  } catch {
-    return 0;
-  }
-}
 
 function generateParticles(): Particle[] {
   // 60% 软云絮 / 40% 软星星 — 总数落在 15-20
@@ -174,15 +161,11 @@ function SoftSparkle({ size, color, variant }: { size: number; color: string; va
   );
 }
 
-export function Celebration({ onComplete }: CelebrationProps) {
+export function Celebration({ streak = 0, onComplete }: CelebrationProps) {
   const [active, setActive] = useState(false);
-  const [streak, setStreak] = useState(0);
   const particles = useMemo(() => generateParticles(), []);
 
   useEffect(() => {
-    // 读 streak 用于弹出符号（不导入 storage.ts，只读 localStorage）
-    setStreak(readStreak());
-
     // 启动动画
     const raf = requestAnimationFrame(() => setActive(true));
     // 总时长：粒子最长 ~1.5s + 一点缓冲；弹出符号在 0.3s 开始 0.9s 持续

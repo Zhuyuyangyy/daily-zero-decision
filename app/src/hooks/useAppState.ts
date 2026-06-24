@@ -1,16 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState } from '../types';
-import { loadState, saveState, importState } from '../utils/storage';
+import { loadState, saveState, importState, StorageQuotaError } from '../utils/storage';
 
 /**
  * Core app state hook with localStorage persistence.
  */
 export function useAppState() {
   const [state, setState] = useState<AppState>(() => loadState());
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const firstSaveRef = useRef(true);
 
   // Persist state to localStorage
   useEffect(() => {
-    saveState(state);
+    // 跳过首次渲染的保存：state 来自 loadState，写回是冗余 IO
+    if (firstSaveRef.current) {
+      firstSaveRef.current = false;
+      return;
+    }
+    try {
+      saveState(state);
+      setSaveError(null);
+    } catch (e) {
+      const msg = e instanceof StorageQuotaError
+        ? e.message
+        : '保存失败：未知错误';
+      setSaveError(msg);
+      // eslint-disable-next-line no-console
+      console.error('[useAppState] save failed', e);
+    }
   }, [state]);
 
   const handleImportData = useCallback(() => {
@@ -36,5 +53,5 @@ export function useAppState() {
     input.click();
   }, []);
 
-  return { state, setState, handleImportData };
+  return { state, setState, handleImportData, saveError };
 }

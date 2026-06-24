@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Celebration } from './components/shared/Celebration';
+import { getToday } from './utils/storage';
 import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
 import Onboarding from './components/shared/Onboarding';
@@ -24,7 +25,7 @@ import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   // Core state + persistence
-  const { state, setState, handleImportData } = useAppState();
+  const { state, setState, handleImportData, saveError } = useAppState();
 
   // UI-only state
   const [showCelebration, setShowCelebration] = useState(false);
@@ -124,6 +125,60 @@ export default function App() {
           'radial-gradient(ellipse at top, #FFE9DF 0%, #FDF4F0 60%, #FAE6DC 100%)',
       }}
     >
+      {/* 持久化错误 banner：仅在 saveError 非空时显示 */}
+      {saveError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{
+            position: 'fixed',
+            top: 12,
+            left: 12,
+            right: 12,
+            zIndex: 10000,
+            padding: '10px 16px',
+            background: 'var(--warm-coral, #F88C82)',
+            color: 'white',
+            borderRadius: 12,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <span>⚠️ {saveError}。请尽快导出数据备份。</span>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `daily-cloud-backup-${getToday()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                /* swallow */
+              }
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.25)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              padding: '4px 12px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            立即备份
+          </button>
+        </div>
+      )}
       {/* Onboarding overlay */}
       {!state.onboarded && (
         <Onboarding
@@ -164,7 +219,7 @@ export default function App() {
 
       {/* Celebration overlay */}
       {showCelebration && (
-        <Celebration onComplete={handleCelebrationComplete} />
+        <Celebration streak={state.streak.current} onComplete={handleCelebrationComplete} />
       )}
 
       {/* Share card */}
@@ -179,7 +234,7 @@ export default function App() {
       {/* Completion note modal */}
       {completingTaskId && (
         <CompletionNote
-          onConfirm={handleConfirmComplete}
+          onConfirm={(note) => handleConfirmComplete(note, completingTaskId)}
           onCancel={handleCancelComplete}
         />
       )}

@@ -105,14 +105,32 @@ export function saveState(state: AppState): void {
   }
 }
 
+export class ExportFailedError extends Error {
+  constructor(message = '导出失败') {
+    super(message);
+    this.name = 'ExportFailedError';
+  }
+}
+
 export function exportState(state: AppState): void {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `daily-cloud-backup-${getToday()}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
+  let url: string | null = null;
+  try {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `daily-cloud-backup-${getToday()}.json`;
+    link.click();
+    // Safari 某些版本在 click() 后才异步处理 URL；延迟 100ms 回收避免下载失败
+    setTimeout(() => {
+      if (url) URL.revokeObjectURL(url);
+    }, 100);
+  } catch (e) {
+    if (url) URL.revokeObjectURL(url);
+    throw new ExportFailedError(
+      e instanceof Error ? `导出失败：${e.message}` : '导出失败：浏览器不支持'
+    );
+  }
 }
 
 export function importState(json: string): AppState | null {

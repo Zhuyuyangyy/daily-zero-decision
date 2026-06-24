@@ -2,6 +2,7 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { AppState, Task, TaskType } from '../types';
 import type { SkyMood } from '../utils/skyMood';
 import { getToday } from '../utils/storage';
+import { copy } from '../utils/copy';
 import { CLOUD_TYPE_PRESET } from '../utils/cloudSeed';
 import Cloud from '../components/sky/Cloud';
 import { SoftButton } from '../components/ui';
@@ -35,15 +36,6 @@ const CLOUD_MOOD_FOR_TYPE: Record<string, 'calm' | 'happy' | 'celebrate'> = {
 
 const cloudMoodFromType = (t: TaskType): 'calm' | 'happy' | 'celebrate' =>
   CLOUD_MOOD_FOR_TYPE[t] ?? 'calm';
-
-const MOOD_CLOUD: Record<SkyMood, 'calm' | 'happy' | 'celebrate'> = {
-  dawn: 'calm',
-  morning: 'calm',
-  clear: 'happy',
-  sunny: 'happy',
-  golden: 'celebrate',
-};
-void MOOD_CLOUD; // 留作参考：skyMood 状态下默认云朵心情
 
 const TYPE_ICON: Record<string, string> = {
   reading: '📖', exercise: '🏃', coding: '💻', other: '✨',
@@ -524,7 +516,7 @@ export default function SkyPage({
                   fontStyle: 'italic',
                 }}
               >
-                {state.pet.name}说：这周你回来 {last7.length} 天，已经很不容易了。
+                {copy.petGreeting(state.pet.name, last7.length, petStage)}
               </p>
               <p
                 style={{
@@ -534,9 +526,7 @@ export default function SkyPage({
                   margin: '4px 0 0',
                 }}
               >
-                {petStage === 'new' && '它刚来到你的天空，安静坐着。'}
-                {petStage === 'familiar' && '它已经会靠近你养的云了。'}
-                {petStage === 'trusted' && '它会抱住你新长出的每一朵云。'}
+                {copy.petStageHint(petStage)}
               </p>
             </div>
           </div>

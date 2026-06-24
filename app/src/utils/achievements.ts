@@ -17,23 +17,20 @@ export const ACHIEVEMENT_INFO: Record<
 export function checkAchievements(state: AppState): string[] {
   const newlyUnlocked: string[] = [];
 
+  // 只统计 history 里已完成（completedAt 存在）的任务。
+  // 不要合并 state.tasks：未完成的任务不应计入成就进度，否则用户改主意删除时会触发误判。
+  const completedTasks = Object.values(state.history)
+    .flat()
+    .filter((t) => !!t.completedAt);
+
   const conditions: { id: string; check: (s: AppState) => boolean }[] = [
     { id: 'first-cloud', check: (s) => s.log.length >= 1 },
     { id: 'streak-7', check: (s) => s.streak.best >= 7 },
     { id: 'streak-30', check: (s) => s.streak.best >= 30 },
     { id: 'total-100', check: (s) => s.log.length >= 100 },
-    { id: 'bookworm', check: (s) => {
-      const allTasks = [...s.tasks, ...Object.values(s.history).flat()];
-      return allTasks.filter(t => t.type === 'reading').length >= 50;
-    }},
-    { id: 'runner', check: (s) => {
-      const allTasks = [...s.tasks, ...Object.values(s.history).flat()];
-      return allTasks.filter(t => t.type === 'exercise').length >= 30;
-    }},
-    { id: 'geek', check: (s) => {
-      const allTasks = [...s.tasks, ...Object.values(s.history).flat()];
-      return allTasks.filter(t => t.type === 'coding').length >= 50;
-    }},
+    { id: 'bookworm', check: () => completedTasks.filter(t => t.type === 'reading').length >= 50 },
+    { id: 'runner', check: () => completedTasks.filter(t => t.type === 'exercise').length >= 30 },
+    { id: 'geek', check: () => completedTasks.filter(t => t.type === 'coding').length >= 50 },
   ];
 
   for (const { id, check } of conditions) {

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Task, StreakState } from '../types';
+import { getToday } from '../utils/storage';
+import { copy } from '../utils/copy';
 
 interface StatsPageProps {
   history: Record<string, Task[]>;
@@ -31,7 +33,7 @@ const TYPE_ICON: Record<string, string> = {
 export default function StatsPage({ history, streak, moods }: StatsPageProps) {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getToday();
 
   // 最近 7 天的云朵故事
   const last7 = useMemo(() => {
@@ -133,7 +135,7 @@ export default function StatsPage({ history, streak, moods }: StatsPageProps) {
               )}
               你养了 <strong>{summary.total14}</strong> 朵云
               {summary.topType && (
-                <>，其中最多的是 <strong>{TYPE_ICON[summary.topType]} {summary.topType === 'reading' ? '阅读云' : summary.topType === 'exercise' ? '运动云' : summary.topType === 'coding' ? '编码云' : '日常云'}</strong></>
+                <>，其中最多的是 <strong>{TYPE_ICON[summary.topType]} {copy.cloudTypeName(summary.topType as Task['type'])}</strong></>
               )}
               {summary.topMood && (
                 <>，心情最多是 <strong>{MOOD_ICON[summary.topMood]}</strong></>

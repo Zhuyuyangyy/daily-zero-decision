@@ -94,10 +94,14 @@ export function SkyPet({
   const activeBubble =
     bubbleText !== undefined ? bubbleText : bubbleOverride;
 
+  const bumpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleClick = () => {
     if (!onClick) return;
     setBump(true);
-    setTimeout(() => setBump(false), 600);
+    // bump 用 ref 持有 timer，cleanup 中 clearTimeout 避免 unmount 后 setState 警告
+    if (bumpTimerRef.current) window.clearTimeout(bumpTimerRef.current);
+    bumpTimerRef.current = window.setTimeout(() => setBump(false), 600);
 
     const line = onClick();
     if (line) {
@@ -109,11 +113,12 @@ export function SkyPet({
 
   useEffect(() => () => {
     if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (bumpTimerRef.current) window.clearTimeout(bumpTimerRef.current);
   }, []);
 
   const reduced = !!reducedMotion;
   const isInteractive = !!onClick;
-  const Tag: any = isInteractive ? 'button' : 'div';
+  const Tag: 'button' | 'div' = isInteractive ? 'button' : 'div';
   const sprite = pickSprite(mood, affection);
   const FRAMES = sprite.frames;
   const DURATION = sprite.durationSec;

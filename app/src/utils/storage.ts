@@ -87,11 +87,21 @@ export function loadState(): AppState {
   }
 }
 
+export class StorageQuotaError extends Error {
+  constructor(message = 'localStorage 写入失败：超出容量或被禁用') {
+    super(message);
+    this.name = 'StorageQuotaError';
+  }
+}
+
 export function saveState(state: AppState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    console.warn('Failed to save state');
+  } catch (e) {
+    // 抛给调用方，让 UI 决定如何提示（toast / banner）
+    throw new StorageQuotaError(
+      e instanceof Error ? `保存失败：${e.message}` : '保存失败：localStorage 不可用'
+    );
   }
 }
 
@@ -140,7 +150,15 @@ export function importState(json: string): AppState | null {
         history[date] = Array.isArray(tasks) ? (tasks as any[]).map(backfillType) : [];
       }
     }
-    const tasks = Array.isArray(parsed.tasks) ? (parsed.tasks as any[]).map(backfillType) : [];
+    // 与 loadState 一致：旧单 task 格式 → 数组
+    let tasks: any[];
+    if (Array.isArray(parsed.tasks)) {
+      tasks = (parsed.tasks as any[]).map(backfillType);
+    } else if (parsed.task && typeof parsed.task === 'object') {
+      tasks = [backfillType(parsed.task)];
+    } else {
+      tasks = [];
+    }
 
     return {
       ...defaultState,

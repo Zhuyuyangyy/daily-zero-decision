@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Celebration } from './components/shared/Celebration';
+import { ChangelogOverlay } from './components/shared/ChangelogOverlay';
 import { getToday } from './utils/storage';
 import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
@@ -322,49 +323,17 @@ export default function App() {
         />
       )}
 
-      {/* Changelog overlay (v0.1.0 one-time) */}
+      {/* Changelog overlay (v0.1.0 one-time) — accessible modal */}
       {showChangelogOverlay && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(0,0,0,0.4)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', padding: 16,
-          }}
-          onClick={() => {
+        <ChangelogOverlay
+          title="v0.1.0 上线了"
+          message={'首屏换成"今天只做这一小步"了。\n每天只生成一张卡，完成后去看看天空。'}
+          ctaLabel="开始"
+          onClose={() => {
             localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
             setShowChangelogOverlay(false);
           }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--surface-1, white)', borderRadius: 24, padding: 32,
-              maxWidth: 360, width: '100%', textAlign: 'center',
-            }}
-          >
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--ink)' }}>
-              🎉 v0.1.0 上线了
-            </h2>
-            <p style={{ fontSize: 14, color: 'var(--ink-light)', margin: '0 0 16px', lineHeight: 1.6 }}>
-              首屏换成"今天只做这一小步"了。
-              <br />
-              每天只生成一张卡，完成后去看看天空。
-            </p>
-            <button
-              onClick={() => {
-                localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
-                setShowChangelogOverlay(false);
-              }}
-              style={{
-                padding: '10px 24px', borderRadius: 16, border: 'none',
-                background: 'var(--mint-cloud-cta, #4AB574)', color: 'white',
-                fontWeight: 600, cursor: 'pointer',
-              }}
-            >
-              开始
-            </button>
-          </div>
-        </div>
+        />
       )}
 
       {/* Bottom Tab Bar */}

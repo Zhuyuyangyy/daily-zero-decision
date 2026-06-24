@@ -31,9 +31,19 @@ export function SkyScene({ mood, density, variant, reducedMotion: propReducedMot
     return window.innerWidth <= 375;
   });
   useEffect(() => {
-    const onResize = () => setIsNarrow(window.innerWidth <= 375);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    // 用 matchMedia 替代 resize 事件监听 — 只在跨越 375 边界时触发，零开销
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mql = window.matchMedia('(max-width: 375px)');
+    const onChange = (e: MediaQueryListEvent) => setIsNarrow(e.matches);
+    setIsNarrow(mql.matches);
+    // Safari < 14 用 addListener；现代浏览器用 addEventListener
+    if (mql.addEventListener) {
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
+    } else {
+      mql.addListener(onChange);
+      return () => mql.removeListener(onChange);
+    }
   }, []);
 
   const effectiveDensity: SkyDensity = isNarrow ? 'minimal' : density;

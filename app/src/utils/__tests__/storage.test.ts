@@ -73,6 +73,18 @@ describe('importState', () => {
     const r = importState(json);
     expect(r!.history['2026-06-10'][0].type).toBe('reading');
   });
+
+  it('旧单 task 格式（singular）自动迁移到数组（与 loadState 一致）', () => {
+    const json = JSON.stringify({
+      log: ['2026-06-10'],
+      streak: { current: 1, best: 1, lastCompletedDate: '2026-06-10' },
+      task: { id: 'old1', title: '读 2 页书', type: 'reading', createdAt: '2026-06-10' },
+    });
+    const r = importState(json);
+    expect(r).not.toBeNull();
+    expect(r!.tasks).toHaveLength(1);
+    expect(r!.tasks[0].id).toBe('old1');
+  });
 });
 
 describe('getToday / isYesterday timezone safety', () => {

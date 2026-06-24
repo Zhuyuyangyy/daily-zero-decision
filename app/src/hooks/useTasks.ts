@@ -290,19 +290,9 @@ export function useTasks(
   }, [today, setState]);
 
   const handleOnboardingFinish = useCallback(() => {
+    // 只翻转 React 状态。useAppState 的 useEffect 会负责持久化——
+    // 避免与 useAppState 的 saveState 形成双写竞态（前者写"刚加载的快照"会覆盖后者的最新值）。
     setState((prev) => ({ ...prev, onboarded: true }));
-    setTimeout(() => {
-      try {
-        const stored = localStorage.getItem('daily-zero-decision');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          parsed.onboarded = true;
-          localStorage.setItem('daily-zero-decision', JSON.stringify(parsed));
-        }
-      } catch (e) {
-        console.warn('[handleOnboardingFinish] failed to save', e);
-      }
-    }, 0);
   }, [setState]);
 
   const handlePomodoroComplete = useCallback((sessionType: 'focus' | 'shortBreak' | 'longBreak') => {

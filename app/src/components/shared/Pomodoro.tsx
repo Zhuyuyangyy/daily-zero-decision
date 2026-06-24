@@ -52,6 +52,11 @@ export default function Pomodoro({ onComplete }: PomodoroProps) {
   const tickerRef = useRef<boolean>(false);
   // Track the original document.title so we can restore on unmount
   const originalTitleRef = useRef<string>('');
+  // Latest mode/onComplete refs so the interval callback never captures stale closures
+  const modeRef = useRef<SessionType>(mode);
+  const onCompleteRef = useRef<typeof onComplete>(onComplete);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   // Current mode config
   const currentMode = useMemo(
@@ -93,9 +98,6 @@ export default function Pomodoro({ onComplete }: PomodoroProps) {
   // ---------- Timer effect (StrictMode safe) ----------
 
   useEffect(() => {
-    // The tickerRef guard makes sure even if this effect runs twice in StrictMode,
-    // we only ever have one interval ticking. First mount acquires the lock,
-    // any duplicate invocation bails out immediately.
     if (tickerRef.current) return;
     if (!isRunning) return;
 
@@ -110,18 +112,17 @@ export default function Pomodoro({ onComplete }: PomodoroProps) {
             intervalRef.current = null;
           }
           tickerRef.current = false;
-          setIsRunning(false);
-          setJustCompleted(true);
-          // Fire the completion callback with the current mode
-          // (use a local ref of mode via setState callback pattern)
-          const completedMode = mode;
-          if (onComplete) onComplete(completedMode);
-          // Auto-rotate to next session
+          // 通过 ref 读最新 mode，避免闭包陷阱
+          const completedMode = modeRef.current;
+          // 触发外部完成回调
+          if (onCompleteRef.current) onCompleteRef.current(completedMode);
+          // 原子切换：React 18 批处理保证 mode/duration/remaining 同步更新
           const next = nextMode(completedMode);
           const nextConfig = MODES.find((m) => m.id === next) ?? MODES[0];
+          setIsRunning(false);
+          setJustCompleted(true);
           setMode(next);
           setDuration(nextConfig.minutes * 60);
-          // Reset remaining to the new mode's full duration (paused)
           return nextConfig.minutes * 60;
         }
         return prev - 1;
@@ -135,7 +136,7 @@ export default function Pomodoro({ onComplete }: PomodoroProps) {
       }
       tickerRef.current = false;
     };
-  }, [isRunning, mode, onComplete]);
+  }, [isRunning]);
 
   // ---------- Document title ----------
 

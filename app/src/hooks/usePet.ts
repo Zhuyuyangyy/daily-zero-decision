@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { AppState, PetState, PetMood } from '../types';
 import { getToday } from '../utils/storage';
 
@@ -88,25 +88,26 @@ export function usePet(
   }, [setState]);
 
   /** 完成今日卡：+1 亲密度 + mood='celebrating'；同日重复防重
-   *  注意：必须用 ref 读最新 state，避免 useCallback 闭包陷阱导致同日重复 +1。
+   *  守卫写在 setState updater 里读 prev，避免同 tick 多次调用都通过 ref 守卫。
    */
-  const petRef = useRef(pet);
-  useEffect(() => { petRef.current = pet; }, [pet]);
-
   const rewardPetForCompletion = useCallback((): boolean => {
     const today = getToday();
-    if (petRef.current.lastRewardDate === today) return false;
-    setState((prev) => ({
-      ...prev,
-      pet: {
-        ...prev.pet,
-        affection: prev.pet.affection + 1,
-        mood: 'celebrating',
-        lastRewardDate: today,
-        lastInteractionAt: today,
-      },
-    }));
-    return true;
+    let rewarded = false;
+    setState((prev) => {
+      if (prev.pet.lastRewardDate === today) return prev;
+      rewarded = true;
+      return {
+        ...prev,
+        pet: {
+          ...prev.pet,
+          affection: prev.pet.affection + 1,
+          mood: 'celebrating',
+          lastRewardDate: today,
+          lastInteractionAt: today,
+        },
+      };
+    });
+    return rewarded;
   }, [setState]);
 
   /** 显隐开关：不删数据，只切 enabled */

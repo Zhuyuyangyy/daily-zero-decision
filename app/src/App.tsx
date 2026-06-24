@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Celebration } from './components/shared/Celebration';
 import { ChangelogOverlay } from './components/shared/ChangelogOverlay';
 import { getToday } from './utils/storage';
+import { ErrorBoundary } from './error-boundary/ErrorBoundary';
 import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
 import Onboarding from './components/shared/Onboarding';
@@ -106,6 +107,7 @@ export default function App() {
   );
 
   return (
+    <ErrorBoundary name="app-root">
     <div
       className="clay-page-grain"
       data-font={font}
@@ -324,6 +326,7 @@ export default function App() {
       {/* Bottom Tab Bar */}
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
+    </ErrorBoundary>
   );
 }
 

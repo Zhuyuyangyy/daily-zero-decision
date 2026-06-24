@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { parseTaskFromInput, importState } from '../storage';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { parseTaskFromInput, importState, getToday, isYesterday, calculateStreak, generateId } from '../storage';
 
 describe('parseTaskFromInput', () => {
   it('读 2 页书 → reading, 5 分钟, 2 页', () => {
@@ -72,5 +72,93 @@ describe('importState', () => {
     });
     const r = importState(json);
     expect(r!.history['2026-06-10'][0].type).toBe('reading');
+  });
+});
+
+describe('getToday / isYesterday timezone safety', () => {
+  beforeEach(() => {
+    // 关键时区场景：UTC+8（Asia/Shanghai）早晨 7 点
+    // 此时 UTC 仍是前一天 — 旧实现会返回错误日期
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('getToday 在 UTC+8 早晨返回本地日期（不是 UTC）', () => {
+    // 北京时间 2026-06-23 07:00 = UTC 2026-06-22 23:00
+    vi.useFakeTimers().setSystemTime(new Date('2026-06-22T23:00:00Z'));
+    vi.stubGlobal('Intl', {
+      ...Intl,
+      DateTimeFormat: () => ({
+        resolvedOptions: () => ({ timeZone: 'Asia/Shanghai' }),
+        formatToParts: () => [
+          { type: 'year', value: '2026' },
+          { type: 'month', value: '06' },
+          { type: 'day', value: '23' },
+        ],
+      }),
+    });
+    expect(getToday()).toBe('2026-06-23');
+  });
+
+  it('isYesterday 在 UTC+8 边界返回正确日期', () => {
+    // 北京时间 2026-06-23 01:00 = UTC 2026-06-22 17:00
+    vi.useFakeTimers().setSystemTime(new Date('2026-06-22T17:00:00Z'));
+    vi.stubGlobal('Intl', {
+      ...Intl,
+      DateTimeFormat: () => ({
+        resolvedOptions: () => ({ timeZone: 'Asia/Shanghai' }),
+        formatToParts: () => [
+          { type: 'year', value: '2026' },
+          { type: 'month', value: '06' },
+          { type: 'day', value: '23' },
+        ],
+      }),
+    });
+    expect(isYesterday('2026-06-22')).toBe(true);
+    expect(isYesterday('2026-06-21')).toBe(false);
+  });
+});
+
+describe('calculateStreak DST safety', () => {
+  it('spring-forward DST 跨日的连续日历日应识别为连续（best 维度）', () => {
+    // 三天连续（2026-03-08/09/10），不是 today/yesterday 范围 → current=0
+    // 但 best 应识别为 3
+    const result = calculateStreak(['2026-03-08', '2026-03-09', '2026-03-10']);
+    expect(result.best).toBe(3);
+    expect(result.current).toBe(0);
+  });
+
+  it('真正连续的日子（中间日）应识别为连续', () => {
+    const result = calculateStreak(['2026-06-20', '2026-06-21', '2026-06-22', '2026-06-23']);
+    expect(result.current).toBe(4);
+  });
+
+  it('跨 DST 边界但仍是连续日历日', () => {
+    // 2024-03-09/10/11 连续，但都不在 today 附近 → current=0, best=3
+    const result = calculateStreak(['2024-03-09', '2024-03-10', '2024-03-11']);
+    expect(result.best).toBe(3);
+  });
+
+  it('真正连续且包含 today → current 应等于连续长度', () => {
+    // 模拟"今天 = 2026-06-23"
+    const today = '2026-06-23';
+    vi.useFakeTimers().setSystemTime(new Date(`${today}T12:00:00`));
+    const result = calculateStreak(['2026-06-20', '2026-06-21', '2026-06-22', today]);
+    expect(result.current).toBe(4);
+    expect(result.best).toBe(4);
+  });
+});
+
+describe('generateId', () => {
+  it('快速连续生成 1000 个 ID 无重复', () => {
+    const ids = new Set<string>();
+    for (let i = 0; i < 1000; i++) ids.add(generateId());
+    expect(ids.size).toBe(1000);
+  });
+
+  it('生成的 ID 是非空字符串', () => {
+    expect(generateId()).toMatch(/^[a-zA-Z0-9-]+$/);
+    expect(generateId().length).toBeGreaterThan(0);
   });
 });

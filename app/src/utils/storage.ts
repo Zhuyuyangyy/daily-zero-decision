@@ -163,8 +163,19 @@ export function importState(json: string): AppState | null {
   }
 }
 
+/**
+ * 用本地时区组件拼出 YYYY-MM-DD。
+ * 不用 toISOString().split('T')[0]，避免 UTC+ 时区在凌晨误读前一天。
+ */
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+function localDateString(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
 export function getToday(): string {
-  return new Date().toISOString().split('T')[0];
+  return localDateString(new Date());
 }
 
 export function isToday(dateStr: string): boolean {
@@ -174,7 +185,20 @@ export function isToday(dateStr: string): boolean {
 export function isYesterday(dateStr: string): boolean {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return dateStr === yesterday.toISOString().split('T')[0];
+  return dateStr === localDateString(yesterday);
+}
+
+/**
+ * 用日历日差（基于日期字符串本身）计算两天间隔。
+ * 避免 DST / 跨时区毫秒差导致的误断。
+ */
+function calendarDayDiff(a: string, b: string): number {
+  // parse YYYY-MM-DD 为 noon UTC 避免任何时区偏移影响
+  const [ay, am, ad] = a.split('-').map(Number);
+  const [by, bm, bd] = b.split('-').map(Number);
+  const aMs = Date.UTC(ay, am - 1, ad, 12, 0, 0);
+  const bMs = Date.UTC(by, bm - 1, bd, 12, 0, 0);
+  return Math.round((aMs - bMs) / 86400000);
 }
 
 export function calculateStreak(log: string[]): { current: number; best: number; lastCompletedDate: string | null } {
@@ -184,18 +208,16 @@ export function calculateStreak(log: string[]): { current: number; best: number;
 
   const sortedDates = [...new Set(log)].sort().reverse();
   const today = getToday();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = localDateString(yesterdayDate);
 
   let current = 0;
   let best = 0;
   let tempStreak = 0;
-  let prevDate: Date | null = null;
+  let prevDate: string | null = null;
 
   for (const dateStr of sortedDates) {
-    const date = new Date(dateStr);
-
     if (prevDate === null) {
       if (dateStr === today || dateStr === yesterdayStr) {
         tempStreak = 1;
@@ -204,7 +226,7 @@ export function calculateStreak(log: string[]): { current: number; best: number;
         tempStreak = 1;
       }
     } else {
-      const diffDays = Math.round((prevDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = calendarDayDiff(prevDate, dateStr);
       if (diffDays === 1) {
         tempStreak++;
         if (current > 0) current = tempStreak;
@@ -214,7 +236,7 @@ export function calculateStreak(log: string[]): { current: number; best: number;
       }
     }
 
-    prevDate = date;
+    prevDate = dateStr;
   }
 
   best = Math.max(best, tempStreak, current);
@@ -293,5 +315,9 @@ export function parseTaskFromInput(input: string): Partial<Task> {
 }
 
 export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // 兜底：极旧浏览器 / 非 https 场景
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + '-' + Math.random().toString(36).slice(2, 10);
 }

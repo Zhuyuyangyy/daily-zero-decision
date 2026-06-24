@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Task, AppState } from '../types';
 import {
   getToday,
@@ -85,11 +85,19 @@ export function useTasks(
     setCompletingTaskId(taskId);
   }, []);
 
+  // 用 ref 读最新 onAllTasksComplete，避免闭包陷阱
+  const onAllCompleteRef = useRef(onAllTasksComplete);
+  useEffect(() => { onAllCompleteRef.current = onAllTasksComplete; }, [onAllTasksComplete]);
+
   const handleConfirmComplete = useCallback((note: string, explicitTaskId?: string) => {
     // 优先用 explicitTaskId（来自 App.tsx 当时的 completingTaskId），
     // 避免闭包陷阱：用户连点不同任务的"完成"时，completingTaskId state 可能尚未更新
     const taskId = explicitTaskId ?? completingTaskId;
     if (!taskId) return;
+
+    // 标志：是否在 setState updater 内检测到"全部完成"
+    // 必须在闭包外声明，setState updater 是同步执行的
+    let allDone = false;
 
     setState((prev) => {
       const task = prev.tasks.find((t) => t.id === taskId);
@@ -105,6 +113,12 @@ export function useTasks(
       const updatedTasks = prev.tasks.map((t) =>
         t.id === taskId ? updatedTask : t
       );
+
+      // 在 prev 上算"今日剩余"（更新后的）—— 不依赖外层 todaysTasks 闭包
+      const remainingToday = updatedTasks.filter(
+        (t) => t.createdAt === today && !t.completedAt
+      );
+      allDone = remainingToday.length === 0;
 
       const newLog = prev.log.includes(today) ? prev.log : [...prev.log, today];
 
@@ -179,15 +193,12 @@ export function useTasks(
 
     setCompletingTaskId(null);
 
-    // Check if all tasks done — trigger celebration
-    const remaining = todaysTasks.filter(
-      (t) => t.id !== taskId && !t.completedAt
-    );
-    if (remaining.length === 0) {
-      onAllTasksComplete();
+    // 触发庆祝：基于 setState 内基于 prev 算的 allDone（避免依赖外层 todaysTasks 闭包）
+    if (allDone) {
+      onAllCompleteRef.current();
       setHasCompletedToday(true);
     }
-  }, [completingTaskId, today, todaysTasks, setState, onAllTasksComplete]);
+  }, [completingTaskId, today, setState]);
 
   const handleCancelComplete = useCallback(() => {
     setCompletingTaskId(null);
@@ -240,7 +251,12 @@ export function useTasks(
       const hasIncomplete = allTodays.some((t) => !t.completedAt);
 
       if (todaysCount > 1) {
+        // 不应该发生（MAX=1 守卫），但若是脏数据导入导致，让用户知情
+        // eslint-disable-next-line no-console
         console.warn(`[handleEasier] tasks 数组今日项数 (${todaysCount}) 超过 MAX`);
+        if (typeof window !== 'undefined') {
+          window.alert('今日已有多个任务，请先删除多余的，再"换轻一点"。');
+        }
         return prev;
       }
 

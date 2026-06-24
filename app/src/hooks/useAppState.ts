@@ -48,6 +48,11 @@ export function useAppState() {
           setState(next);
         }
       };
+      // 之前没有 onerror：磁盘/权限/编码错误时静默失败
+      reader.onerror = () => {
+        const msg = reader.error?.message ?? '未知错误';
+        alert(`读取文件失败：${msg}。请确认文件可访问后重试。`);
+      };
       reader.readAsText(file);
     };
     input.click();

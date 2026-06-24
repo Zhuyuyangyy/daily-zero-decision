@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { AppState, Task, TaskType } from '../types';
 import type { SkyMood } from '../utils/skyMood';
+import { getToday } from '../utils/storage';
 import { CLOUD_TYPE_PRESET } from '../utils/cloudSeed';
 import Cloud from '../components/sky/Cloud';
 import { SoftButton } from '../components/ui';
@@ -233,7 +234,7 @@ export default function SkyPage({
                   margin: 0,
                 }}
               >
-                {openedDate === new Date().toISOString().slice(0, 10) ? '今天' : openedDate}
+                {openedDate === getToday() ? '今天' : openedDate}
               </h3>
               <button
                 onClick={() => setOpenedDate(null)}
@@ -389,7 +390,7 @@ export default function SkyPage({
                             display: 'block',
                           }}
                         >
-                          {date === new Date().toISOString().slice(0, 10) ? '今天' : `${date}`}
+                          {date === getToday() ? '今天' : `${date}`}
                         </span>
                         <span
                           style={{
@@ -459,7 +460,7 @@ export default function SkyPage({
                           display: 'block',
                         }}
                       >
-                        {date === new Date().toISOString().slice(0, 10) ? '今天' : `${date}`}
+                        {date === getToday() ? '今天' : `${date}`}
                       </span>
                       <span
                         style={{

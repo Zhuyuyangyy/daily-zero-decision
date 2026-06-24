@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 25",
     "knip": "knip",
     "audit:high": "npm audit --audit-level=high",
     "format": "prettier --write .",

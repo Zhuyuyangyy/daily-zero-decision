@@ -53,10 +53,6 @@ export default function CloudGarden({
   onOpenCloud: _onOpenCloud,
   mood,
 }: CloudGardenProps) {
-  if (mode === 'garden') {
-    return null;
-  }
-
   const config = CLOUD_GARDEN_CONFIG.today;
   const [sparkles, setSparkles] = useState(false);
 
@@ -67,6 +63,10 @@ export default function CloudGarden({
       return () => clearTimeout(timer);
     }
   }, [today?.completedAt]);
+
+  if (mode === 'garden') {
+    return null;
+  }
 
   return (
     <div

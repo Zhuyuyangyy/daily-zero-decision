@@ -71,7 +71,22 @@ export default function StatsDashboard({
     return arr;
   }, [history]);
 
-  // 无数据：返回空态
+  // 7 天热力图
+  const heatmapData = useMemo(() => buildHeatmap(history), [history]);
+
+  // 心情趋势
+  const moodSeries = useMemo(
+    () => buildMoodSeries(moods, 30),
+    [moods]
+  );
+
+  // 星期完成率
+  const weekdayData = useMemo(() => buildWeekdayRates(history), [history]);
+
+  // Top 5 任务
+  const topTasks = useMemo(() => buildTopTasks(allTasks, 5), [allTasks]);
+
+  // 无数据：返回空态（必须在所有 hook 调用之后）
   if (allTasks.length === 0) {
     return <EmptyState className={className} />;
   }
@@ -97,21 +112,6 @@ export default function StatsDashboard({
   allTasks.forEach((t) => {
     typeCounts[t.type] = (typeCounts[t.type] || 0) + 1;
   });
-
-  // 7 天热力图
-  const heatmapData = useMemo(() => buildHeatmap(history), [history]);
-
-  // 心情趋势
-  const moodSeries = useMemo(
-    () => buildMoodSeries(moods, 30),
-    [moods]
-  );
-
-  // 星期完成率
-  const weekdayData = useMemo(() => buildWeekdayRates(history), [history]);
-
-  // Top 5 任务
-  const topTasks = useMemo(() => buildTopTasks(allTasks, 5), [allTasks]);
 
   const totalForPercent = (typeCounts.reading + typeCounts.exercise + typeCounts.coding + typeCounts.other) || 1;
 

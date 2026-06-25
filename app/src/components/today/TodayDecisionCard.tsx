@@ -36,40 +36,21 @@ export default function TodayDecisionCard({
   const theme = CLOUD_THEME[task.type] ?? CLOUD_THEME.other;
 
   return (
-    <div style={{ margin: '16px 16px 0' }}>
+    <div className="tdc-shell">
       <CloudCard>
         {/* 主题壳：云朵种类（记忆点） */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '4px 12px',
-            borderRadius: 999,
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(8px)',
-            fontSize: 12,
-            color: 'var(--mint-cloud-text)',
-            fontWeight: 700,
-            fontFamily: 'var(--font-body)',
-            alignSelf: 'flex-start',
-            width: 'fit-content',
-          }}
-        >
-          <span style={{ fontSize: 14 }}>{theme.icon}</span>
+        <div className="tdc-theme-pill">
+          <span className="tdc-theme-pill__icon">{theme.icon}</span>
           <span>{theme.label}</span>
         </div>
 
         {/* 任务核：今天真正要做的事 */}
-        <h2
-          className="clay-card__title"
-          style={{ marginTop: 14, marginBottom: 8 }}
-        >
+        <h2 className="clay-card__title tdc-title">
           {task.title}
         </h2>
 
         {/* 解释：从模糊意图压到一步 */}
-        <p className="clay-card__sub" style={{ maxWidth: 'none' }}>
+        <p className="clay-card__sub tdc-sub">
           不用完成很多，
           <br />
           轻轻做这一小步就好。
@@ -82,21 +63,7 @@ export default function TodayDecisionCard({
         </CardMeta>
 
         {/* 奖励承诺：完成后天空 +1 朵云 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 12px',
-            borderRadius: 12,
-            background: 'var(--mint-cloud-light)',
-            color: 'var(--mint-cloud-text)',
-            fontSize: 12,
-            fontWeight: 600,
-            fontFamily: 'var(--font-body)',
-            marginBottom: 16,
-          }}
-        >
+        <div className="tdc-reward">
           <span aria-hidden>☁️</span>
           <span>完成后，天空会多一朵{theme.suffix}</span>
         </div>
@@ -111,7 +78,7 @@ export default function TodayDecisionCard({
         </CardActions>
 
         {/* 番茄钟降级成内嵌小按钮 */}
-        <div style={{ marginTop: 8, textAlign: 'center' }}>
+        <div className="tdc-pomodoro-row">
           <button
             type="button"
             onClick={onStartPomodoro}

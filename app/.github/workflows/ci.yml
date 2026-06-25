@@ -7,7 +7,13 @@ on:
 
 jobs:
   build:
+    name: build (node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
 
     defaults:
       run:
@@ -18,11 +24,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: app/package.json
+          node-version: ${{ matrix.node-version }}
           cache: npm
           cache-dependency-path: app/package-lock.json
 
-      - run: npm ci
-      - run: npm test
-      - run: npm run typecheck
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build

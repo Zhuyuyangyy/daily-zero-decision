@@ -6,6 +6,7 @@ import type { AppState } from '../../types';
 import { defaultPetState } from '../../types';
 
 const makeState = (overrides: Partial<AppState> = {}): AppState => ({
+  schemaVersion: 1,
   tasks: [],
   log: [],
   streak: { current: 0, best: 0, lastCompletedDate: null },

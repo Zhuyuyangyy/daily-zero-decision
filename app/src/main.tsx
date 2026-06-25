@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import './theme/clay.css';
+import './styles/design-tokens.css';
 
 // === Round 6 M2: window.onerror 唯一挂载点 ===
 window.addEventListener('error', (event) => {

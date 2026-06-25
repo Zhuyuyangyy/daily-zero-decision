@@ -1,0 +1,424 @@
+/* ============================================================
+   design-tokens.css — Daily-Zero-Decision
+   ------------------------------------------------------------
+   Consolidated design tokens for the daily-zero-decision app.
+   This file is the single source of truth for visual tokens
+   (color, typography, spacing, radius, shadow, motion).
+
+   Companion files:
+   - src/index.css        — tailwind layers + utility classes
+   - src/theme/clay.css   — component classes (.clay-*)
+
+   Rule of thumb:
+   - Never inline `#hex` / `rgba()` / numeric px in components.
+   - Always reference a `var(--token)` here.
+   ============================================================ */
+
+:root {
+  /* ============================================================
+     COLOR — Dawn Sky palette (60% warm peach + 30% warm cream + 10% mint)
+     ============================================================ */
+
+  /* Sky — 主色 (60%) */
+  --sky-dawn-1: #FFD7C4;
+  --sky-dawn-2: #FFB89A;
+  --sky-dawn-3: #FFA38A;
+  --sky-dawn-4: #F88C82;
+
+  /* Warm accents */
+  --warm-coral: #FF9B85;
+  --warm-amber: #FFC288;
+
+  /* Surfaces — 暖米中性 (30%) */
+  --warm-canvas:    #FFF5EC;
+  --warm-card:      #FFFAF3;
+  --warm-card-deep: #FFE9D6;
+  --warm-border:    #F5DCC8;
+
+  /* Tinted surface ladder */
+  --surface-canvas: #FDF4F0;
+  --surface-0:      #FEFAF7;
+  --surface-1:      #FFF8F4;
+  --surface-2:      #FFF3EC;
+  --surface-3:      #FFEDE3;
+
+  /* Tinted neutrals */
+  --neutral-50:  #FAF5F1;
+  --neutral-100: #F5EDE6;
+  --neutral-200: #EBE0D5;
+  --neutral-300: #D4C5B7;
+  --neutral-400: #B8A598;
+  --neutral-500: #9C8778;
+  --neutral-600: #7A6F68;
+  --neutral-700: #5C544F;
+  --neutral-800: #3D3530;
+  --neutral-900: #1F1A16;
+
+  /* Mint — 点缀 (10%) */
+  --mint-cloud-light: #C9F0D5;
+  --mint-cloud:       #8ADBA8;
+  --mint-cloud-deep:  #5FCB86;
+  --mint-cloud-cta:   #4AB574;
+  --mint-cloud-text:  #2F8B57;
+
+  /* Sky noise color — very faint, matte */
+  --sky-noise: rgba(217, 153, 142, 0.04);
+
+  /* Glass / overlay — used by chip / card eyebrow */
+  --glass-white-60: rgba(255, 255, 255, 0.6);
+  --glass-white-55: rgba(255, 255, 255, 0.55);
+  --glass-white-40: rgba(255, 255, 255, 0.4);
+
+  /* Ink — 文字 (warm tinted, never pure black) */
+  --ink:        #4A3A33;
+  --ink-light:  #8B7A70;
+  --ink-faint:  #C2B5AB;
+  --ink-soft:   #E5D9CF;
+
+  /* Sky mood — sun color stops (Sun params) */
+  --sun-dawn:    #FFB37A;
+  --sun-morning: #FFD89B;
+  --sun-clear:   #FFE4A8;
+  --sun-sunny:   #FFCB6B;
+  --sun-golden:  #FF9D5C;
+
+  /* Background page */
+  --bg-page: #FDF4F0;
+
+  /* ============================================================
+     TYPOGRAPHY — fonts, sizes, line-heights, tracking
+     ============================================================ */
+
+  /* Font stacks */
+  --font-display: 'ZCOOL KuaiLe', 'Comic Sans MS', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body:    'Nunito', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Menlo', monospace;
+
+  /* Font presets (switched via [data-font]) */
+  --stack-rounded: 'ZCOOL KuaiLe', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --stack-serif:   'Songti SC', 'Noto Serif SC', 'Times New Roman', Georgia, serif;
+  --stack-sans:    system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --stack-mono:    'JetBrains Mono', 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  /* Font sizes — display ladder (matches .clay-text-*) */
+  --text-display: 56px;
+  --text-h1:      56px;
+  --text-h2:      32px;
+  --text-h3:      22px;
+  --text-body:    16px;
+  --text-caption: 13px;
+  --text-xs:      12px;
+  --text-sm:      14px;
+
+  /* Line heights */
+  --leading-tight:   1.15;
+  --leading-snug:    1.35;
+  --leading-normal:  1.6;
+  --leading-relaxed: 1.75;
+  --leading-loose:   1.85;
+
+  /* Letter spacing */
+  --tracking-display: -0.025em;
+  --tracking-heading: -0.01em;
+  --tracking-subhead: -0.005em;
+  --tracking-normal:  0;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* ============================================================
+     SPACING — 4pt base rhythm
+     ============================================================ */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  48px;
+  --space-9:  64px;
+
+  /* ============================================================
+     RADIUS — soft, large radii (治愈系)
+     ============================================================ */
+  --radius-btn:   20px;
+  --radius-card:  24px;
+  --radius-chunk: 28px;
+  --radius-hero:  36px;
+  --radius-blob:  48px;
+  --radius-pill:  999px;
+
+  /* ============================================================
+     SHADOW — 3-tier tinted clay system
+     ============================================================ */
+
+  /* Tiered clay shadows (curated, drop-in) */
+  --shadow-clay-1:
+    0 2px 6px rgba(168, 138, 122, 0.08),
+    0 1px 2px rgba(168, 138, 122, 0.06);
+  --shadow-clay-2:
+    0 6px 18px rgba(168, 138, 122, 0.10),
+    0 2px 6px rgba(168, 138, 122, 0.06);
+  --shadow-clay-3:
+    0 14px 36px rgba(168, 138, 122, 0.14),
+    0 4px 12px rgba(168, 138, 122, 0.08);
+
+  /* Soft / base / deep — used by .clay-card, .clay-btn--mint etc. */
+  --shadow-clay-soft:
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    0 1px 3px rgba(248, 140, 130, 0.08),
+    inset 0 2px 2px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 3px rgba(248, 140, 130, 0.10);
+  --shadow-clay:
+    0 8px 24px rgba(248, 140, 130, 0.18),
+    0 3px 8px rgba(248, 140, 130, 0.10),
+    inset 0 3px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 5px rgba(248, 140, 130, 0.15);
+  --shadow-clay-deep:
+    0 14px 36px rgba(248, 140, 130, 0.22),
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    inset 0 2px 3px rgba(255, 255, 255, 1),
+    inset 0 -4px 8px rgba(248, 140, 130, 0.15);
+
+  --shadow-clay-pressed:
+    inset 0 3px 5px rgba(248, 140, 130, 0.25),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.5);
+  --shadow-clay-cta:
+    0 4px 0 #3A9A60,
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  --shadow-clay-cta-pressed:
+    inset 0 4px 6px rgba(58, 154, 96, 0.4),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.4);
+
+  /* Tinted utility shadows */
+  --shadow-tinted:
+    0 8px 30px rgba(200, 140, 110, 0.12),
+    0 2px 8px rgba(200, 140, 110, 0.06);
+  --shadow-tinted-lg:
+    0 20px 50px rgba(200, 140, 110, 0.15),
+    0 8px 20px rgba(200, 140, 110, 0.08);
+
+  /* Hairlines */
+  --hairline:        1px solid var(--neutral-200);
+  --hairline-subtle: 1px solid rgba(180, 165, 152, 0.25);
+
+  /* ============================================================
+     MOTION — easing + duration (100/300/500 rule)
+     ============================================================ */
+
+  /* Easings */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-quart:  cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-back:      cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Durations */
+  --dur-instant:  80ms;
+  --dur-fast:     150ms;
+  --dur-base:     250ms;
+  --dur-normal:   250ms;
+  --dur-medium:   400ms;
+  --dur-slow:     600ms;
+  --dur-entrance: 600ms;
+  --dur-delight:  800ms;
+
+  /* ============================================================
+     EFFECTS — blur, mix-blend, etc.
+     ============================================================ */
+  --blur-glass: 8px;
+  --blur-card:  12px;
+
+  /* Noise SVG (fractal) */
+  --noise-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  /* ============================================================
+     LAYOUT — z-index ladder + breakpoints
+     ============================================================ */
+  --z-grain:     0;
+  --z-content:   1;
+  --z-sky-back:  1;
+  --z-sky-mid:   5;
+  --z-sky-front: 10;
+  --z-floating:  90;
+  --z-input:     95;
+  --z-modal:     100;
+
+  /* ============================================================
+     COMPONENT — small reusable bits (extracted from inline styles)
+     ============================================================ */
+
+  /* Card eyebrow — used by TodayDecisionCard theme pill */
+  --card-eyebrow-bg:    var(--glass-white-60);
+  --card-eyebrow-blur:  var(--blur-glass);
+  --card-eyebrow-color: var(--mint-cloud-text);
+
+  /* Reward strip — used by TodayDecisionCard post-meta callout */
+  --reward-bg:    var(--mint-cloud-light);
+  --reward-color: var(--mint-cloud-text);
+}
+
+/* ============================================================
+   Reduced motion — overrides at the bottom of the token file
+   so it always wins against motion durations above.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant:  0.01ms;
+    --dur-fast:     0.01ms;
+    --dur-base:     0.01ms;
+    --dur-normal:   0.01ms;
+    --dur-medium:   0.01ms;
+    --dur-slow:     0.01ms;
+    --dur-entrance: 0.01ms;
+    --dur-delight:  0.01ms;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES — extracted from inline styles
+   Used by TodayDecisionCard and SkyScene.
+   ============================================================ */
+
+/* ---- TodayDecisionCard ---- */
+.tdc-shell {
+  margin: var(--space-4) var(--space-4) 0;
+}
+
+.tdc-theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--card-eyebrow-bg);
+  backdrop-filter: blur(var(--card-eyebrow-blur));
+  -webkit-backdrop-filter: blur(var(--card-eyebrow-blur));
+  font-size: var(--text-xs);
+  color: var(--card-eyebrow-color);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-body);
+  align-self: flex-start;
+  width: fit-content;
+}
+
+.tdc-theme-pill__icon {
+  font-size: 14px;
+}
+
+.tdc-title {
+  margin-top: 14px;
+  margin-bottom: var(--space-2);
+}
+
+.tdc-sub {
+  max-width: none;
+}
+
+.tdc-reward {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 12px;
+  background: var(--reward-bg);
+  color: var(--reward-color);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semi);
+  font-family: var(--font-body);
+  margin-bottom: var(--space-4);
+}
+
+.tdc-pomodoro-row {
+  margin-top: var(--space-2);
+  text-align: center;
+}
+
+/* ---- SkyScene ---- */
+.sky-scene {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sky-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sky-layer--sun {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.sky-layer--mountains {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.sky-layer--mountains-far { height: 20%; }
+.sky-layer--mountains-mid { height: 15%; }
+
+.sky-layer--birds {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sky-bird {
+  position: absolute;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.sky-balloon {
+  position: absolute;
+  top: 15%;
+  right: 20%;
+  font-size: 24px;
+  pointer-events: none;
+}
+
+.sky-content {
+  position: relative;
+  z-index: var(--z-sky-front);
+}
+
+.sky-layer--grass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.sky-layer--grass-today {
+  background: linear-gradient(180deg, transparent 0%, rgba(180, 200, 150, 0.5) 100%);
+}
+
+.sky-layer--grass-garden {
+  background: rgba(180, 200, 150, 0.3);
+}
+
+.sky-layer--fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80px;
+  background: linear-gradient(180deg, transparent 0%, var(--bg-page) 100%);
+  pointer-events: none;
+  z-index: var(--z-sky-mid);
+}

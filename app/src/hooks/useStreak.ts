@@ -33,10 +33,15 @@ export function useStreak(state: AppState, hasCompletedToday: boolean) {
   const hasLog = state.log.length > 0;
   const todayLog = state.log;
 
-  // Get all tasks for history (combine current + archived)
+  /**
+   * allHistoryTasks：合成视图 = state.history + state.tasks。
+   * ⚠️ 这是**只读合成视图**，不是真实持久化状态。
+   * - 调用方只应用于渲染 / 检索 / 内存统计
+   * - 严禁基于此数据调用 setState 触发持久化 —— 会读到不一致的中间态（未完成任务尚未归档到 history）
+   * - 若需写持久化状态，请分别更新 state.tasks 与 state.history
+   */
   const allHistoryTasks = useMemo(() => {
     const combined: Record<string, Task[]> = { ...state.history };
-    // Add current tasks that aren't in history yet
     state.tasks.forEach((task) => {
       const date = task.createdAt;
       if (!combined[date]) combined[date] = [];

@@ -84,7 +84,7 @@ export function SkyPet({
 }: SkyPetProps) {
   const [bump, setBump] = useState(false);
   const [bubbleOverride, setBubbleOverride] = useState<string | null>(null);
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 切 mood 时清掉 override
   useEffect(() => {
@@ -94,26 +94,31 @@ export function SkyPet({
   const activeBubble =
     bubbleText !== undefined ? bubbleText : bubbleOverride;
 
+  const bumpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleClick = () => {
     if (!onClick) return;
     setBump(true);
-    setTimeout(() => setBump(false), 600);
+    // bump 用 ref 持有 timer，cleanup 中 clearTimeout 避免 unmount 后 setState 警告
+    if (bumpTimerRef.current) clearTimeout(bumpTimerRef.current);
+    bumpTimerRef.current = setTimeout(() => setBump(false), 600);
 
     const line = onClick();
     if (line) {
       setBubbleOverride(line);
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-      timerRef.current = window.setTimeout(() => setBubbleOverride(null), 3000);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setBubbleOverride(null), 3000);
     }
   };
 
   useEffect(() => () => {
-    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (bumpTimerRef.current) clearTimeout(bumpTimerRef.current);
   }, []);
 
   const reduced = !!reducedMotion;
   const isInteractive = !!onClick;
-  const Tag: any = isInteractive ? 'button' : 'div';
+  const Tag: 'button' | 'div' = isInteractive ? 'button' : 'div';
   const sprite = pickSprite(mood, affection);
   const FRAMES = sprite.frames;
   const DURATION = sprite.durationSec;

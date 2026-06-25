@@ -6,6 +6,7 @@ import type { AppState } from '../../types';
 import { defaultPetState } from '../../types';
 
 const makeState = (overrides: Partial<AppState> = {}): AppState => ({
+  schemaVersion: 1,
   tasks: [],
   log: [],
   streak: { current: 0, best: 0, lastCompletedDate: null },
@@ -94,6 +95,19 @@ describe('usePet.rewardPetForCompletion', () => {
     let ok = true;
     act(() => { ok = result.current.pet.rewardPetForCompletion(); });
     expect(ok).toBe(false);
+    expect(result.current.s.pet.affection).toBe(1);
+  });
+
+  it('同 tick 同步多次调用也只 +1（防止 petRef 守卫竞态）', () => {
+    const { result } = makePetHook(makeState());
+    let ok1 = false, ok2 = false;
+    act(() => {
+      // 同步连续两次（同 tick）—— 旧实现 petRef 未更新，两次都过守卫
+      ok1 = result.current.pet.rewardPetForCompletion();
+      ok2 = result.current.pet.rewardPetForCompletion();
+    });
+    expect(ok1).toBe(true);
+    expect(ok2).toBe(false);
     expect(result.current.s.pet.affection).toBe(1);
   });
 });

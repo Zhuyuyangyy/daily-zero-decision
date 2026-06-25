@@ -24,8 +24,8 @@ export default function SearchBar({
   }, [value, onSearch]);
 
   const handleClear = () => {
+    // 只更新 value；debounced useEffect 自然会触发 onSearch('')，避免重复调用
     setValue('');
-    onSearch('');
   };
 
   return (

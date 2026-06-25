@@ -10,12 +10,15 @@ export default function TodayFeedbackStrip({ completed, streak, total }: TodayFe
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (completed) {
-      const timer = setTimeout(() => setVisible(true), 600); // 等云朵动画和光晕结束
-      return () => clearTimeout(timer);
+    if (!completed) {
+      setVisible(false);
+      return;
     }
-    setVisible(false);
-  }, [completed]);
+    // 等云朵动画和光晕结束再显示
+    const timer = setTimeout(() => setVisible(true), 600);
+    return () => clearTimeout(timer);
+    // 依赖 streak/total：连续完成时 streak 增长，会重新触发延迟，确保文案反映最新数字
+  }, [completed, streak, total]);
 
   if (!completed || !visible) return null;
 

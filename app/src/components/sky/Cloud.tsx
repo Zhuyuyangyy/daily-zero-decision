@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useId } from 'react';
 import type { TaskType } from '../../types';
 
 interface CloudProps {
@@ -34,22 +34,20 @@ export default function Cloud({ mood, size = 'md', showCelebration = false, type
   const px = SIZE_MAP[size];
   const palette = CLOUD_PALETTE[type];
 
-  // 用 useMemo 缓存所有 gradient id,避免每次渲染随机抖动
-  const gradIds = useMemo(() => {
-    const s = Math.random().toString(36).slice(2, 9);
-    return {
-      root: `clay-cloud-${s}`,
-      body: `clay-cloud-body-${s}`,
-      rim: `clay-cloud-rim-${s}`,
-      hi: `clay-cloud-hi-${s}`,
-      sh: `clay-cloud-sh-${s}`,
-      cheek: `clay-cloud-cheek-${s}`,
-      blurHi: `clay-cloud-blurHi-${s}`,
-      blurSh: `clay-cloud-blurSh-${s}`,
-      silhouette: `clay-cloud-sil-${s}`,
-      clip: `clay-cloud-clip-${s}`,
-    };
-  }, []);
+  // 用 React 18 useId 替代 Math.random() —— SSR/CSR 一致 + 无 hydration mismatch 风险
+  const reactId = useId();
+  const gradIds = {
+    root: `clay-cloud-${reactId}`,
+    body: `clay-cloud-body-${reactId}`,
+    rim: `clay-cloud-rim-${reactId}`,
+    hi: `clay-cloud-hi-${reactId}`,
+    sh: `clay-cloud-sh-${reactId}`,
+    cheek: `clay-cloud-cheek-${reactId}`,
+    blurHi: `clay-cloud-blurHi-${reactId}`,
+    blurSh: `clay-cloud-blurSh-${reactId}`,
+    silhouette: `clay-cloud-sil-${reactId}`,
+    clip: `clay-cloud-clip-${reactId}`,
+  };
 
   const animClass =
     mood === 'calm' ? 'clay-cloud-breathe' : mood === 'happy' ? 'clay-cloud-float' : 'clay-cloud-jump';

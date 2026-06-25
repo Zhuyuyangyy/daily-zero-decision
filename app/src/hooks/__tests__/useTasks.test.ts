@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTasks } from '../useTasks';
 import type { AppState } from '../../types';
 import { defaultPetState } from '../../types';
 
 const makeState = (overrides: Partial<AppState> = {}): AppState => ({
+  schemaVersion: 1,
   tasks: [],
   log: [],
   streak: { current: 0, best: 0, lastCompletedDate: null },
@@ -56,5 +57,22 @@ describe('useTasks.handleEasier MAX 守卫', () => {
     const { result } = renderHook(() => useTasks(state, setState, () => {}));
     act(() => result.current.addWithValue('深呼吸三次'));
     expect(state.tasks.length).toBe(1);
+  });
+});
+
+describe('useTasks.handleOnboardingFinish', () => {
+  it('仅触发 setState 翻转 onboarded 标志，不直写 localStorage（避免与 useAppState 持久化双写竞态）', () => {
+    // 预先写一个非默认 onboarded 状态到 localStorage 模拟 useAppState 加载结果
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+    const state = makeState({ onboarded: false });
+    const setState = (updater: any) => Object.assign(state, typeof updater === 'function' ? updater(state) : updater);
+    const { result } = renderHook(() => useTasks(state, setState, () => {}));
+    act(() => result.current.handleOnboardingFinish());
+    // 验证：setState 翻转标志
+    expect(state.onboarded).toBe(true);
+    // 验证：没有直写 localStorage 的二次写入
+    const onboardingWrites = setItemSpy.mock.calls.filter(([key]) => key === 'daily-zero-decision');
+    expect(onboardingWrites).toHaveLength(0);
+    setItemSpy.mockRestore();
   });
 });

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { AppState } from '../types';
+import { getToday } from '../utils/storage';
 
 /**
  * 安心卡系统 hook
@@ -27,50 +28,45 @@ export function usePeace(
 
   // 消耗安心卡（断签时调用）
   const useCard = useCallback((date: string): boolean => {
-    if (cards <= 0) return false;
-
     setState(prev => {
+      if (prev.peace.cards <= 0) return prev;
       // 不伪造log，只记录被保护的日子
-      const newProtectedDates = [...prev.peace.protectedDates, date];
-      const newCards = prev.peace.cards - 1;
-
       return {
         ...prev,
         peace: {
           ...prev.peace,
-          cards: newCards,
-          protectedDates: newProtectedDates,
+          cards: prev.peace.cards - 1,
+          protectedDates: [...prev.peace.protectedDates, date],
         },
       };
     });
-
     return true;
-  }, [cards, setState]);
+  }, [setState]);
 
   // 奖励安心卡（连续7天回来后调用）
+  // 守卫写在 setState updater 里读 prev，避免闭包陷阱 + 同 tick 多次发奖
   const rewardCard = useCallback((): boolean => {
-    if (cards >= 2) return false;  // 最多2张
+    let rewarded = false;
+    setState(prev => {
+      if (prev.peace.cards >= 2) return prev;        // 最多2张
+      const today = getToday();
+      if (prev.peace.lastRewardedDate === today) return prev;  // 同日不重发
+      // 检查过去7天是否每天都回来了（取 log 后 7 项去重，按日历日）
+      const recentDays = [...new Set(prev.log.slice(-7))];
+      if (recentDays.length < 7) return prev;
 
-    const today = new Date().toISOString().split('T')[0];
-    // Note: 7-day check uses state.log.slice(-7) below; no precomputed date string needed.
-
-    // 检查过去7天是否每天都回来了
-    const recentDays = state.log.slice(-7);
-    const allRecent = recentDays.length >= 7;
-
-    if (!allRecent) return false;
-
-    setState(prev => ({
-      ...prev,
-      peace: {
-        ...prev.peace,
-        cards: Math.min(2, prev.peace.cards + 1),  // 最多2张
-        lastRewardedDate: today,
-      },
-    }));
-
-    return true;
-  }, [cards, state.log, setState]);
+      rewarded = true;
+      return {
+        ...prev,
+        peace: {
+          ...prev.peace,
+          cards: Math.min(2, prev.peace.cards + 1),
+          lastRewardedDate: today,
+        },
+      };
+    });
+    return rewarded;
+  }, [setState]);
 
   return {
     cards,

@@ -89,22 +89,50 @@ export function loadState(): AppState {
   }
 }
 
+export class StorageQuotaError extends Error {
+  constructor(message = 'localStorage 写入失败：超出容量或被禁用') {
+    super(message);
+    this.name = 'StorageQuotaError';
+  }
+}
+
 export function saveState(state: AppState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    console.warn('Failed to save state');
+  } catch (e) {
+    // 抛给调用方，让 UI 决定如何提示（toast / banner）
+    throw new StorageQuotaError(
+      e instanceof Error ? `保存失败：${e.message}` : '保存失败：localStorage 不可用'
+    );
+  }
+}
+
+export class ExportFailedError extends Error {
+  constructor(message = '导出失败') {
+    super(message);
+    this.name = 'ExportFailedError';
   }
 }
 
 export function exportState(state: AppState): void {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `daily-cloud-backup-${getToday()}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
+  let url: string | null = null;
+  try {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `daily-cloud-backup-${getToday()}.json`;
+    link.click();
+    // Safari 某些版本在 click() 后才异步处理 URL；延迟 100ms 回收避免下载失败
+    setTimeout(() => {
+      if (url) URL.revokeObjectURL(url);
+    }, 100);
+  } catch (e) {
+    if (url) URL.revokeObjectURL(url);
+    throw new ExportFailedError(
+      e instanceof Error ? `导出失败：${e.message}` : '导出失败：浏览器不支持'
+    );
+  }
 }
 
 export function importState(json: string): AppState | null {
@@ -142,7 +170,15 @@ export function importState(json: string): AppState | null {
         history[date] = Array.isArray(tasks) ? (tasks as any[]).map(backfillType) : [];
       }
     }
-    const tasks = Array.isArray(parsed.tasks) ? (parsed.tasks as any[]).map(backfillType) : [];
+    // 与 loadState 一致：旧单 task 格式 → 数组
+    let tasks: any[];
+    if (Array.isArray(parsed.tasks)) {
+      tasks = (parsed.tasks as any[]).map(backfillType);
+    } else if (parsed.task && typeof parsed.task === 'object') {
+      tasks = [backfillType(parsed.task)];
+    } else {
+      tasks = [];
+    }
 
     return {
       ...defaultState,
@@ -166,12 +202,19 @@ export function importState(json: string): AppState | null {
   }
 }
 
+/**
+ * 用本地时区组件拼出 YYYY-MM-DD。
+ * 不用 toISOString().split('T')[0]，避免 UTC+ 时区在凌晨误读前一天。
+ */
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+function localDateString(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
 export function getToday(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return localDateString(new Date());
 }
 
 export function isToday(dateStr: string): boolean {
@@ -181,7 +224,20 @@ export function isToday(dateStr: string): boolean {
 export function isYesterday(dateStr: string): boolean {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return dateStr === yesterday.toISOString().split('T')[0];
+  return dateStr === localDateString(yesterday);
+}
+
+/**
+ * 用日历日差（基于日期字符串本身）计算两天间隔。
+ * 避免 DST / 跨时区毫秒差导致的误断。
+ */
+function calendarDayDiff(a: string, b: string): number {
+  // parse YYYY-MM-DD 为 noon UTC 避免任何时区偏移影响
+  const [ay, am, ad] = a.split('-').map(Number);
+  const [by, bm, bd] = b.split('-').map(Number);
+  const aMs = Date.UTC(ay, am - 1, ad, 12, 0, 0);
+  const bMs = Date.UTC(by, bm - 1, bd, 12, 0, 0);
+  return Math.round((aMs - bMs) / 86400000);
 }
 
 export function calculateStreak(log: string[]): { current: number; best: number; lastCompletedDate: string | null } {
@@ -191,18 +247,16 @@ export function calculateStreak(log: string[]): { current: number; best: number;
 
   const sortedDates = [...new Set(log)].sort().reverse();
   const today = getToday();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = localDateString(yesterdayDate);
 
   let current = 0;
   let best = 0;
   let tempStreak = 0;
-  let prevDate: Date | null = null;
+  let prevDate: string | null = null;
 
   for (const dateStr of sortedDates) {
-    const date = new Date(dateStr);
-
     if (prevDate === null) {
       if (dateStr === today || dateStr === yesterdayStr) {
         tempStreak = 1;
@@ -211,7 +265,7 @@ export function calculateStreak(log: string[]): { current: number; best: number;
         tempStreak = 1;
       }
     } else {
-      const diffDays = Math.round((prevDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = calendarDayDiff(prevDate, dateStr);
       if (diffDays === 1) {
         tempStreak++;
         if (current > 0) current = tempStreak;
@@ -221,7 +275,7 @@ export function calculateStreak(log: string[]): { current: number; best: number;
       }
     }
 
-    prevDate = date;
+    prevDate = dateStr;
   }
 
   best = Math.max(best, tempStreak, current);
@@ -300,5 +354,36 @@ export function parseTaskFromInput(input: string): Partial<Task> {
 }
 
 export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // 兜底：极旧浏览器 / 非 https 场景
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+/**
+ * 生成最近 N 个日历日（含今天），缺失的日期填空数组。
+ * 解决：用户间断使用时 history 缺失日期导致 last7 不足 7 项。
+ */
+export function getLastNDays(history: Record<string, Task[]>, n: number, today: string = getToday()): Array<{ date: string; tasks: Task[] }> {
+  const result: Array<{ date: string; tasks: Task[] }> = [];
+  const [y, m, d] = today.split('-').map(Number);
+  for (let i = 0; i < n; i++) {
+    const dt = new Date(y, m - 1, d - i);
+    const dateStr = localDateString(dt);
+    result.push({ date: dateStr, tasks: history[dateStr] ?? [] });
+  }
+  return result;
+}
+
+// 控制字符 regex：保留 \t(0x09) \n(0x0A) \r(0x0D)
+// 用字符串构造规避编辑工具对字面控制字符的吞字
+const CTRL_CHARS_RE = new RegExp('[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F]', 'g');
+
+/**
+ * 去除控制字符（保留 \t \n \r），折叠多于 2 个的空行。
+ * 用于剪贴板、分享文案等用户可见字符串，防止 ANSI / 零宽字符注入。
+ */
+export function sanitizeVisibleText(s: string): string {
+  return s.replace(CTRL_CHARS_RE, '').replace(/\n{3,}/g, '\n\n');
 }

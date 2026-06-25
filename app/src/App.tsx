@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Celebration } from './components/shared/Celebration';
+import { ChangelogOverlay } from './components/shared/ChangelogOverlay';
+import { getToday } from './utils/storage';
+import { ErrorBoundary } from './error-boundary/ErrorBoundary';
 import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
 import Onboarding from './components/shared/Onboarding';
@@ -24,7 +27,7 @@ import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   // Core state + persistence
-  const { state, setState, handleImportData } = useAppState();
+  const { state, setState, handleImportData, saveError } = useAppState();
 
   // UI-only state
   const [showCelebration, setShowCelebration] = useState(false);
@@ -49,27 +52,19 @@ export default function App() {
 
   // Task operations
   const {
-    input,
-    setInput,
     completingTaskId,
     hasCompletedToday,
-    todaysTasks,
     incompleteTasks,
     completedTasks,
     allTodaysTasksDone,
-    atMaxTasks,
-    handleAddTask,
     addWithValue,
     handleCompleteTask,
     handleConfirmComplete,
     handleCancelComplete,
-    handleDeleteTask,
-    handleReset,
     handleMoodSelect,
     handleOnboardingFinish,
     handlePomodoroComplete,
     handleEasier,
-    today,
   } = useTasks(state, setState, () => setShowCelebration(true));
 
   // Streak + sky mood
@@ -112,6 +107,7 @@ export default function App() {
   );
 
   return (
+    <ErrorBoundary name="app-root">
     <div
       className="clay-page-grain"
       data-font={font}
@@ -124,6 +120,60 @@ export default function App() {
           'radial-gradient(ellipse at top, #FFE9DF 0%, #FDF4F0 60%, #FAE6DC 100%)',
       }}
     >
+      {/* 持久化错误 banner：仅在 saveError 非空时显示 */}
+      {saveError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{
+            position: 'fixed',
+            top: 12,
+            left: 12,
+            right: 12,
+            zIndex: 10000,
+            padding: '10px 16px',
+            background: 'var(--warm-coral, #F88C82)',
+            color: 'white',
+            borderRadius: 12,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <span>⚠️ {saveError}。请尽快导出数据备份。</span>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `daily-cloud-backup-${getToday()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                /* swallow */
+              }
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.25)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              padding: '4px 12px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            立即备份
+          </button>
+        </div>
+      )}
       {/* Onboarding overlay */}
       {!state.onboarded && (
         <Onboarding
@@ -164,7 +214,7 @@ export default function App() {
 
       {/* Celebration overlay */}
       {showCelebration && (
-        <Celebration onComplete={handleCelebrationComplete} />
+        <Celebration streak={state.streak.current} onComplete={handleCelebrationComplete} />
       )}
 
       {/* Share card */}
@@ -179,7 +229,7 @@ export default function App() {
       {/* Completion note modal */}
       {completingTaskId && (
         <CompletionNote
-          onConfirm={handleConfirmComplete}
+          onConfirm={(note) => handleConfirmComplete(note, completingTaskId)}
           onCancel={handleCancelComplete}
         />
       )}
@@ -190,21 +240,14 @@ export default function App() {
       {activeTab === 'today' && (
         <TodayPage
           state={state}
-          today={today}
-          skyMood={skyMood}          todaysTasks={todaysTasks}
+          skyMood={skyMood}
           incompleteTasks={incompleteTasks}
           completedTasks={completedTasks}
           allTodaysTasksDone={allTodaysTasksDone}
-          atMaxTasks={atMaxTasks}
-          input={input}
-          setInput={setInput}
-          handleAddTask={handleAddTask}
           addWithValue={addWithValue}
           handleCompleteTask={handleCompleteTask}
-          handleDeleteTask={handleDeleteTask}
           handleMoodSelect={handleMoodSelect}
           handlePomodoroComplete={handlePomodoroComplete}
-          handleReset={handleReset}
           handleEasier={handleEasier}
           pomodoroExpanded={pomodoroExpanded}
           setPomodoroExpanded={setPomodoroExpanded}
@@ -267,54 +310,23 @@ export default function App() {
         />
       )}
 
-      {/* Changelog overlay (v0.1.0 one-time) */}
+      {/* Changelog overlay (v0.1.0 one-time) — accessible modal */}
       {showChangelogOverlay && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(0,0,0,0.4)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', padding: 16,
-          }}
-          onClick={() => {
+        <ChangelogOverlay
+          title="v0.1.0 上线了"
+          message={'首屏换成"今天只做这一小步"了。\n每天只生成一张卡，完成后去看看天空。'}
+          ctaLabel="开始"
+          onClose={() => {
             localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
             setShowChangelogOverlay(false);
           }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--surface-1, white)', borderRadius: 24, padding: 32,
-              maxWidth: 360, width: '100%', textAlign: 'center',
-            }}
-          >
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--ink)' }}>
-              🎉 v0.1.0 上线了
-            </h2>
-            <p style={{ fontSize: 14, color: 'var(--ink-light)', margin: '0 0 16px', lineHeight: 1.6 }}>
-              首屏换成"今天只做这一小步"了。
-              <br />
-              每天只生成一张卡，完成后去看看天空。
-            </p>
-            <button
-              onClick={() => {
-                localStorage.setItem('daily-zero-decision:lastShownChangelog', 'v0.1.0');
-                setShowChangelogOverlay(false);
-              }}
-              style={{
-                padding: '10px 24px', borderRadius: 16, border: 'none',
-                background: 'var(--mint-cloud-cta, #4AB574)', color: 'white',
-                fontWeight: 600, cursor: 'pointer',
-              }}
-            >
-              开始
-            </button>
-          </div>
-        </div>
+        />
       )}
 
       {/* Bottom Tab Bar */}
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
+    </ErrorBoundary>
   );
 }
 

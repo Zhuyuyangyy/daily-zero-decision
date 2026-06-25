@@ -13,6 +13,7 @@ import { SkyScene } from '../components/sky/SkyScene';
 import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
 import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
+import { getLastNDays } from '../utils/storage';
 import { PeaceCard } from '../components/premium/PeaceCard';
 import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
 import { SkyPet } from '../components/pet/SkyPet';
@@ -21,21 +22,13 @@ import { derivePetMood, type UsePetResult } from '../hooks/usePet';
 
 interface TodayPageProps {
   state: AppState;
-  today: string;
-  todaysTasks: Task[];
   incompleteTasks: Task[];
   completedTasks: Task[];
   allTodaysTasksDone: boolean;
-  atMaxTasks: boolean;
-  input: string;
-  setInput: Dispatch<SetStateAction<string>>;
-  handleAddTask: () => void;
   addWithValue: (value: string) => void;
   handleCompleteTask: (id: string) => void;
-  handleDeleteTask: (id: string) => void;
   handleMoodSelect: (mood: Mood) => void;
   handlePomodoroComplete: (sessionType: 'focus' | 'shortBreak' | 'longBreak') => void;
-  handleReset: () => void;
   handleEasier: () => void;
   onNavigateToSky: () => void;
   pomodoroExpanded: boolean;
@@ -48,21 +41,13 @@ interface TodayPageProps {
 
 export default function TodayPage({
   state,
-  today: _today,
-  todaysTasks: _todaysTasks,
   incompleteTasks,
   completedTasks,
   allTodaysTasksDone,
-  atMaxTasks: _atMaxTasks,
-  input: _input,
-  setInput: _setInput,
-  handleAddTask: _handleAddTask,
   addWithValue,
   handleCompleteTask,
-  handleDeleteTask: _handleDeleteTask,
   handleMoodSelect,
   handlePomodoroComplete,
-  handleReset: _handleReset,
   handleEasier,
   onNavigateToSky,
   pomodoroExpanded,
@@ -72,13 +57,9 @@ export default function TodayPage({
   reducedMotion,
   protectedYesterday,
 }: TodayPageProps) {
-  void _input; void _setInput; void _handleAddTask; void _handleDeleteTask; void _atMaxTasks; void _handleReset; void _today; void _todaysTasks;
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
 
-  const last7 = Object.entries(state.history)
-    .sort(([a], [b]) => b.localeCompare(a))
-    .slice(0, 7)
-    .map(([date, tasks]) => ({ date, tasks }));
+  const last7 = getLastNDays(state.history, 7);
 
   // 安心卡状态管理
   const [showPeaceInfo, setShowPeaceInfo] = useState(false);

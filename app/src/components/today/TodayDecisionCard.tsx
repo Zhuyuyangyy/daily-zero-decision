@@ -69,10 +69,10 @@ export default function TodayDecisionCard({
         </div>
 
         <CardActions>
-          <SoftButton variant="mint" size="lg" block onClick={onComplete}>
+          <SoftButton variant="mint" size="lg" block onClick={onComplete} aria-label={task ? `完成任务：${task.title}` : '完成这一小步'}>
             完成这一小步
           </SoftButton>
-          <SoftButton variant="text" size="md" block onClick={onEasier}>
+          <SoftButton variant="text" size="md" block onClick={onEasier} aria-label="把今天的任务换成更轻的版本">
             今天换轻一点
           </SoftButton>
         </CardActions>
@@ -83,8 +83,9 @@ export default function TodayDecisionCard({
             type="button"
             onClick={onStartPomodoro}
             className="clay-pomodoro-inline"
+            aria-label="打开番茄钟计时器"
           >
-            ⏱️ 开始计时
+            <span aria-hidden>⏱️</span> 开始计时
           </button>
         </div>
       </CloudCard>

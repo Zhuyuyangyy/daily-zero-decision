@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Task } from '../../types';
 import { copy } from '../../utils/copy';
+import { sanitizeVisibleText } from '../../utils/storage';
 
 /**
  * ShareCard — 完成态分享卡（模态对话框）
@@ -129,7 +130,7 @@ export default function ShareCard({ completedTasks, streak, onClose }: ShareCard
   );
   const overflowCount = Math.max(0, completedTasks.length - VISIBLE_TASK_LIMIT);
   const shareText = useMemo(
-    () => buildShareText(completedTasks, streak),
+    () => sanitizeVisibleText(buildShareText(completedTasks, streak)),
     [completedTasks, streak]
   );
 

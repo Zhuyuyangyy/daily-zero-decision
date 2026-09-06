@@ -676,3 +676,9 @@ _skill/
 !/llm-autoresearch-pipeline/tests/
 !/llm-autoresearch-pipeline/p0-vs/
 !/llm-autoresearch-pipeline/docs/
+
+# Sibling project dirs added later (same policy: not part of this monorepo)
+AIforEpidemiology/
+Evalution price agent/
+obsidian-reactor-site/
+twice-hand-system-template/

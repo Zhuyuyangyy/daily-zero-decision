@@ -4,6 +4,8 @@
 
 一个每日零决策打卡习惯应用。不是"坚持 X 天"的冷数字，是一片你亲手养出来的、独一无二的天空。每坚持一天，天空里多一朵属于你的云。
 
+**仓库结构**：本仓库只包含这一个应用，全部源码位于 [`app/`](app/README.md)。根目录仅保留仓库级元文件（LICENSE、CI、部署配置）。
+
 ## 功能特性
 
 - **今天** — 每日任务卡片：说一句话生成零决策卡，点完成养一朵云
@@ -40,72 +42,46 @@ Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
 ## 项目结构
 
 ```
-src/
+app/src/
 ├── App.tsx                    # 应用壳 + Tab 路由
 ├── main.tsx                   # 入口
 ├── types.ts                   # TypeScript 类型定义
-├── index.css                  # 全局样式
 ├── pages/
 │   ├── TodayPage.tsx          # 今天 Tab
 │   ├── SkyPage.tsx            # 我的天空 Tab
 │   ├── StatsPage.tsx          # 统计 Tab
 │   └── SettingsPage.tsx       # 设置 Tab
 ├── components/
-│   ├── task/
-│   │   ├── CompactTaskRow.tsx # 紧凑任务行
-│   │   └── TaskHistory.tsx    # 任务历史
-│   ├── sky/
-│   │   ├── HeroSky.tsx        # 天空视觉
-│   │   ├── Cloud.tsx          # 云朵组件
-│   │   └── StreakDisplay.tsx  # 连续天数显示
-│   ├── stats/
-│   │   ├── StatsDashboard.tsx # 统计面板
-│   │   └── AchievementGrid.tsx# 成就网格
-│   ├── search/
-│   │   ├── SearchBar.tsx      # 搜索栏
-│   │   └── SearchResults.tsx  # 搜索结果
-│   └── shared/
-│       ├── TabBar.tsx         # 底部 Tab 栏
-│       ├── Onboarding.tsx     # 新手引导
-│       ├── Celebration.tsx    # 庆祝动画
-│       ├── CompletionNote.tsx # 完成备注
-│       ├── MoodWidget.tsx     # 心情选择
-│       ├── DailyQuote.tsx     # 每日金句
-│       ├── Pomodoro.tsx       # 番茄钟
-│       ├── ShareCard.tsx      # 分享卡片
-│       └── PresetManager.tsx  # 预设管理
-├── hooks/
-│   ├── useAppState.ts         # 状态 + 持久化
-│   ├── useTasks.ts            # 任务 CRUD
-│   ├── useStreak.ts           # 连续天数
-│   ├── useSearch.ts           # 搜索状态
-│   └── usePomodoro.ts         # 番茄钟
-├── utils/
-│   ├── storage.ts             # localStorage 工具
-│   ├── copy.ts                # 文案系统
-│   ├── cloudSeed.ts           # 云朵种子生成
-│   ├── achievements.ts        # 成就定义
-│   └── skyMood.ts             # 天空心情计算
-└── theme/
-    └── clay.css               # 设计系统 tokens
+│   ├── task/                  # 任务相关组件
+│   ├── sky/                   # 天空视觉组件
+│   ├── stats/                 # 统计相关组件
+│   ├── search/                # 搜索相关组件
+│   ├── pet/                   # 天空宠物
+│   ├── premium/               # 平静卡
+│   ├── today/                 # 今日卡组件
+│   ├── ui/                    # 通用 UI 原语
+│   └── shared/                # 共享组件（番茄钟、庆祝动画等）
+├── hooks/                     # useAppState / useTasks / useStreak / usePomodoro 等
+├── utils/                     # storage / copy / cloudSeed / achievements 等
+├── observability/             # 可观测性（ring buffer + 适配器）
+├── error-boundary/            # 错误边界
+└── theme/clay.css             # 设计系统 tokens
 ```
+
+完整架构说明见 [`app/docs/ARCHITECTURE.md`](app/docs/ARCHITECTURE.md) 与 [`app/docs/DECISIONS/`](app/docs/DECISIONS/README.md)。
 
 ## 快速开始
 
 ### 环境要求
 
-- Node.js 18+
-- npm 或 yarn
+- Node.js 18+（CI 在 Node 20 / 22 上验证）
+- npm
 
-### 安装
+### 安装与开发
 
 ```bash
+cd app
 npm install
-```
-
-### 开发
-
-```bash
 npm run dev          # http://localhost:5173
 ```
 
@@ -119,8 +95,13 @@ npm run test:watch   # 监听模式
 ### 构建
 
 ```bash
-npm run build        # → dist/
+npm run build        # → app/dist/
 ```
+
+### CI 与部署
+
+- **CI**：根级 `.github/workflows/ci.yml`，在 Node 20/22 上运行 typecheck → lint → test → build
+- **部署**：Vercel（`vercel.json`），构建产物为 `app/dist`
 
 ## 设计系统
 
@@ -132,38 +113,7 @@ npm run build        # → dist/
 - **4-8pt 间距** — 统一的间距系统
 - **44px 触点** — 移动端友好的触摸目标
 
-详见 `src/theme/clay.css`。
-
-## 架构说明
-
-### 状态管理
-
-使用 React hooks 进行状态管理，无外部状态库：
-
-- `useAppState` — 核心状态 + localStorage 持久化
-- `useTasks` — 任务 CRUD 操作
-- `useStreak` — 连续天数派生值
-- `useSearch` — 搜索状态
-- `usePomodoro` — 番茄钟状态
-
-### 组件组织
-
-按功能模块组织组件：
-
-- **task/** — 任务相关组件
-- **sky/** — 天空视觉组件
-- **stats/** — 统计相关组件
-- **search/** — 搜索相关组件
-- **shared/** — 共享组件
-
-### 页面组件
-
-每个 Tab 对应一个页面组件：
-
-- `TodayPage` — 今天 Tab
-- `SkyPage` — 我的天空 Tab
-- `StatsPage` — 统计 Tab
-- `SettingsPage` — 设置 Tab
+详见 `app/src/theme/clay.css`。
 
 ## 视觉特色
 
@@ -171,6 +121,16 @@ npm run build        # → dist/
 - **每朵云由日期 hash 生成**：同一日期永远同一朵云，不同日期不同
 - **8 种云的表情**：calm / smile / sleep / wink / tiny-smile / peeking / peaceful / neutral
 - **温柔文案系统**：每条文案都过"不骂你"审核
+
+## 文档
+
+产品规格、数据模型、交付标准等文档统一放在 [`app/`](app/) 下：
+
+- [`app/SPEC.md`](app/SPEC.md) — 规格入口（拆分为 PRODUCT_SPEC / TECH_SPEC / DELIVERY_STANDARD）
+- [`app/DATA_MODEL.md`](app/DATA_MODEL.md) — 存储与 Schema 参考
+- [`app/docs/CONTRIBUTING.md`](app/docs/CONTRIBUTING.md) — 贡献指南
+- [`app/CHANGELOG.md`](app/CHANGELOG.md) — 产品演化记录
+- [`app/SECURITY.md`](app/SECURITY.md) / [`app/PRIVACY.md`](app/PRIVACY.md) — 安全与隐私
 
 ## 许可证
 

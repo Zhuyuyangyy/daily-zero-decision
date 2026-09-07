@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1 — 2026-09-06 — 仓库治理
+
+- **仓库精简为单项目**：twice_hand_system / llm-autoresearch-pipeline / _contest / 新建文件夹 / outputs / .obsidian_vault 移出 git 跟踪（本地文件保留），本仓库此后只承载 daily-zero-decision 应用
+- **.gitignore 白名单化**：根目录默认忽略、仅放行 README/LICENSE/.github/vercel.json/app/，新增同级项目不再需要改 .gitignore；同时新增通用产物规则（*.zip / *.mp4 / *.pptx / node_modules / dist 等），重型媒体文件不再进入历史
+- **CI 布局修复**：升级版 workflow（Node 20/22 矩阵、PR 全分支触发）从永不触发的 app/.github/ 子目录提升到根级 .github/workflows/
+- **文档去重**：根级 6 份陈旧文档（SPEC / DATA_MODEL / DELIVERY_CHECKLIST / SECURITY / PRIVACY / CHANGELOG）移除，app/ 下同名文件为唯一事实来源；根 README 改写为准确的仓库结构说明
+- **杂项清理**：app/PR_BODY.md（一次性 PR 描述）、app/.superpowers/（AI 工作状态，正式文档在 app/docs/superpowers/）移出跟踪
+- 已知遗留：app/public/pet/ 下多张 1~1.3MB PNG 为运行必需资源，建议后续压缩（Sharp/squoosh）以减小构建产物
+
 ## v0.2.0 — 2026-06-23 — 企业级基线
 
 ### 新增（Round 1-4：45 个 bug 修复）

@@ -36,19 +36,19 @@ interface SkyPetProps {
 type Sprite = { src: string; frames: number; durationSec: number };
 
 const SPRITES: Record<PetMood, Sprite> = {
-  idle:         { src: '/pet/anim-idle-breath.png',   frames: 4, durationSec: 1.6 },
-  waiting:      { src: '/pet/anim-idle-breath.png',   frames: 4, durationSec: 1.6 },
-  encouraging:  { src: '/pet/anim-encouraging.png',   frames: 4, durationSec: 0.8 },
-  celebrating:  { src: '/pet/anim-celebrating-jump.png', frames: 4, durationSec: 0.8 },
-  resting:      { src: '/pet/pet-resting.png',         frames: 1, durationSec: 0   },
-  sleeping:     { src: '/pet/anim-sleeping.png',      frames: 4, durationSec: 1.2 },
+  idle:         { src: '/pet/anim-idle-breath.webp',   frames: 4, durationSec: 1.6 },
+  waiting:      { src: '/pet/anim-idle-breath.webp',   frames: 4, durationSec: 1.6 },
+  encouraging:  { src: '/pet/anim-encouraging.webp',   frames: 4, durationSec: 0.8 },
+  celebrating:  { src: '/pet/anim-celebrating-jump.webp', frames: 4, durationSec: 0.8 },
+  resting:      { src: '/pet/pet-resting.webp',         frames: 1, durationSec: 0   },
+  sleeping:     { src: '/pet/anim-sleeping.webp',      frames: 4, durationSec: 1.2 },
 };
 
 /**
  * Trusted 阶段 celebrating 用更亲密的图（抱云+星星+爱眼）
  */
 const TRUSTED_CELEBRATING: Sprite = {
-  src: '/pet/anim-celebrating-stars.png',
+  src: '/pet/anim-celebrating-stars.webp',
   frames: 4,
   durationSec: 1.2,
 };

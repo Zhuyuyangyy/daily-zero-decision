@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { copy } from '../../utils/copy';
 
 interface RealCloudProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -7,6 +8,8 @@ interface RealCloudProps {
   mood?: 'calm' | 'happy' | 'celebrate';
   type?: 'reading' | 'exercise' | 'coding' | 'other';
   expression?: 'calm' | 'happy' | 'sleep' | 'wink' | 'neutral';
+  /** 点击云朵的额外回调（如统计埋点）；萌互动始终内置 */
+  onPoke?: () => void;
 }
 
 const SIZE_MAP = {
@@ -16,10 +19,18 @@ const SIZE_MAP = {
   lg: 160,
 };
 
+/** 摸云互动时长(ms):squash + 萌语冒泡都在这个窗口内 */
+const POKE_MS = 900;
+
 /**
  * RealCloud — CSS 实现的"真云"
  * 用多个 div + radial-gradient + blur 模拟体积/层叠/光感
  * 通过 type 和 expression 参数实现差异化外观
+ *
+ * 萌互动(内置,零配置):
+ * - 点击 → squash&stretch 软弹动画 + 眨眼(wink)瞬切
+ * - 冒出一条摸云萌语气泡(少量 emoji 星星粒子)
+ * - 尊重 prefers-reduced-motion:只冒泡,不弹跳
  */
 export default function RealCloud({
   size = 'md',
@@ -27,10 +38,50 @@ export default function RealCloud({
   state = 'default',
   mood = 'calm',
   type = 'other',
-  expression = 'calm'
+  expression = 'calm',
+  onPoke,
 }: RealCloudProps) {
   const px = SIZE_MAP[size];
   const isCelebrate = mood === 'celebrate' || state === 'completed';
+
+  // ---- 摸云互动状态 ----
+  const [poked, setPoked] = useState(false);
+  const [pokeLine, setPokeLine] = useState<string | null>(null);
+  const pokeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reducedMotionRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      reducedMotionRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      reducedMotionRef.current = false;
+    }
+    return () => {
+      if (pokeTimerRef.current) clearTimeout(pokeTimerRef.current);
+    };
+  }, []);
+
+  const handlePoke = useCallback(() => {
+    onPoke?.();
+    setPoked(true);
+    setPokeLine(copy.pokeLine());
+    if (pokeTimerRef.current) clearTimeout(pokeTimerRef.current);
+    pokeTimerRef.current = setTimeout(() => {
+      setPoked(false);
+      setPokeLine(null);
+    }, POKE_MS);
+  }, [onPoke]);
+
+  // 键盘可达:Enter/Space 触发
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handlePoke();
+      }
+    },
+    [handlePoke],
+  );
 
   const colors = useMemo(() => {
     switch (color) {
@@ -77,6 +128,9 @@ export default function RealCloud({
     }
   }, [type, px]);
 
+  // 被摸时强制 wink;平时用传入的 expression
+  const effectiveExpression: RealCloudProps['expression'] = poked ? 'wink' : expression;
+
   // 表情实现（通过 CSS 伪元素或绝对定位的小圆点）
   const renderExpression = () => {
     if (isCelebrate) return null; // 庆祝态不显示表情
@@ -99,7 +153,22 @@ export default function RealCloud({
       zIndex: 10
     };
 
-    switch (expression) {
+    // 摸云瞬间的"^ ^"眯眼(比圆眼更萌)
+    const winkEyeStyle: React.CSSProperties = {
+      ...eyeStyle,
+      height: px * 0.025,
+      borderRadius: `${px * 0.03}px ${px * 0.03}px 0 0`,
+    };
+
+    switch (effectiveExpression) {
+      case 'wink':
+        return (
+          <>
+            <div style={{ ...winkEyeStyle, top: '41%', left: '35%' }} />
+            <div style={{ ...winkEyeStyle, top: '41%', right: '35%' }} />
+            <div style={{ ...mouthStyle, top: '55%', left: '40%', width: '20%', borderRadius: '50% 50% 50% 50%' }} />
+          </>
+        );
       case 'happy':
         return (
           <>
@@ -115,14 +184,6 @@ export default function RealCloud({
             <div style={{ ...eyeStyle, top: '40%', right: '35%', height: px * 0.02, width: px * 0.08 }} />
           </>
         );
-      case 'wink':
-        return (
-          <>
-            <div style={{ ...eyeStyle, top: '40%', left: '35%' }} />
-            <div style={{ ...eyeStyle, top: '40%', right: '35%', height: px * 0.02, width: px * 0.08 }} />
-            <div style={{ ...mouthStyle, top: '55%', left: '40%', width: '20%' }} />
-          </>
-        );
       default: // calm / neutral
         return (
           <>
@@ -136,6 +197,11 @@ export default function RealCloud({
   return (
     <div
       className="clay-real-cloud"
+      role={size === 'lg' || size === 'md' ? 'button' : undefined}
+      tabIndex={size === 'lg' || size === 'md' ? 0 : undefined}
+      aria-label={size === 'lg' || size === 'md' ? '摸一摸这朵云' : undefined}
+      onClick={size === 'lg' || size === 'md' ? handlePoke : undefined}
+      onKeyDown={size === 'lg' || size === 'md' ? handleKeyDown : undefined}
       style={{
         width: typeStyles.width,
         height: typeStyles.height,
@@ -143,10 +209,64 @@ export default function RealCloud({
         cursor: 'pointer',
         transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         filter: 'drop-shadow(0 6px 12px rgba(121, 98, 82, 0.18))',
-        animation: 'real-cloud-breathe 6s ease-in-out infinite',
-        borderRadius: typeStyles.borderRadius
+        animation: poked && !reducedMotionRef.current
+          ? 'cloud-poke-squash 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)'
+          : 'real-cloud-breathe 6s ease-in-out infinite',
+        borderRadius: typeStyles.borderRadius,
+        transformOrigin: '50% 80%',
       }}
     >
+      {/* 萌语气泡 */}
+      {pokeLine && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'absolute',
+            top: `-${px * 0.34}px`,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1.5px solid rgba(242, 138, 158, 0.45)',
+            color: 'var(--ink, #4A3A33)',
+            fontSize: Math.max(11, px * 0.11),
+            fontWeight: 600,
+            padding: '3px 10px',
+            borderRadius: 14,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 3px 8px rgba(248, 140, 130, 0.25)',
+            zIndex: 30,
+            animation: 'cloud-poke-bubble 0.9s ease-out',
+            pointerEvents: 'none',
+          }}
+        >
+          {pokeLine}
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              bottom: -5,
+              left: '50%',
+              width: 8,
+              height: 8,
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRight: '1.5px solid rgba(242, 138, 158, 0.45)',
+              borderBottom: '1.5px solid rgba(242, 138, 158, 0.45)',
+              transform: 'translateX(-50%) rotate(45deg)',
+            }}
+          />
+        </div>
+      )}
+
+      {/* 摸云时冒出的小星星粒子 */}
+      {poked && !reducedMotionRef.current && (
+        <>
+          <span className="cloud-poke-spark" style={{ left: '8%', top: '12%', animationDelay: '0s' }} aria-hidden="true">✦</span>
+          <span className="cloud-poke-spark" style={{ right: '6%', top: '4%', animationDelay: '0.12s' }} aria-hidden="true">✧</span>
+          <span className="cloud-poke-spark" style={{ left: '20%', top: '-10%', animationDelay: '0.24s' }} aria-hidden="true">✦</span>
+        </>
+      )}
+
       {/* 金边光感 — 早晨阳光从左上角打过来 */}
       <div style={{
         position: 'absolute',
@@ -231,6 +351,40 @@ export default function RealCloud({
         @keyframes real-cloud-breathe {
           0%, 100% { transform: scale(1) translateY(0); }
           50% { transform: scale(1.015) translateY(-3px); }
+        }
+        /* 摸云 squash&stretch:压扁 → 拉长回弹(软软的手感) */
+        @keyframes cloud-poke-squash {
+          0%   { transform: scale(1, 1); }
+          30%  { transform: scale(1.12, 0.82); }
+          55%  { transform: scale(0.94, 1.1); }
+          75%  { transform: scale(1.04, 0.96); }
+          100% { transform: scale(1, 1); }
+        }
+        /* 萌语气泡:从下方轻浮上来 + 淡出 */
+        @keyframes cloud-poke-bubble {
+          0%   { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+          18%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.04); }
+          30%  { transform: translateX(-50%) translateY(0) scale(1); }
+          78%  { opacity: 1; }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.98); }
+        }
+        /* 小星星上飘淡出 */
+        .cloud-poke-spark {
+          position: absolute;
+          z-index: 20;
+          color: rgba(255, 214, 130, 0.95);
+          font-size: ${Math.max(10, px * 0.12)}px;
+          pointer-events: none;
+          animation: cloud-poke-spark-float 0.8s ease-out both;
+        }
+        @keyframes cloud-poke-spark-float {
+          0%   { opacity: 0; transform: translateY(4px) scale(0.5) rotate(0deg); }
+          30%  { opacity: 1; transform: translateY(-6px) scale(1.1) rotate(18deg); }
+          100% { opacity: 0; transform: translateY(-22px) scale(0.6) rotate(-10deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cloud-poke-spark { animation: none; opacity: 0; }
+          .clay-real-cloud { animation: real-cloud-breathe 6s ease-in-out infinite !important; }
         }
       `}</style>
     </div>

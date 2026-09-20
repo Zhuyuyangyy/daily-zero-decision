@@ -11,14 +11,16 @@ interface MoodOption {
   id: Mood;
   emoji: string;
   label: string;
+  /** 云朵工厂马卡龙色:心情云的主色(选中时按钮染上该色) */
+  macaron: { bg: string; ring: string };
 }
 
 const MOOD_OPTIONS: MoodOption[] = [
-  { id: 'down', emoji: '☁️', label: '很丧' },
-  { id: 'low', emoji: '🌤', label: '一般' },
-  { id: 'okay', emoji: '⛅', label: '还行' },
-  { id: 'gloomy', emoji: '🌧', label: '低落' },
-  { id: 'hopeful', emoji: '🌈', label: '期待' },
+  { id: 'down',    emoji: '☁️', label: '很丧', macaron: { bg: '#EDF2FB', ring: '#B8D4F5' } },  // 云朵工厂雾蓝
+  { id: 'low',     emoji: '🌤', label: '一般', macaron: { bg: '#F1F0FB', ring: '#D4C4F5' } },  // 云朵工厂香芋紫
+  { id: 'okay',    emoji: '⛅', label: '还行', macaron: { bg: '#FFFBEA', ring: '#FFE28A' } },  // 云朵工厂奶黄
+  { id: 'gloomy',  emoji: '🌧', label: '低落', macaron: { bg: '#EFFAF5', ring: '#A8E0C8' } },  // 云朵工厂薄荷
+  { id: 'hopeful', emoji: '🌈', label: '期待', macaron: { bg: '#FFF0F5', ring: '#FFC2DC' } },  // 云朵工厂樱花粉
 ];
 
 export default function MoodWidget({ onSelect, selected }: MoodWidgetProps) {
@@ -106,10 +108,10 @@ export default function MoodWidget({ onSelect, selected }: MoodWidgetProps) {
                 minWidth: '56px',
                 borderRadius: '50%',
                 border: isSelected
-                  ? '2px solid var(--warm-coral)'
+                  ? `2px solid ${option.macaron.ring}`
                   : '1px solid var(--hairline-subtle, var(--warm-border))',
                 background: isSelected
-                  ? 'linear-gradient(180deg, #FFF1E6 0%, #FFE2D0 100%)'
+                  ? `radial-gradient(circle at 50% 38%, ${option.macaron.bg} 0%, ${option.macaron.ring}55 100%)`
                   : 'var(--surface-0)',
                 display: 'flex',
                 alignItems: 'center',
@@ -118,7 +120,7 @@ export default function MoodWidget({ onSelect, selected }: MoodWidgetProps) {
                 padding: 0,
                 transform: showLift ? 'scale(1.05)' : 'scale(1)',
                 boxShadow: isSelected
-                  ? '0 4px 12px rgba(255, 155, 133, 0.30), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(248,140,130,0.18)'
+                  ? `0 4px 12px ${option.macaron.ring}4D, inset 0 1px 2px rgba(255,255,255,0.9)`
                   : 'inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(200,140,110,0.10)',
                 transition: 'transform 200ms var(--ease-out-expo), box-shadow 200ms var(--ease-out-expo), border-color 200ms var(--ease-out-expo), background 200ms var(--ease-out-expo)',
                 fontFamily: 'var(--font-body)',

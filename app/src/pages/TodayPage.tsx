@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { AppState, Task } from '../types';
 import type { Mood } from '../components/shared/MoodWidget';
 import { copy } from '../utils/copy';
@@ -13,7 +13,7 @@ import { SkyScene } from '../components/sky/SkyScene';
 import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
 import { SkyProgressMini } from '../components/sky/SkyProgressMini';
 import { toCloudGardenMood } from '../utils/cloudGardenMood';
-import { getLastNDays } from '../utils/storage';
+import { getLastNDays, getToday } from '../utils/storage';
 import { PeaceCard } from '../components/premium/PeaceCard';
 import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
 import { SkyPet } from '../components/pet/SkyPet';
@@ -70,6 +70,18 @@ export default function TodayPage({
   const [hasShownNamePrompt, setHasShownNamePrompt] = useState(() => {
     try { return !!localStorage.getItem('pet:renamePrompted'); } catch { return false; }
   });
+
+  // 摸云时宠物气泡让位:"一个时刻一句话",摸云萌语优先,1.4s 后宠物恢复说话
+  const [petSilenced, setPetSilenced] = useState(false);
+  const petSilenceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handlePokeCloud = useCallback(() => {
+    setPetSilenced(true);
+    if (petSilenceTimer.current) clearTimeout(petSilenceTimer.current);
+    petSilenceTimer.current = setTimeout(() => setPetSilenced(false), 1400);
+  }, []);
+  useEffect(() => () => {
+    if (petSilenceTimer.current) clearTimeout(petSilenceTimer.current);
+  }, []);
 
   // 推导 mood（不写回 state，避免在 render 中 setState）
   const derivedMood = derivePetMood({
@@ -128,6 +140,7 @@ export default function TodayPage({
             last7={last7}
             onTodayComplete={() => currentTask && handleCompleteTask(currentTask.id)}
             mood={toCloudGardenMood(skyMood, !!currentTask?.completedAt)}
+            onPokeCloud={handlePokeCloud}
           />
 
           {state.pet.enabled && (
@@ -144,7 +157,7 @@ export default function TodayPage({
                 mood={displayMood}
                 name={state.pet.name}
                 size="mobile"
-                bubbleText={pet.petLine}
+                bubbleText={petSilenced ? null : pet.petLine}
                 reducedMotion={reducedMotion}
                 affection={state.pet.affection}
                 onClick={pet.pickGreeting}
@@ -180,16 +193,32 @@ export default function TodayPage({
       ) : null}
 
       <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {['平静', '低落', '一般', '期待', '高兴'].map((m, i) => (
-          <button
-            key={m}
-            className="clay-chip"
-            onClick={() => handleMoodSelect(['calm', 'low', 'okay', 'hopeful', 'happy'][i] as Mood)}
-            style={{ fontSize: 12 }}
-          >
-            {['☁️', '🌧', '🌤', '🌈', '☀️'][i]} {m}
-          </button>
-        ))}
+        {([
+          { label: '平静', mood: 'calm', emoji: '☁️', macaron: '#EDF2FB' },
+          { label: '低落', mood: 'low', emoji: '🌧', macaron: '#F1F0FB' },
+          { label: '一般', mood: 'okay', emoji: '🌤', macaron: '#FFFBEA' },
+          { label: '期待', mood: 'hopeful', emoji: '🌈', macaron: '#FFF0F5' },
+          { label: '高兴', mood: 'happy', emoji: '☀️', macaron: '#FFF4D4' },
+        ] as const).map(({ label, mood, emoji, macaron }) => {
+          const isActive = state.moods?.[getToday()] === mood;
+          return (
+            <button
+              key={label}
+              className="clay-chip"
+              aria-pressed={isActive}
+              onClick={() => handleMoodSelect(mood as Mood)}
+              style={{
+                fontSize: 12,
+                background: isActive ? macaron : undefined,
+                boxShadow: isActive ? `0 2px 8px ${macaron}, inset 0 1px 2px rgba(255,255,255,0.8)` : undefined,
+                transform: isActive ? 'scale(1.06)' : undefined,
+                transition: 'all var(--dur-fast) var(--ease-out-quart)',
+              }}
+            >
+              {emoji} {label}
+            </button>
+          );
+        })}
       </div>
 
       {allTodaysTasksDone && (

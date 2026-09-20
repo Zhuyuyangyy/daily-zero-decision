@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Celebration } from './components/shared/Celebration';
 import { ChangelogOverlay } from './components/shared/ChangelogOverlay';
 import { getToday } from './utils/storage';
@@ -34,13 +34,19 @@ export default function App() {
   const [showShareCard, setShowShareCard] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('today');
   const [showChangelogOverlay, setShowChangelogOverlay] = useState(false);
+  // 记录上一次的 log 长度:区分"页面加载时已有数据"与"本会话刚完成首卡"
+  const prevLogLenRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (state.onboarded && state.log.length > 0) {
-      const shown = localStorage.getItem('daily-zero-decision:lastShownChangelog');
-      if (shown !== 'v0.1.0') {
-        setShowChangelogOverlay(true);
-      }
+    const prev = prevLogLenRef.current;
+    prevLogLenRef.current = state.log.length;
+    if (!state.onboarded || state.log.length === 0) return;
+    // 首卡完成的瞬间(0 → 1)不弹 Changelog:此时正在放庆祝动画 + 取名弹窗,
+    // 任何弹层都是惊吓而不是惊喜。等下次进入应用再提示。
+    if (prev === 0 && state.log.length === 1) return;
+    const shown = localStorage.getItem('daily-zero-decision:lastShownChangelog');
+    if (shown !== 'v0.1.0') {
+      setShowChangelogOverlay(true);
     }
   }, [state.onboarded, state.log.length]);
 

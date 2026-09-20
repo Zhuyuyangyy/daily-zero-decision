@@ -60,9 +60,15 @@ export interface AppState {
   peace: PeaceState;
   /** 天空宠物系统（cloud_cat MVP） */
   pet: PetState;
+  /** v0.3 天空归属:用户给天空起的名字(最多 8 字) */
+  skyName: string;
+  /** 用户是否已命名过天空(决定是否再弹命名引导) */
+  skyNamed: boolean;
+  /** v0.3 天象图鉴:date → 当日遇见的天象 id 列表 */
+  atlas: Record<string, string[]>;
 }
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export interface PeaceState {
   cards: number;  // 安心卡数量，最多2张

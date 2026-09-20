@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { currentDayPhase, shouldSpawnMeteor, type DayPhase } from '../../utils/dayPhase';
 
 export type SkyDensity = 'minimal' | 'comfortable' | 'rich';
 export type SkyVariant = 'today' | 'garden';
@@ -20,6 +21,26 @@ export interface SkySceneProps {
   reducedMotion?: boolean;
   className?: string;
   children?: ReactNode;
+}
+
+/* ------------------------------------------------------------
+   日夜时段层(融合自"云朵祈愿墙"的星空氛围)
+   phase 决定天空上部的一层半透明染色 + 夜晚出现星星/流星。
+   不改动成就驱动的 SkyMood 渐变,只在其上轻叠。
+   ------------------------------------------------------------ */
+const PHASE_TINT: Record<DayPhase, { top: string; bottom: string; opacity: number }> = {
+  dawn:  { top: 'rgba(255, 214, 170, 0.16)', bottom: 'rgba(255, 170, 150, 0.10)', opacity: 1 },
+  day:   { top: 'rgba(168, 216, 255, 0.14)', bottom: 'rgba(220, 245, 255, 0.08)', opacity: 1 },
+  dusk:  { top: 'rgba(255, 160, 120, 0.20)', bottom: 'rgba(200, 120, 160, 0.14)', opacity: 1 },
+  night: { top: 'rgba(40, 60, 120, 0.38)',  bottom: 'rgba(90, 80, 160, 0.20)', opacity: 1 },
+};
+
+interface Meteor {
+  id: number;
+  left: number;
+  top: number;
+  delay: number;
+  duration: number;
 }
 
 export function SkyScene({ mood, density, variant, reducedMotion: propReducedMotion, className, children }: SkySceneProps) {
@@ -49,6 +70,58 @@ export function SkyScene({ mood, density, variant, reducedMotion: propReducedMot
   const effectiveDensity: SkyDensity = isNarrow ? 'minimal' : density;
   const sun = SUN_PARAMS[mood];
 
+  // ---- 日夜时段(挂载时定一次,页面会话内不跳变)----
+  const [dayPhase] = useState<DayPhase>(() => currentDayPhase().phase);
+  const phaseTint = PHASE_TINT[dayPhase];
+  const isNight = dayPhase === 'night';
+
+  // ---- 夜晚星星(固定位置,挂载时生成;祈愿墙同款 twinkle)----
+  const [stars] = useState(() =>
+    isNight
+      ? Array.from({ length: 14 }, (_, i) => ({
+          id: i,
+          top: 4 + Math.random() * 42,
+          left: 4 + Math.random() * 92,
+          size: 8 + Math.random() * 7,
+          delay: Math.random() * 3,
+          dur: 2 + Math.random() * 3,
+        }))
+      : [],
+  );
+
+  // ---- 夜晚流星调度(每 8s tick 一次,概率命中才生成)----
+  const [meteors, setMeteors] = useState<Meteor[]>([]);
+  useEffect(() => {
+    if (!isNight || reducedMotion) return;
+    let alive = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const tick = () => {
+      if (!alive) return;
+      const hour = new Date().getHours();
+      if (shouldSpawnMeteor(hour, Math.random())) {
+        const meteor: Meteor = {
+          id: Date.now() + Math.random(),
+          left: 12 + Math.random() * 70,
+          top: 6 + Math.random() * 26,
+          delay: 0,
+          duration: 1.6 + Math.random() * 0.8,
+        };
+        setMeteors((prev) => [...prev.slice(-2), meteor]);
+        timers.push(setTimeout(() => {
+          if (alive) setMeteors((prev) => prev.filter((m) => m.id !== meteor.id));
+        }, (meteor.duration + 0.4) * 1000));
+      }
+    };
+    const first = setTimeout(tick, 2500);
+    const interval = setInterval(tick, 8000);
+    return () => {
+      alive = false;
+      clearTimeout(first);
+      clearInterval(interval);
+      timers.forEach(clearTimeout);
+    };
+  }, [isNight, reducedMotion]);
+
   // Sun layer needs per-mood dynamic position + radial gradient — kept as CSS var.
   const sunStyle: CSSProperties = {
     top: sun.top,
@@ -74,6 +147,12 @@ export function SkyScene({ mood, density, variant, reducedMotion: propReducedMot
     background: 'radial-gradient(ellipse 80% 30% at 50% 60%, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
   };
 
+  // 日夜染色层:从天空顶部往下轻叠,夜里把上部压成深蓝紫
+  const phaseTintStyle: CSSProperties = {
+    background: `linear-gradient(180deg, ${phaseTint.top} 0%, ${phaseTint.top} 40%, ${phaseTint.bottom} 75%, transparent 100%)`,
+    opacity: phaseTint.opacity,
+  };
+
   return (
     <div className={`clay-sky-scene sky-scene ${className ?? ''}`}>
       <div
@@ -89,6 +168,51 @@ export function SkyScene({ mood, density, variant, reducedMotion: propReducedMot
         className="sky-layer sky-layer--sun"
         style={sunStyle}
       />
+
+      {/* 日夜时段染色层(夜里变深蓝紫,白天轻叠天青) */}
+      <div
+        data-sky-layer="phase-tint"
+        aria-hidden="true"
+        className="sky-layer"
+        style={phaseTintStyle}
+      />
+
+      {/* 夜晚:星星(祈愿墙同款 twinkle) */}
+      {isNight && (
+        <div data-sky-layer="stars" aria-hidden="true" className="sky-layer">
+          {stars.map((s) => (
+            <span
+              key={s.id}
+              className="sky-star"
+              style={{
+                top: `${s.top}%`,
+                left: `${s.left}%`,
+                width: s.size,
+                height: s.size,
+                animationDelay: `${s.delay}s`,
+                animationDuration: `${s.dur}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 夜晚:偶发流星 */}
+      {isNight && !reducedMotion && (
+        <div data-sky-layer="meteors" aria-hidden="true" className="sky-layer">
+          {meteors.map((m) => (
+            <span
+              key={m.id}
+              className="sky-meteor"
+              style={{
+                left: `${m.left}%`,
+                top: `${m.top}%`,
+                animationDuration: `${m.duration}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {effectiveDensity !== 'minimal' && (
         <svg data-sky-layer="far-mountains" aria-hidden="true" viewBox="0 0 100 30" preserveAspectRatio="none"

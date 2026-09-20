@@ -30,6 +30,10 @@ const defaultState: AppState = {
   },
   // 天空宠物系统（cloud_cat MVP）
   pet: defaultPetState,
+  // v0.3 天空归属
+  skyName: '我的天空',
+  skyNamed: false,
+  atlas: {},
 };
 
 export function loadState(): AppState {

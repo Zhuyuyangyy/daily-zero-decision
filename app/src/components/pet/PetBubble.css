@@ -4,9 +4,11 @@
 
 .pet-bubble {
   position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
+  /* 挂在宠物按钮右侧、偏上展开:宠物固定在屏幕左下角,
+     顶部居中方案会让宽气泡左半溢出屏幕,右侧展开永不溢出 */
+  left: 100%;
+  bottom: 72%;
+  margin-left: 8px;
   background: #FFFAF1;
   color: var(--ink, #3A2E26);
   font-size: 12px;
@@ -14,7 +16,11 @@
   padding: 6px 10px;
   border-radius: 12px;
   white-space: nowrap;
-  max-width: 220px;
+  /* width:max-content 让 shrink-to-fit 按内容宽计算:
+     修复 inner span 的 white-space:normal 导致 absolute 定位下
+     气泡被压成 42px 宽的竖条文字(chromium shrink-to-fit 退化) */
+  width: max-content;
+  max-width: min(220px, calc(100vw - 100px));
   box-shadow: 0 4px 12px rgba(180, 130, 110, 0.15);
   z-index: 20;
   pointer-events: none;
@@ -23,16 +29,15 @@
 
 .pet-bubble__text {
   font-family: var(--font-body, system-ui);
-  display: inline-block;
+  display: inline;
   vertical-align: middle;
-  white-space: normal;
 }
 
 .pet-bubble__tail {
   position: absolute;
-  left: 50%;
-  bottom: -5px;
-  transform: translateX(-50%) rotate(45deg);
+  left: -4px;
+  bottom: 8px;
+  transform: rotate(45deg);
   width: 10px;
   height: 10px;
   background: #FFFAF1;
@@ -40,8 +45,8 @@
 }
 
 @keyframes pet-bubble-fade {
-  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -81,12 +81,12 @@ const MOOD_CONFIG: Record<SkyMood, {
   },
 };
 
-const MOOD_OPTIONS: { id: Mood; icon: string; label: string }[] = [
-  { id: 'down', icon: '☁️', label: '很丧' },
-  { id: 'low', icon: '🌧', label: '低落' },
-  { id: 'okay', icon: '🌤', label: '一般' },
-  { id: 'gloomy', icon: '⛈', label: '低落' },
-  { id: 'hopeful', icon: '🌈', label: '期待' },
+const MOOD_OPTIONS: { id: Mood; icon: string; label: string; macaron: { bg: string; ring: string } }[] = [
+  { id: 'down',    icon: '☁️', label: '很丧', macaron: { bg: '#EDF2FB', ring: '#B8D4F5' } },  // 云朵工厂雾蓝
+  { id: 'low',     icon: '🌧', label: '低落', macaron: { bg: '#F1F0FB', ring: '#D4C4F5' } },  // 云朵工厂香芋紫
+  { id: 'okay',    icon: '🌤', label: '一般', macaron: { bg: '#FFFBEA', ring: '#FFE28A' } },  // 云朵工厂奶黄
+  { id: 'gloomy',  icon: '⛈', label: '低落', macaron: { bg: '#EFFAF5', ring: '#A8E0C8' } },  // 云朵工厂薄荷
+  { id: 'hopeful', icon: '🌈', label: '期待', macaron: { bg: '#FFF0F5', ring: '#FFC2DC' } },  // 云朵工厂樱花粉
 ];
 
 function getGreeting(): string {
@@ -409,14 +409,16 @@ export default function SkyProgress({
                   height: 28,
                   border: 'none',
                   borderRadius: 999,
-                  background: isActive ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+                  background: isActive
+                    ? `radial-gradient(circle at 50% 40%, ${m.macaron.bg} 0%, ${m.macaron.ring}66 100%)`
+                    : 'transparent',
                   fontSize: 14,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all var(--dur-fast) var(--ease-out-quart)',
-                  boxShadow: isActive ? '0 2px 6px rgba(180, 100, 90, 0.15)' : 'none',
+                  boxShadow: isActive ? `0 2px 6px ${m.macaron.ring}59` : 'none',
                   transform: isActive ? 'scale(1.05)' : 'scale(1)',
                 }}
               >

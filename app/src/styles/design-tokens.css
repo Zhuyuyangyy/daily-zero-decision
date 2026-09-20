@@ -422,3 +422,41 @@
   pointer-events: none;
   z-index: var(--z-sky-mid);
 }
+
+/* ---- 夜晚:星星(融合自云朵祈愿墙的 twinkle) ---- */
+.sky-star {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8e0 0%, rgba(255, 240, 200, 0.85) 55%, transparent 75%);
+  animation: sky-star-twinkle ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sky-star-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50%      { opacity: 0.95; transform: scale(1.12); }
+}
+
+/* ---- 夜晚:偶发流星(从右上向左下划过,带渐隐尾迹) ---- */
+.sky-meteor {
+  position: absolute;
+  width: 90px;
+  height: 2px;
+  background: linear-gradient(270deg, rgba(255, 250, 230, 0.95) 0%, rgba(255, 240, 200, 0.45) 45%, transparent 100%);
+  border-radius: 2px;
+  transform: rotate(-32deg);
+  animation: sky-meteor-fly ease-out both;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px rgba(255, 244, 214, 0.7));
+}
+
+@keyframes sky-meteor-fly {
+  0%   { opacity: 0; transform: rotate(-32deg) translateX(0); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(-32deg) translateX(-260px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-star { animation: none; opacity: 0.55; }
+  .sky-meteor { display: none; }
+}

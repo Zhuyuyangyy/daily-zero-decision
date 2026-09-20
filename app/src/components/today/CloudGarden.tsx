@@ -33,6 +33,8 @@ export interface CloudGardenProps {
   onTodayComplete?: () => void;
   onOpenCloud?: (date: string) => void;
   mood: 'calm' | 'happy' | 'celebrate';
+  /** 用户摸了主云:用于让宠物气泡暂时让位(一个时刻一句话) */
+  onPokeCloud?: () => void;
 }
 
 function getCloudColor(type: Task['type']) {
@@ -52,6 +54,7 @@ export default function CloudGarden({
   onTodayComplete,
   onOpenCloud: _onOpenCloud,
   mood,
+  onPokeCloud,
 }: CloudGardenProps) {
   const config = CLOUD_GARDEN_CONFIG.today;
   const [sparkles, setSparkles] = useState(false);
@@ -121,6 +124,7 @@ export default function CloudGarden({
             color={today ? getCloudColor(today.type) : 'warm'}
             state={today?.completedAt ? 'completed' : 'default'}
             mood={mood}
+            onPoke={onPokeCloud}
           />
           <CloudSparkles active={sparkles} />
 

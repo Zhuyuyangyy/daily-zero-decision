@@ -20,6 +20,9 @@ const base = (over: Partial<AppState> = {}): AppState => ({
   skyNamed: false,
   atlas: {},
   companion: { ...defaultCompanionState },
+  projects: [],
+  actionReceipts: [],
+  resume: null,
   ...over,
 });
 

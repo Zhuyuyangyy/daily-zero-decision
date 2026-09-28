@@ -18,7 +18,8 @@
  * - Context Preserver     → 断点续接优先(resume:lastAction / nextHint)
  */
 
-export type DumpCategory = 'study' | 'project' | 'life' | 'body' | 'rest';
+import type { DumpCategory } from '../types';
+export type { DumpCategory };
 
 export interface DumpItem {
   id: string;

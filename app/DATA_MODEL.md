@@ -18,31 +18,39 @@
 ## 2. schemaVersion
 
 - 字段名：`schemaVersion`
-- 类型：`string`
-- 当前值：`"1.0.0"`
+- 类型：`number`（整数，`CURRENT_SCHEMA_VERSION`）
+- 当前值：`5`（v0.5 执行模型：projects + actionReceipts + resume）
 - 位置：根级
-- 升级规则：
-  - **追加字段**（向后兼容）：minor + 1（如 `1.0.0` → `1.1.0`）
-  - **删除 / 重命名字段**（不兼容）：major + 1（如 `1.0.0` → `2.0.0`）
-  - **不兼容升级**时，`loadState` 必须保留旧 JSON 解析路径，并写一份迁移记录到 `migrationLog`
+- 升级规则（实际实现，以 `app/src/utils/storage.ts` 为准）：
+  - **追加字段**（向后兼容）：整数 + 1；`loadState` / `importState` 用显式兜底补默认值，旧文件缺字段即空起步
+  - **重命名 / 删除**：在读取路径映射旧名，不静默丢数据
+  - 旧文件导入后 `schemaVersion` 保留原值（不强行升版），下次保存自然带上新字段
+- 历史：`1` 初版 → `2` peace/pet → `3` v0.3 天空命名 + 天象图鉴 → `4` v0.4 本命云 → `5` v0.5 执行模型（见 `docs/DECISIONS/0004-zero-decision-execution-model.md`）
+- 注：本文档早前版本描述的 `"1.0.0"` 字符串版本与 `LogEntry[]` 流水是 v0.1 设计稿，未落地的部分以本节与代码为准
 
 ## 3. 根级字段
 
 ```ts
 interface AppState {
-  schemaVersion: string;        // 当前 "1.0.0"
-  tasks: Task[];                // 用户主动创建的今日任务
-  log: LogEntry[];              // 完成任务的全量流水
-  streak: Streak;               // 连续天数
-  settings: Settings;           // 偏好设置
-  achievements: Achievement[];  // 解锁的成就
-  history: Record<string, Task[]>; // 按 ISO 日期归档当日任务快照
-  moods: Record<string, Mood>;  // 按 ISO 日期归档心情
-  pomodoroSessions: number;     // 累计番茄钟次数
-  onboarded: boolean;           // 是否完成过 Onboarding
-  peace: PeaceState;            // 安心卡
-  pet: PetState;                // 天空宠物（cloud_cat MVP）
-  migrationLog?: MigrationEntry[]; // 不兼容升级时记录
+  schemaVersion: number;         // 当前 5
+  tasks: Task[];                 // 今日任务（旧路径，v0.5 起首页主入口转为 projects）
+  log: string[];                 // 有过完成的日期 YYYY-MM-DD（非对象流水）
+  streak: StreakState;
+  settings: Settings;
+  achievements: string[];        // 已解锁成就 id
+  history: Record<string, Task[]>; // 按日期归档当日任务快照
+  moods: Record<string, Mood>;   // 按 ISO 日期归档心情
+  pomodoroSessions: number;
+  onboarded: boolean;
+  peace: PeaceState;             // 安心卡
+  pet: PetState;                 // 天空宠物（cloud_cat MVP）
+  skyName: string;               // v0.3 用户给天空起的名字
+  skyNamed: boolean;             // 是否已命名过
+  atlas: Record<string, string[]>; // v0.3 天象图鉴：date → 天象 id
+  companion: CompanionState;     // v0.4 本命云
+  projects: Project[];           // v0.5 项目池（见 4.x）
+  actionReceipts: ActionReceipt[]; // v0.5 行动回执（见 4.x）
+  resume: ResumeState | null;    // v0.5 断点（见 4.x）
 }
 ```
 
@@ -139,16 +147,57 @@ interface PetState {
 }
 ```
 
-### 4.9 `MigrationEntry`
+### 4.9 `Project`（v0.5）
 
 ```ts
-interface MigrationEntry {
-  fromVersion: string;
-  toVersion: string;
-  at: string;                   // ISO 8601 datetime
-  note: string;                 // 人类可读说明
+interface Project {
+  id: string;
+  title: string;                 // 展示名，通常是原文提炼（如「论文 Figure 3」）
+  sourceText: string;            // 用户 dump 原文
+  category: DumpCategory;        // 'study' | 'project' | 'life' | 'body' | 'rest'
+  status: 'active' | 'parked' | 'done';
+  createdAt: string;             // ISO 8601
+  lastTouchedAt: string;         // ISO 8601
+  cloudSeed: string;             // 项目云的视觉种子
 }
 ```
+
+不存 steps 列表——步骤由 `zeroDecisionEngine` 的意图阶梯现算，这是「不退化
+成 Todo App」的硬设计（ADR-0004）。
+
+### 4.10 `ActionReceipt`（v0.5）
+
+```ts
+interface ActionReceipt {
+  id: string;
+  projectId: string;             // 关联 Project.id
+  actionText: string;            // 实际做了什么（引擎给出的那个动作）
+  level: number;                 // 动作在阶梯的第几级
+  plannedMinutes: number;
+  createdAt: string;             // ISO 8601
+  completedAt: string;           // ISO 8601
+}
+```
+
+**不是待办步骤**，是「我真的完成过的小动作」。项目云的成长、月度总结的
+素材都从这里派生；只增不删（与「亲密度只增不减」同族的反 PUA 数据铁律）。
+
+### 4.11 `ResumeState`（v0.5）
+
+```ts
+interface ResumeState {
+  projectId: string;
+  lastAction?: string;           // 上次停在哪
+  nextHint?: string;             // 记下的下一步（有就直接用）
+  lastLevel?: number;            // 上次做到第几级
+  object?: string;               // 抽取出的对象（论文 / 高数作业…）
+  target?: string;               // 抽取出的部位（Figure 3 / 第一题…）
+  updatedAt: string;             // ISO 8601
+}
+```
+
+同时只存在一个断点（`resume: ResumeState | null`）——回来时「接着上次来」
+不需要选择。字段直接喂给 `zeroDecisionEngine` 的 `ResumePoint` 输入。
 
 ---
 
@@ -278,3 +327,4 @@ interface MigrationEntry {
 | 版本 | 日期 | 变更 |
 | --- | --- | --- |
 | 1.0.0 | 2026-06-23 | 初始定义，与应用 v0.1.0 对齐 |
+| 5 | 2026-09-28 | v0.5 执行模型（ADR-0004）：新增 `projects` / `actionReceipts` / `resume`，加法迁移旧字段零改动；同步修正 schemaVersion 实际为整数、log 实际为 string[] |

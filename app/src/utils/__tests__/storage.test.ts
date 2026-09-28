@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { parseTaskFromInput, importState, loadState, getToday, isYesterday, calculateStreak, generateId, getLastNDays, sanitizeVisibleText } from '../storage';
-import { CURRENT_SCHEMA_VERSION } from '../../types';
+import { CURRENT_SCHEMA_VERSION, defaultPetState, defaultCompanionState } from '../../types';
 
 const STORAGE_KEY = 'daily-zero-decision';
 
@@ -244,6 +244,135 @@ describe('getToday local timezone', () => {
     })();
     expect(today).toBe(expected);
     expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('schema v5 — projects / actionReceipts / resume (ADR-0004 加法迁移)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const v4State = {
+    schemaVersion: 4,
+    log: ['2026-09-20'],
+    streak: { current: 1, best: 3, lastCompletedDate: '2026-09-20' },
+    tasks: [],
+    settings: { defaultPagesPerSession: 10, lastPageRead: 0, lastBookName: '', customPresets: [] },
+    achievements: [],
+    history: {},
+    moods: {},
+    pomodoroSessions: 0,
+    onboarded: true,
+    peace: { cards: 2, protectedDates: [], lastRewardedDate: null },
+    pet: { ...defaultPetState },
+    skyName: '我的天空',
+    skyNamed: false,
+    atlas: { '2026-09-20': ['meteor'] },
+    companion: { ...defaultCompanionState },
+  };
+
+  it('CURRENT_SCHEMA_VERSION = 5', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(5);
+  });
+
+  it('空存储 loadState → v5 三字段空起步', () => {
+    const s = loadState();
+    expect(s.projects).toEqual([]);
+    expect(s.actionReceipts).toEqual([]);
+    expect(s.resume).toBeNull();
+  });
+
+  it('v4 状态 loadState → 三字段补默认,旧字段(log/atlas/companion/streak)原样保留', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(v4State));
+    const s = loadState();
+    expect(s.projects).toEqual([]);
+    expect(s.actionReceipts).toEqual([]);
+    expect(s.resume).toBeNull();
+    // 旧字段零改动
+    expect(s.log).toEqual(['2026-09-20']);
+    expect(s.streak.best).toBe(3);
+    expect(s.atlas).toEqual({ '2026-09-20': ['meteor'] });
+    expect(s.companion).toEqual(defaultCompanionState);
+  });
+
+  it('v4 JSON importState → 三字段补默认,不强行升版(schemaVersion 仍是 4)', () => {
+    const r = importState(JSON.stringify(v4State))!;
+    expect(r).not.toBeNull();
+    expect(r.projects).toEqual([]);
+    expect(r.actionReceipts).toEqual([]);
+    expect(r.resume).toBeNull();
+    expect(r.schemaVersion).toBe(4);
+  });
+
+  it('v5 完整状态 roundtrip:save → load → 深相等', () => {
+    const project = {
+      id: 'p1',
+      title: '论文 Figure 3',
+      sourceText: '论文 Figure 3 还没换',
+      category: 'project' as const,
+      status: 'active' as const,
+      createdAt: '2026-09-28T10:00:00+08:00',
+      lastTouchedAt: '2026-09-28T10:05:00+08:00',
+      cloudSeed: 'seed-p1',
+    };
+    const receipt = {
+      id: 'r1',
+      projectId: 'p1',
+      actionText: '打开论文,定位到 Figure 3',
+      level: 0,
+      plannedMinutes: 2,
+      createdAt: '2026-09-28T10:05:00+08:00',
+      completedAt: '2026-09-28T10:07:00+08:00',
+    };
+    const resume = {
+      projectId: 'p1',
+      lastAction: '打开论文,定位到 Figure 3',
+      nextHint: '把已经导出的 Figure 3 拖进正文',
+      lastLevel: 0,
+      object: '论文',
+      target: 'Figure 3',
+      updatedAt: '2026-09-28T10:07:00+08:00',
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...v4State, schemaVersion: 5, projects: [project], actionReceipts: [receipt], resume }));
+    const s = loadState();
+    expect(s.projects).toEqual([project]);
+    expect(s.actionReceipts).toEqual([receipt]);
+    expect(s.resume).toEqual(resume);
+  });
+
+  it('损坏形状兜底:projects 非数组 → [];resume 缺 projectId → null', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...v4State, projects: 'nope', resume: { foo: 1 } }));
+    const s = loadState();
+    expect(s.projects).toEqual([]);
+    expect(s.resume).toBeNull();
+    const r = importState(JSON.stringify({ ...v4State, projects: null, resume: 'bad' }))!;
+    expect(r.projects).toEqual([]);
+    expect(r.resume).toBeNull();
+  });
+
+  it('importState v5 完整文件:projects/receipts/resume 原样进', () => {
+    const json = JSON.stringify({
+      ...v4State,
+      schemaVersion: 5,
+      projects: [{ id: 'p2', title: '高数作业', sourceText: '今晚截止的高数作业', category: 'study', status: 'active', createdAt: '2026-09-28T09:00:00+08:00', lastTouchedAt: '2026-09-28T09:00:00+08:00', cloudSeed: 'seed-p2' }],
+      actionReceipts: [],
+      resume: null,
+    });
+    const r = importState(json)!;
+    expect(r.projects).toHaveLength(1);
+    expect(r.projects[0].title).toBe('高数作业');
+    expect(r.resume).toBeNull();
+  });
+
+  it('旧版 0.x 单 task 格式仍可导入(回归:v5 不破坏老迁移链)', () => {
+    const r = importState(JSON.stringify({
+      log: ['2026-06-10'],
+      streak: { current: 1, best: 1, lastCompletedDate: '2026-06-10' },
+      task: { id: 'old1', title: '读 2 页书', type: 'reading', createdAt: '2026-06-10' },
+    }))!;
+    expect(r.tasks).toHaveLength(1);
+    expect(r.projects).toEqual([]);
+    expect(r.resume).toBeNull();
   });
 });
 

@@ -1,6 +1,11 @@
-import { AppState, Task, defaultPetState, defaultCompanionState, CURRENT_SCHEMA_VERSION } from '../types';
+import { AppState, Task, defaultPetState, defaultCompanionState, CURRENT_SCHEMA_VERSION, ResumeState } from '../types';
 
 const STORAGE_KEY = 'daily-zero-decision';
+
+/** v0.5 断点的最小形状校验:损坏数据不进状态 */
+function isResumeState(v: unknown): v is ResumeState {
+  return !!v && typeof v === 'object' && typeof (v as ResumeState).projectId === 'string';
+}
 
 const defaultState: AppState = {
   schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -36,6 +41,10 @@ const defaultState: AppState = {
   atlas: {},
   // v0.4 本命云（默认未命名，用户命名后写入 name/metAt）
   companion: defaultCompanionState,
+  // v0.5 执行模型（ADR-0004）：加法迁移，空起步
+  projects: [],
+  actionReceipts: [],
+  resume: null,
 };
 
 export function loadState(): AppState {
@@ -90,6 +99,10 @@ export function loadState(): AppState {
       peace: parsed.peace || parsed.premium || defaultState.peace,
       pet: { ...defaultPetState, ...(parsed.pet || {}) },
       companion: { ...defaultCompanionState, ...(parsed.companion || {}) },
+      // v0.5 加法迁移:旧版缺这三个字段 → 空起步;类型不对也回退默认,不进状态
+      projects: Array.isArray(parsed.projects) ? parsed.projects : defaultState.projects,
+      actionReceipts: Array.isArray(parsed.actionReceipts) ? parsed.actionReceipts : defaultState.actionReceipts,
+      resume: isResumeState(parsed.resume) ? parsed.resume : null,
     };
   } catch {
     return defaultState;
@@ -209,6 +222,10 @@ export function importState(json: string): AppState | null {
       atlas: parsed.atlas && typeof parsed.atlas === 'object' ? parsed.atlas : {},
       // v0.4 本命云 backfill
       companion: { ...defaultCompanionState, ...(parsed.companion || {}) },
+      // v0.5 执行模型 backfill(显式字段拷贝,逐个补)
+      projects: Array.isArray(parsed.projects) ? parsed.projects : [],
+      actionReceipts: Array.isArray(parsed.actionReceipts) ? parsed.actionReceipts : [],
+      resume: isResumeState(parsed.resume) ? parsed.resume : null,
     };
   } catch {
     return null;

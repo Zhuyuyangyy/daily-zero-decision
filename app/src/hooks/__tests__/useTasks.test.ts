@@ -21,6 +21,9 @@ const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   skyNamed: false,
   atlas: {},
   companion: { ...defaultCompanionState },
+  projects: [],
+  actionReceipts: [],
+  resume: null,
   ...overrides,
 });
 

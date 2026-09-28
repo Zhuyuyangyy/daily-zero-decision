@@ -1,5 +1,8 @@
 export type TaskType = 'reading' | 'exercise' | 'coding' | 'other';
 
+/** v0.5 起与 zeroDecisionEngine 共用的倾倒分类(单一来源在此) */
+export type DumpCategory = 'study' | 'project' | 'life' | 'body' | 'rest';
+
 export interface Task {
   id: string;
   title: string;
@@ -68,9 +71,55 @@ export interface AppState {
   atlas: Record<string, string[]>;
   /** v0.4 本命云:天空里始终陪着用户的那朵云 */
   companion: CompanionState;
+  /** v0.5 项目池:从脑子里倒进来的事,active 的才在首页竞争"唯一动作" */
+  projects: Project[];
+  /** v0.5 行动回执:真正完成过的小动作(不是待办步骤),项目云成长的数据源 */
+  actionReceipts: ActionReceipt[];
+  /** v0.5 断点:null = 此刻没有半途之事;回来时"接着上次来"读它 */
+  resume: ResumeState | null;
 }
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
+
+/**
+ * v0.5 项目 — 长成云的最小单位。
+ * 不存 steps 列表:步骤由引擎的意图阶梯现算,避免退化成 Todo App。
+ */
+export interface Project {
+  id: string;
+  /** 展示名(通常是原文提炼,如「论文 Figure 3」) */
+  title: string;
+  /** 用户 dump 原文 */
+  sourceText: string;
+  category: DumpCategory;
+  status: 'active' | 'parked' | 'done';
+  createdAt: string;      // ISO 8601
+  lastTouchedAt: string;  // ISO 8601
+  /** 云朵种子:与 cloudSeed 同风格,决定这朵项目云长什么样 */
+  cloudSeed: string;
+}
+
+/** v0.5 行动回执 — 我真的完成过的小动作,永久沉淀(零删除) */
+export interface ActionReceipt {
+  id: string;
+  projectId: string;
+  actionText: string;
+  level: number;
+  plannedMinutes: number;
+  createdAt: string;     // ISO 8601
+  completedAt: string;   // ISO 8601
+}
+
+/** v0.5 断点 — 停下时存"做到哪、下一步是什么",回来直接续接 */
+export interface ResumeState {
+  projectId: string;
+  lastAction?: string;
+  nextHint?: string;
+  lastLevel?: number;
+  object?: string;
+  target?: string;
+  updatedAt: string;     // ISO 8601
+}
 
 /** v0.4 本命云 —— 不是宠物系统,是"自己长出来的云" */
 export interface CompanionState {

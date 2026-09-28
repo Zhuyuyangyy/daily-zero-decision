@@ -66,9 +66,21 @@ export interface AppState {
   skyNamed: boolean;
   /** v0.3 天象图鉴:date → 当日遇见的天象 id 列表 */
   atlas: Record<string, string[]>;
+  /** v0.4 本命云:天空里始终陪着用户的那朵云 */
+  companion: CompanionState;
 }
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
+
+/** v0.4 本命云 —— 不是宠物系统,是"自己长出来的云" */
+export interface CompanionState {
+  /** 云的名字;未命名为 null 时显示"未命名" */
+  name: string | null;
+  /** 第一次见面的日期(命名后才写入) */
+  metAt: string | null;
+  /** 累计陪伴天数(只用 log 长度派生,不单独存) */
+  nicknamed: boolean;
+}
 
 export interface PeaceState {
   cards: number;  // 安心卡数量，最多2张
@@ -120,6 +132,13 @@ export const defaultPetState: PetState = {
   lastRewardDate: null,
   mood: 'idle',
   renamed: false,
+};
+
+/** v0.4 本命云默认状态 */
+export const defaultCompanionState: CompanionState = {
+  name: null,
+  metAt: null,
+  nicknamed: false,
 };
 
 export function getPetStage(affection: number): 'new' | 'familiar' | 'trusted' {

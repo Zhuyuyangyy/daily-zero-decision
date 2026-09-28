@@ -15,6 +15,8 @@ interface SettingsPageProps {
   font: FontPref;
   onFontChange: (next: FontPref) => void;
   pet?: UsePetResult;
+  /** v0.3 重命名天空(由 App 透传 useTasks.handleSkyName) */
+  onRenameSky: (name: string) => void;
 }
 
 interface FontOption {
@@ -44,6 +46,7 @@ export default function SettingsPage({
   font,
   onFontChange,
   pet,
+  onRenameSky,
 }: SettingsPageProps) {
   void _presets; void _onUpdatePresets;
 
@@ -109,6 +112,34 @@ export default function SettingsPage({
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        {/* v0.3 我的天空 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">我的天空</h2>
+          <p className="clay-settings-section__desc">
+            这片天空的名字。它会出现在天空页、天空卡和图鉴上。
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              value={state.skyName}
+              maxLength={8}
+              onChange={(e) => onRenameSky(e.target.value.slice(0, 8))}
+              aria-label="天空的名字"
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                borderRadius: 14,
+                border: '1px solid var(--warm-border, var(--hairline-subtle))',
+                background: 'var(--surface-1, #FFF5EC)',
+                color: 'var(--ink)',
+                fontSize: 14,
+                fontFamily: 'var(--font-body)',
+                minHeight: 44,
+                outline: 'none',
+              }}
+            />
           </div>
         </section>
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTasks } from '../useTasks';
 import type { AppState } from '../../types';
-import { defaultPetState } from '../../types';
+import { defaultPetState, defaultCompanionState } from '../../types';
 
 const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   schemaVersion: 1,
@@ -17,6 +17,10 @@ const makeState = (overrides: Partial<AppState> = {}): AppState => ({
   onboarded: true,
   peace: { cards: 2, protectedDates: [], lastRewardedDate: null },
   pet: { ...defaultPetState },
+  skyName: '我的天空',
+  skyNamed: false,
+  atlas: {},
+  companion: { ...defaultCompanionState },
   ...overrides,
 });
 

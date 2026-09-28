@@ -7,6 +7,10 @@ import TabBar, { TabId } from './components/shared/TabBar';
 import CompletionNote from './components/shared/CompletionNote';
 import Onboarding from './components/shared/Onboarding';
 import ShareCard from './components/shared/ShareCard';
+import { SkyNameModal } from './components/shared/SkyNameModal';
+import { NewPhenomenonToast } from './components/sky/NewPhenomenonToast';
+import { SkyPosterCard } from './components/sky/SkyPosterCard';
+import { detectPhenomena } from './utils/atlas';
 import type { Task } from './types';
 
 // Hooks
@@ -34,6 +38,10 @@ export default function App() {
   const [showShareCard, setShowShareCard] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('today');
   const [showChangelogOverlay, setShowChangelogOverlay] = useState(false);
+  // v0.3 天空命名弹窗(宠物命名之后、如果还没命名过天空)
+  const [showSkyNameModal, setShowSkyNameModal] = useState(false);
+  // v0.3 今日天空卡海报
+  const [showPoster, setShowPoster] = useState(false);
   // 记录上一次的 log 长度:区分"页面加载时已有数据"与"本会话刚完成首卡"
   const prevLogLenRef = useRef<number | null>(null);
 
@@ -68,6 +76,9 @@ export default function App() {
     handleConfirmComplete,
     handleCancelComplete,
     handleMoodSelect,
+    handleSkyName,
+    handleCompanionName,
+    recordPhenomena,
     handleOnboardingFinish,
     handlePomodoroComplete,
     handleEasier,
@@ -81,6 +92,9 @@ export default function App() {
     todayLog,
     allHistoryTasks,
   } = useStreak(state, hasCompletedToday);
+
+  // streak 数值(天象判定用:提升出来避免 effect 依赖整个 state.streak 对象)
+  const streakValue = state.streak.current;
 
   // Search
   const { searchQuery, setSearchQuery, searchType, setSearchType } = useSearch();
@@ -103,6 +117,10 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.tasks.length]);
 
+  // v0.3 天象写入用 ref 跟随最新回调(避免闭包陷阱:effect 依赖变化时读到旧 recordPhenomena)
+  const recordPhenomenaRef = useRef(recordPhenomena);
+  useEffect(() => { recordPhenomenaRef.current = recordPhenomena; }, [recordPhenomena]);
+
   // Protected yesterday?
   const protectedYesterday = state.peace.protectedDates.includes(
     (() => {
@@ -111,6 +129,22 @@ export default function App() {
       return y.toISOString().split('T')[0];
     })()
   );
+
+  // v0.3 天象检测:挂载/进入当天后判定一次当天可能出现的天象并写入 atlas。
+  // 只写今天;同日已记录则不重复(recordPhenomena 内部去重)。
+  // 反 PUA:错过任一概率天象无任何惩罚文案。
+  useEffect(() => {
+    const ids = detectPhenomena({
+      hour: new Date().getHours(),
+      loggedToday: hasCompletedToday,
+      // 已提升为数值:exhaustive-deps 不会被 state.streak 对象引用误报
+      streak: streakValue,
+      roll: Math.random(),
+      roll2: Math.random(),
+    });
+    recordPhenomenaRef.current(ids);
+    // 依赖仅"是否已打卡"与 streak 数值:同一天只随状态迁移判定一次
+  }, [hasCompletedToday, streakValue]);
 
   return (
     <ErrorBoundary name="app-root">
@@ -261,6 +295,8 @@ export default function App() {
           pet={pet}
           reducedMotion={reducedMotion}
           protectedYesterday={protectedYesterday}
+          onRequestSkyName={() => setShowSkyNameModal(true)}
+          onRenameCompanion={(name) => handleCompanionName(name)}
         />
       )}
 
@@ -280,6 +316,8 @@ export default function App() {
           searchType={searchType}
           setSearchType={setSearchType}
           onNavigateToToday={() => setActiveTab('today')}
+          onOpenPoster={() => setShowPoster(true)}
+          onRenameCompanion={(name) => handleCompanionName(name)}
           pet={pet}
           reducedMotion={reducedMotion}
         />
@@ -313,6 +351,7 @@ export default function App() {
           font={font}
           onFontChange={setFont}
           pet={pet}
+          onRenameSky={(name) => handleSkyName(name)}
         />
       )}
 
@@ -328,6 +367,32 @@ export default function App() {
           }}
         />
       )}
+
+      {/* v0.3 天空命名:给天空一个名字,建立"它是我的"归属感 */}
+      {showSkyNameModal && (
+        <SkyNameModal
+          isOpen={showSkyNameModal}
+          currentName={state.skyName}
+          onConfirm={(name) => {
+            const ok = handleSkyName(name);
+            if (ok) setShowSkyNameModal(false);
+            return ok;
+          }}
+          onClose={() => setShowSkyNameModal(false)}
+        />
+      )}
+
+      {/* v0.3 今日天空卡海报 */}
+      {showPoster && (
+        <SkyPosterCard
+          state={state}
+          dayIndex={state.log.length}
+          onClose={() => setShowPoster(false)}
+        />
+      )}
+
+      {/* v0.3 新天象首次遇见提示 */}
+      <NewPhenomenonToast state={state} />
 
       {/* Bottom Tab Bar */}
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />

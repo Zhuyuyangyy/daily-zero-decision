@@ -1,4 +1,4 @@
-import { AppState, Task, defaultPetState, CURRENT_SCHEMA_VERSION } from '../types';
+import { AppState, Task, defaultPetState, defaultCompanionState, CURRENT_SCHEMA_VERSION } from '../types';
 
 const STORAGE_KEY = 'daily-zero-decision';
 
@@ -34,6 +34,8 @@ const defaultState: AppState = {
   skyName: '我的天空',
   skyNamed: false,
   atlas: {},
+  // v0.4 本命云（默认未命名，用户命名后写入 name/metAt）
+  companion: defaultCompanionState,
 };
 
 export function loadState(): AppState {
@@ -87,6 +89,7 @@ export function loadState(): AppState {
       schemaVersion: parsed.schemaVersion ?? CURRENT_SCHEMA_VERSION,
       peace: parsed.peace || parsed.premium || defaultState.peace,
       pet: { ...defaultPetState, ...(parsed.pet || {}) },
+      companion: { ...defaultCompanionState, ...(parsed.companion || {}) },
     };
   } catch {
     return defaultState;
@@ -200,6 +203,12 @@ export function importState(json: string): AppState | null {
       schemaVersion: parsed.schemaVersion ?? CURRENT_SCHEMA_VERSION,
       peace: parsed.peace || parsed.premium || defaultState.peace,
       pet: { ...defaultPetState, ...(parsed.pet || {}) },
+      // v0.3 天空归属 backfill(importState 是显式字段拷贝,需逐个补)
+      skyName: typeof parsed.skyName === 'string' ? parsed.skyName : defaultState.skyName,
+      skyNamed: parsed.skyNamed ?? false,
+      atlas: parsed.atlas && typeof parsed.atlas === 'object' ? parsed.atlas : {},
+      // v0.4 本命云 backfill
+      companion: { ...defaultCompanionState, ...(parsed.companion || {}) },
     };
   } catch {
     return null;

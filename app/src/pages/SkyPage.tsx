@@ -5,6 +5,9 @@ import { getToday } from '../utils/storage';
 import { copy } from '../utils/copy';
 import { CLOUD_TYPE_PRESET } from '../utils/cloudSeed';
 import Cloud from '../components/sky/Cloud';
+import { CompanionCard } from '../components/sky/CompanionCard';
+import { AtlasPanel } from '../components/sky/AtlasPanel';
+import { SkyArchive } from '../components/sky/SkyArchive';
 import { SoftButton } from '../components/ui';
 import { SkyPet } from '../components/pet/SkyPet';
 import type { UsePetResult } from '../hooks/usePet';
@@ -24,6 +27,10 @@ interface SkyPageProps {
   onNavigateToToday: () => void;
   pet?: UsePetResult;
   reducedMotion?: boolean;
+  /** v0.3:打开今日天空卡海报 */
+  onOpenPoster?: () => void;
+  /** v0.4:给本命云命名/改名 */
+  onRenameCompanion?: (name: string) => void;
 }
 
 // Cloud type → 心情表达（与 cloudSeed 视觉语言一致）
@@ -86,6 +93,8 @@ export default function SkyPage({
   onNavigateToToday: _onNavigateToToday,
   pet,
   reducedMotion,
+  onOpenPoster,
+  onRenameCompanion,
 }: SkyPageProps) {
   void _totalDays; void _searchQuery; void _setSearchQuery; void _searchType; void _setSearchType; void _onNavigateToToday;
   const [openedDate, setOpenedDate] = useState<string | null>(null);
@@ -144,7 +153,7 @@ export default function SkyPage({
                 textShadow: '0 2px 14px rgba(255, 240, 225, 0.65)',
               }}
             >
-              我的天空
+              {state.skyName || '我的天空'}
             </h1>
             <p
               style={{
@@ -158,6 +167,34 @@ export default function SkyPage({
             >
               {hasLog ? '每一朵，都是你完成过的一小步' : '天空还空着呢'}
             </p>
+
+            {/* v0.3 今日天空卡入口 */}
+            {hasLog && onOpenPoster && (
+              <button
+                type="button"
+                onClick={onOpenPoster}
+                className="animate-fade-up"
+                style={{
+                  marginTop: 10,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255, 255, 255, 0.6)',
+                  background: 'rgba(255, 255, 255, 0.55)',
+                  backdropFilter: 'blur(6px)',
+                  color: 'var(--ink)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-body)',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(160, 120, 100, 0.16)',
+                }}
+              >
+                <span aria-hidden>🖼️</span> 今日天空卡
+              </button>
+            )}
           </div>
 
           {hasLog && (
@@ -326,6 +363,19 @@ export default function SkyPage({
             </p>
           </div>
         )}
+
+        {/* v0.3 天象图鉴 */}
+        {/* v0.4 本命云 */}
+        <CompanionCard
+          state={state}
+          reducedMotion={reducedMotion}
+          onRename={(name) => onRenameCompanion?.(name) ?? false}
+        />
+
+        <AtlasPanel state={state} />
+
+        {/* v0.3 天空档案馆 */}
+        <SkyArchive state={state} />
 
         {/* 最近长出的云（叙事列表） */}
         {hasLog && (

@@ -7,6 +7,7 @@ import {
   generateId,
 } from '../utils/storage';
 import { checkAchievements } from '../utils/achievements';
+import type { PhenomenonId } from '../utils/atlas';
 import type { Mood } from '../components/shared/MoodWidget';
 
 function localDateString(d: Date): string {
@@ -310,6 +311,36 @@ export function useTasks(
     }));
   }, [today, setState]);
 
+  /** v0.3 给天空命名:最多 8 字;空名不保存(返回 false 让弹窗保持打开) */
+  const handleSkyName = useCallback((name: string): boolean => {
+    const safe = name.trim().slice(0, 8);
+    if (!safe) return false;
+    setState((prev) => ({ ...prev, skyName: safe, skyNamed: true }));
+    return true;
+  }, [setState]);
+
+  /** v0.4 给本命云命名:最多 6 字;空名不保存 */
+  const handleCompanionName = useCallback((name: string): boolean => {
+    const safe = name.trim().slice(0, 6);
+    if (!safe) return false;
+    setState((prev) => ({
+      ...prev,
+      companion: { ...prev.companion, name: safe, metAt: prev.companion.metAt ?? getToday(), nicknamed: true },
+    }));
+    return true;
+  }, [setState]);
+
+  /** v0.3 天象图鉴:把当日撞见的天象写入 atlas(去重保序) */
+  const recordPhenomena = useCallback((ids: PhenomenonId[]) => {
+    if (ids.length === 0) return;
+    setState((prev) => {
+      const existing = prev.atlas[today] ?? [];
+      const merged = [...new Set([...existing, ...ids])];
+      if (merged.length === existing.length) return prev;
+      return { ...prev, atlas: { ...prev.atlas, [today]: merged } };
+    });
+  }, [today, setState]);
+
   const handleOnboardingFinish = useCallback(() => {
     // 只翻转 React 状态。useAppState 的 useEffect 会负责持久化——
     // 避免与 useAppState 的 saveState 形成双写竞态（前者写"刚加载的快照"会覆盖后者的最新值）。
@@ -345,6 +376,9 @@ export function useTasks(
     handleDeleteTask,
     handleReset,
     handleMoodSelect,
+    handleSkyName,
+    handleCompanionName,
+    recordPhenomena,
     handleOnboardingFinish,
     handlePomodoroComplete,
     handleEasier,

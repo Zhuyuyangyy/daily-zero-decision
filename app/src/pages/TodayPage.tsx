@@ -9,6 +9,7 @@ import TodayFeedbackStrip from '../components/today/TodayFeedbackStrip';
 import { SoftButton } from '../components/ui';
 import { type Dispatch, type SetStateAction } from 'react';
 import CloudGarden from '../components/today/CloudGarden';
+import { CompanionCard } from '../components/sky/CompanionCard';
 import { SkyScene } from '../components/sky/SkyScene';
 import { SkyHeaderContent } from '../components/sky/SkyHeaderContent';
 import { SkyProgressMini } from '../components/sky/SkyProgressMini';
@@ -37,6 +38,10 @@ interface TodayPageProps {
   pet: UsePetResult;
   reducedMotion?: boolean;
   protectedYesterday?: boolean;
+  /** v0.3:命名宠物后顺势请求给天空命名(App 层弹 SkyNameModal) */
+  onRequestSkyName?: () => void;
+  /** v0.4:给本命云命名(改名);返回 false 表示空名未保存 */
+  onRenameCompanion?: (name: string) => boolean;
 }
 
 export default function TodayPage({
@@ -56,6 +61,8 @@ export default function TodayPage({
   pet,
   reducedMotion,
   protectedYesterday,
+  onRequestSkyName,
+  onRenameCompanion,
 }: TodayPageProps) {
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
 
@@ -83,6 +90,17 @@ export default function TodayPage({
     if (petSilenceTimer.current) clearTimeout(petSilenceTimer.current);
   }, []);
 
+  // v0.3 天空命名:首卡完成后的命名链(宠物名 → 天空名)已在 App.tsx 统筹,
+  // 这里处理"老用户从未命名过"的兜底:进入今日页 2.6s 后给一次轻引导
+  const skyPromptShownRef = useRef(false);
+  useEffect(() => {
+    if (state.onboarded && !state.skyNamed && !skyPromptShownRef.current) {
+      skyPromptShownRef.current = true;
+      const t = window.setTimeout(() => onRequestSkyName?.(), 2600);
+      return () => window.clearTimeout(t);
+    }
+  }, [state.onboarded, state.skyNamed, onRequestSkyName]);
+
   // 推导 mood（不写回 state，避免在 render 中 setState）
   const derivedMood = derivePetMood({
     hasCurrentTask: !!currentTask,
@@ -108,7 +126,10 @@ export default function TodayPage({
   }, [allTodaysTasksDone, hasShownNamePrompt, state.pet.renamed]);
 
   const handlePetNameConfirm = (name: string): boolean => {
-    return pet.renamePet(name);
+    const ok = pet.renamePet(name);
+    // 命名宠物成功后,如果天空还没名字 → 顺势请用户给天空也起一个
+    if (ok && !state.skyNamed) onRequestSkyName?.();
+    return ok;
   };
 
   return (
@@ -231,6 +252,13 @@ export default function TodayPage({
 
       <div className="clay-scroll-area" style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}>
         <div className="w-full max-w-md mx-auto" style={{ padding: '8px 16px' }}>
+          {/* v0.4 本命云 */}
+          <CompanionCard
+            state={state}
+            reducedMotion={reducedMotion}
+            onRename={(name) => onRenameCompanion?.(name) ?? false}
+          />
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
             {[
               { label: '读一点', hint: '读 2 页书', emoji: '📖' },

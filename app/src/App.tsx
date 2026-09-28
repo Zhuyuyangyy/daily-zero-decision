@@ -22,6 +22,7 @@ import { usePomodoro } from './hooks/usePomodoro';
 import { useFont } from './hooks/useFont';
 import { usePet } from './hooks/usePet';
 import { useReducedMotion } from './hooks/useReducedMotion';
+import { useZeroDecision } from './hooks/useZeroDecision';
 
 // Extracted pages
 import TodayPage from './pages/TodayPage';
@@ -109,13 +110,16 @@ export default function App() {
   const pet = usePet(state, setState);
   const reducedMotion = useReducedMotion();
 
-  // Mark pet met on first task creation
+  // v0.5 零决策执行流(ADR-0004):倾倒 → 唯一动作 → 留痕 → 断点续接
+  const zero = useZeroDecision(state, setState);
+
+  // Mark pet met on first task creation（v0.5 起:建项目也算初见）
   useEffect(() => {
-    if (state.tasks.length > 0 && !state.pet.firstMetAt) {
+    if ((state.tasks.length > 0 || state.projects.length > 0) && !state.pet.firstMetAt) {
       pet.markPetMet();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tasks.length]);
+  }, [state.tasks.length, state.projects.length]);
 
   // v0.3 天象写入用 ref 跟随最新回调(避免闭包陷阱:effect 依赖变化时读到旧 recordPhenomena)
   const recordPhenomenaRef = useRef(recordPhenomena);
@@ -297,6 +301,7 @@ export default function App() {
           protectedYesterday={protectedYesterday}
           onRequestSkyName={() => setShowSkyNameModal(true)}
           onRenameCompanion={(name) => handleCompanionName(name)}
+          zero={zero}
         />
       )}
 

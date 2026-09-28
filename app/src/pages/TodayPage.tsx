@@ -20,6 +20,10 @@ import { PeaceCardInfoModal } from '../components/premium/PeaceCardInfoModal';
 import { SkyPet } from '../components/pet/SkyPet';
 import { PetNameModal } from '../components/pet/PetNameModal';
 import { derivePetMood, type UsePetResult } from '../hooks/usePet';
+import type { UseZeroDecisionResult } from '../hooks/useZeroDecision';
+import BrainDumpCard from '../components/zero/BrainDumpCard';
+import OneActionCard from '../components/zero/OneActionCard';
+import ActionDoneCard from '../components/zero/ActionDoneCard';
 
 interface TodayPageProps {
   state: AppState;
@@ -42,6 +46,8 @@ interface TodayPageProps {
   onRequestSkyName?: () => void;
   /** v0.4:给本命云命名(改名);返回 false 表示空名未保存 */
   onRenameCompanion?: (name: string) => boolean;
+  /** v0.5 零决策执行流(ADR-0004):三态主角的数据源 */
+  zero: UseZeroDecisionResult;
 }
 
 export default function TodayPage({
@@ -63,8 +69,12 @@ export default function TodayPage({
   protectedYesterday,
   onRequestSkyName,
   onRenameCompanion,
+  zero,
 }: TodayPageProps) {
   const currentTask = incompleteTasks[0] ?? completedTasks[0] ?? null;
+
+  // v0.5 脑内卸载输入(本地 UI 状态,提交后清空)
+  const [dumpText, setDumpText] = useState('');
 
   const last7 = getLastNDays(state.history, 7);
 
@@ -140,11 +150,19 @@ export default function TodayPage({
       <div className="w-full max-w-md mx-auto" style={{ flexShrink: 0, position: 'relative' }}>
         <SkyScene mood={skyMood} density="comfortable" variant="today">
           <SkyHeaderContent
-            title={currentTask ? '今天只做这一小步' : '每天不知道从哪开始？'}
+            title={
+              zero.action || zero.lastReceipt
+                ? '现在只做这一个'
+                : currentTask
+                ? '今天只做这一小步'
+                : '脑子里现在都有什么?'
+            }
             subtitle={
-              currentTask
+              zero.action || zero.lastReceipt
+                ? '做完这一步,就停也行。'
+                : currentTask
                 ? '完成后，天空会多一朵云'
-                : '我帮你把想坚持的事，变成今天能完成的一小步。'
+                : '全倒给我,我帮你挑下一件。'
             }
           >
             <SkyProgressMini
@@ -188,7 +206,36 @@ export default function TodayPage({
         </SkyScene>
       </div>
 
-      {currentTask ? (
+      {/* v0.5 零决策三态主角:完成反馈 > 唯一动作卡 > 脑内卸载 */}
+      {zero.lastReceipt ? (
+        <ActionDoneCard
+          receipt={zero.lastReceipt}
+          project={state.projects.find((p) => p.id === zero.lastReceipt!.projectId)}
+          onContinue={zero.clearLastReceipt}
+          onRest={onNavigateToSky}
+        />
+      ) : zero.action ? (
+        <OneActionCard
+          action={zero.action}
+          projectTitle={state.projects.find((p) => p.id === zero.action!.itemId)?.title ?? '这件事'}
+          onComplete={zero.complete}
+          onShrink={zero.shrink}
+          onAlternative={zero.alternative}
+          canAlternative={state.projects.filter((p) => p.status === 'active').length > 1}
+        />
+      ) : !currentTask ? (
+        <BrainDumpCard
+          value={dumpText}
+          onChange={setDumpText}
+          onSubmit={() => {
+            zero.submitDump(dumpText);
+            setDumpText('');
+          }}
+        />
+      ) : null}
+
+      {/* 旧"每日一卡"流:零决策流空场时才出现(兼容老数据,功能不回退) */}
+      {!zero.action && !zero.lastReceipt && currentTask ? (
         allTodaysTasksDone ? (
           <div className="animate-fade-up" style={{ margin: '16px', textAlign: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>
@@ -213,36 +260,7 @@ export default function TodayPage({
         )
       ) : null}
 
-      <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {([
-          { label: '平静', mood: 'calm', emoji: '☁️', macaron: '#EDF2FB' },
-          { label: '低落', mood: 'low', emoji: '🌧', macaron: '#F1F0FB' },
-          { label: '一般', mood: 'okay', emoji: '🌤', macaron: '#FFFBEA' },
-          { label: '期待', mood: 'hopeful', emoji: '🌈', macaron: '#FFF0F5' },
-          { label: '高兴', mood: 'happy', emoji: '☀️', macaron: '#FFF4D4' },
-        ] as const).map(({ label, mood, emoji, macaron }) => {
-          const isActive = state.moods?.[getToday()] === mood;
-          return (
-            <button
-              key={label}
-              className="clay-chip"
-              aria-pressed={isActive}
-              onClick={() => handleMoodSelect(mood as Mood)}
-              style={{
-                fontSize: 12,
-                background: isActive ? macaron : undefined,
-                boxShadow: isActive ? `0 2px 8px ${macaron}, inset 0 1px 2px rgba(255,255,255,0.8)` : undefined,
-                transform: isActive ? 'scale(1.06)' : undefined,
-                transition: 'all var(--dur-fast) var(--ease-out-quart)',
-              }}
-            >
-              {emoji} {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {allTodaysTasksDone && (
+      {allTodaysTasksDone && !zero.action && !zero.lastReceipt && (
         <TodayFeedbackStrip completed streak={state.streak.current} total={state.log.length} />
       )}
 
@@ -281,6 +299,42 @@ export default function TodayPage({
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{s.label}</span>
               </button>
             ))}
+          </div>
+
+          {/* v0.5 心情从首屏撤下:选过了引擎拿来调电量,没选过默认中等。
+              这是"可选优化",不是必答题——零决策产品不追问。 */}
+          <div style={{ marginBottom: 20 }}>
+            <p style={{ fontSize: 12, color: 'var(--ink-faint)', margin: '0 4px 8px' }}>
+              现在感觉怎么样?选过了,下一步会更合身。(可不选)
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {([
+                { label: '平静', mood: 'calm', emoji: '☁️', macaron: '#EDF2FB' },
+                { label: '低落', mood: 'low', emoji: '🌧', macaron: '#F1F0FB' },
+                { label: '一般', mood: 'okay', emoji: '🌤', macaron: '#FFFBEA' },
+                { label: '期待', mood: 'hopeful', emoji: '🌈', macaron: '#FFF0F5' },
+                { label: '高兴', mood: 'happy', emoji: '☀️', macaron: '#FFF4D4' },
+              ] as const).map(({ label, mood, emoji, macaron }) => {
+                const isActive = state.moods?.[getToday()] === mood;
+                return (
+                  <button
+                    key={label}
+                    className="clay-chip"
+                    aria-pressed={isActive}
+                    onClick={() => handleMoodSelect(mood as Mood)}
+                    style={{
+                      fontSize: 12,
+                      background: isActive ? macaron : undefined,
+                      boxShadow: isActive ? `0 2px 8px ${macaron}, inset 0 1px 2px rgba(255,255,255,0.8)` : undefined,
+                      transform: isActive ? 'scale(1.06)' : undefined,
+                      transition: 'all var(--dur-fast) var(--ease-out-quart)',
+                    }}
+                  >
+                    {emoji} {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <button onClick={() => setPomodoroExpanded((p) => !p)} className="clay-collapse">

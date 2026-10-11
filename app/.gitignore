@@ -1,0 +1,46 @@
+# GovShield orchestration - ignore all sub-project directories
+# (each sub-project has its own git repository)
+
+tender-compliance/
+public-data-compliance/
+ai-audit-platform/
+admin-law-review/
+soe-investment-compliance/
+gov-doc-compliance/
+embodied-robot-brain/
+green-computing/
+smart-research-agent/
+store-boost-ai/
+
+# Node modules & build outputs
+node_modules/
+dist/
+build/
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+*.jar
+*.class
+*.tar.gz
+
+# OpenClaw
+.openclaw/
+
+# Temp docs
+check_*.py
+find_*.py
+health_check_*.py
+generate_*.py
+pd_report.py
+sql_report.py
+read_doc.py

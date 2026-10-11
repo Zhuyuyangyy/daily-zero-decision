@@ -1,0 +1,685 @@
+/* ============================================================
+   每日零决策卡 —— 共享设计令牌 (T1)
+   主题：晨昏天空 (Dawn/Dusk Sky)
+   5-3-2 配色：60% 暖粉橙大渐变 + 30% 暖米表面 + 10% 薄荷绿点缀
+   主角永远是云朵，不是豆芽/苗苗。
+
+   设计参考 (本机 D:\GITHUB)：
+   - open-design-main/design-systems/claymorphism
+       → 软圆 3D、inset highlight + 偏移阴影、150-250ms 缓动
+   - open-design-main/design-systems/clay
+       → 暖奶油画布 + 命名 swatch（Matcha / Lemon / Pomegranate）、
+          双重 inset+偏移阴影
+   - impeccable-main  (typography/motion/spatial/ux-writing references)
+   - taste-skill-main  (双边框/Bento/双重阴影)
+   - ui-ux-pro-max-skill-main  (3 层 token 体系 / 4-8pt 间距 / 44px 触点)
+
+   我们取了 clay 名字（凝土）+ claymorphism 的硬偏移阴影，
+   配色上保留 5-3-2：sky-dawn-* 暖粉橙是主调，mint-cloud-* 是 10% 点缀。
+   ============================================================ */
+
+:root {
+  /* ------------------------------------------------------------
+     暖粉橙主色（晨昏天空调色板，5-3-2 里的 5）
+     不用纯橙/纯粉——朝偏暖、低饱和、可被白云衬起来
+     ------------------------------------------------------------ */
+  --sky-dawn-1: #FFD7C4;   /* 顶部：高光蜜桃 */
+  --sky-dawn-2: #FFB89A;   /* 中部：暖蜜桃 */
+  --sky-dawn-3: #FFA38A;   /* 腰部：粉橙 */
+  --sky-dawn-4: #F88C82;   /* 底部：夕霞 */
+
+  --warm-coral: #FF9B85;    /* 强调色 1：粉珊瑚 */
+  --warm-amber: #FFC288;    /* 强调色 2：暖琥珀 */
+
+  /* ------------------------------------------------------------
+     暖米中性表面（3）——卡片、按钮、输入框
+     不用纯白，必染色朝暖
+     ------------------------------------------------------------ */
+  --warm-canvas:    #FFF5EC;  /* 主画布：暖奶米 */
+  --warm-card:      #FFFAF3;  /* 卡片：比画布更亮 */
+  --warm-card-deep: #FFE9D6;  /* 卡片深色（次级卡） */
+  --warm-border:    #F5DCC8;  /* 描边：暖米 */
+
+  /* ------------------------------------------------------------
+     薄荷绿点缀（2）——云朵、CTA、强调
+     用作点缀，不超过 10% 表面
+     ------------------------------------------------------------ */
+  --mint-cloud-light: #C9F0D5; /* 云朵亮部 */
+  --mint-cloud:       #8ADBA8; /* 云朵主色 */
+  --mint-cloud-deep:  #5FCB86; /* 云朵阴面/CTA */
+  --mint-cloud-cta:   #4AB574; /* CTA 主色（深一档才看得清字） */
+  --mint-cloud-text:  #2F8B57; /* 云朵上深色文字（用于 cta 文字） */
+
+  /* ------------------------------------------------------------
+     文字（绝不纯黑/纯灰，必染色朝暖）
+     ------------------------------------------------------------ */
+  --ink:        #4A3A33;
+  --ink-light:  #8B7A70;
+  --ink-faint:  #C2B5AB;
+  --ink-soft:   #E5D9CF;
+
+  /* ------------------------------------------------------------
+     双阴影系统（黏土感的核心：左上内亮 + 右下内暗 + 外阴影）
+     ------------------------------------------------------------ */
+  --shadow-clay-soft:
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    0 1px 3px rgba(248, 140, 130, 0.08),
+    inset 0 2px 2px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 3px rgba(248, 140, 130, 0.10);
+
+  --shadow-clay:
+    0 8px 24px rgba(248, 140, 130, 0.18),
+    0 3px 8px rgba(248, 140, 130, 0.10),
+    inset 0 3px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 5px rgba(248, 140, 130, 0.15);
+
+  --shadow-clay-deep:
+    0 14px 36px rgba(248, 140, 130, 0.22),
+    0 4px 12px rgba(248, 140, 130, 0.12),
+    inset 0 2px 3px rgba(255, 255, 255, 1),
+    inset 0 -4px 8px rgba(248, 140, 130, 0.15);
+
+  --shadow-clay-pressed:
+    inset 0 3px 5px rgba(248, 140, 130, 0.25),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.5);
+
+  --shadow-clay-cta:
+    0 4px 0 #3A9A60,
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+
+  --shadow-clay-cta-pressed:
+    inset 0 4px 6px rgba(58, 154, 96, 0.4),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.4);
+
+  /* ------------------------------------------------------------
+     第三方 swatch 别名 (open-design-main clay) — 仅作语义映射，
+     不会改我们自己的 5-3-2 配色，方便设计稿联动
+     ------------------------------------------------------------ */
+  --swatch-matcha:    var(--mint-cloud);            /* 抹茶 */
+  --swatch-matcha-300: var(--mint-cloud-light);
+  --swatch-lemon:      var(--warm-amber);            /* 暖柠 */
+  --swatch-pomegranate: var(--warm-coral);            /* 石榴粉 */
+  --swatch-oat:        var(--warm-border);            /* 燕麦描边 */
+  --swatch-cream:      var(--warm-canvas);            /* 暖奶油画布 */
+
+  /* ------------------------------------------------------------
+     圆角阶 (大圆角 20-28px，参考图统一调性)
+     ------------------------------------------------------------ */
+  --radius-btn:    20px;
+  --radius-card:   24px;
+  --radius-chunk:  28px;
+  --radius-hero:   36px;
+  --radius-blob:   48px;
+
+  /* ------------------------------------------------------------
+     缓动曲线（治愈系禁用 linear / ease-in-out）
+     ------------------------------------------------------------ */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back:      cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-quart:  cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* ------------------------------------------------------------
+     时长阶
+     ------------------------------------------------------------ */
+  --dur-instant: 80ms;
+  --dur-fast:    150ms;
+  --dur-base:    250ms;
+  --dur-medium:  400ms;
+  --dur-slow:    600ms;
+  --dur-delight: 800ms;
+
+  /* ------------------------------------------------------------
+     行高（治愈系/笔记风 1.7-1.8）
+     ------------------------------------------------------------ */
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;  /* 正文默认 */
+  --leading-loose:  1.85;  /* 大段叙事 */
+
+  /* ------------------------------------------------------------
+     噪点纹理（inline SVG fractalNoise，可直接用作 background）
+     ------------------------------------------------------------ */
+  --noise-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0 0.55  0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  /* ------------------------------------------------------------
+     字体栈：H1 用圆润 CJK（站酷快乐体免费，但保持可选降级）
+     正文用清晰无衬线
+     ------------------------------------------------------------ */
+  --font-display: 'ZCOOL KuaiLe', 'Comic Sans MS', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+
+  /* ============================================================
+     Font family presets (L2: system fonts only, no CDN)
+     由根元素的 [data-font] 切换
+     ============================================================ */
+  --stack-rounded: 'ZCOOL KuaiLe', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+  --stack-serif: 'Songti SC', 'Noto Serif SC', 'Times New Roman', Georgia, serif;
+  --stack-sans: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --stack-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+}
+
+[data-font='rounded'] {
+  --font-display: var(--stack-rounded);
+  --font-body: var(--stack-rounded);
+}
+
+[data-font='serif'] {
+  --font-display: var(--stack-serif);
+  --font-body: var(--stack-serif);
+}
+
+[data-font='sans'] {
+  --font-display: var(--stack-sans);
+  --font-body: var(--stack-sans);
+}
+
+[data-font='mono'] {
+  --font-display: var(--stack-mono);
+  --font-body: var(--stack-mono);
+}
+
+/* ------------------------------------------------------------
+   通用工具类
+   ------------------------------------------------------------ */
+
+/* 噪点层 */
+.clay-noise {
+  position: relative;
+  isolation: isolate;
+}
+.clay-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--noise-svg);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+}
+.clay-noise > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* 焦点环统一 */
+.clay-focusable:focus-visible {
+  outline: 2px solid var(--mint-cloud-deep);
+  outline-offset: 3px;
+  border-radius: var(--radius-btn);
+  transition: outline-offset 120ms var(--ease-out-quart);
+}
+
+/* 触点最小 44×44 */
+.clay-tap {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* 文字平衡 */
+.clay-balance { text-wrap: balance; }
+.clay-pretty  { text-wrap: pretty; }
+
+/* 数字等宽 */
+.clay-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   T11 — 基础组件 class（Round 2：把 inline style 收回样式表）
+   设计规则：
+   - 所有按钮/胶囊用 var(--radius-btn) / 999px 一致弧度
+   - 阴影语言只引 3 套：clay-soft / clay / clay-deep
+   - 颜色全部走 token，不允许 inline 写 #xxx
+   ============================================================ */
+
+/* ---- 按钮 ---- */
+.clay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--radius-btn, 20px);
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out-quart),
+              box-shadow var(--dur-fast) var(--ease-out-quart),
+              background var(--dur-fast) var(--ease-out-quart);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.clay-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.clay-btn:active:not(:disabled) { transform: translateY(1px); }
+
+.clay-btn--mint {
+  background: linear-gradient(180deg, var(--mint-cloud) 0%, var(--mint-cloud-cta) 100%);
+  color: white;
+  box-shadow: var(--shadow-clay-cta);
+}
+.clay-btn--mint:not(:disabled):active { box-shadow: var(--shadow-clay-cta-pressed); }
+
+.clay-btn--ghost {
+  background: var(--warm-card);
+  color: var(--ink);
+  box-shadow: var(--shadow-clay-soft);
+  border: 1px solid var(--warm-border);
+}
+
+.clay-btn--text {
+  background: transparent;
+  color: var(--ink-light);
+  font-weight: 500;
+  border-radius: 12px;
+}
+.clay-btn--text:hover { color: var(--ink); background: rgba(255,255,255,0.4); }
+
+/* 尺寸 */
+.clay-btn--sm { padding: 6px 12px; font-size: 12px; }
+.clay-btn--md { padding: 12px 18px; font-size: 14px; }
+.clay-btn--lg { padding: 14px 20px; font-size: 16px; }
+
+/* 宽度变体 */
+.clay-btn--block { width: 100%; }
+
+/* ---- 胶囊 chip ---- */
+.clay-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--warm-border);
+  background: var(--warm-card);
+  color: var(--ink-light);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+  -webkit-tap-highlight-color: transparent;
+}
+.clay-chip:hover { background: var(--warm-card-deep); }
+.clay-chip[data-active='true'] {
+  background: var(--mint-cloud-light);
+  border-color: var(--mint-cloud-deep);
+  color: var(--mint-cloud-text);
+  font-weight: 700;
+}
+.clay-chip--bare {
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+}
+
+/* ---- 卡片（云朵承载主体） ---- */
+.clay-card {
+  border-radius: var(--radius-chunk, 28px);
+  padding: 28px 24px;
+  background: linear-gradient(180deg, var(--warm-card) 0%, var(--warm-card-deep) 100%);
+  border: 1px solid var(--hairline-subtle, transparent);
+  box-shadow:
+    0 12px 32px rgba(180, 100, 80, 0.10),
+    0 2px 6px rgba(180, 100, 80, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.clay-card--dashed {
+  background: linear-gradient(180deg, var(--warm-card) 0%, var(--warm-card-deep) 100%);
+  border: 1px dashed rgba(180, 165, 152, 0.45);
+  box-shadow: 0 6px 20px rgba(180, 100, 80, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.clay-card--celebrate {
+  background: linear-gradient(180deg, #F5FFF7 0%, #EDFAF0 100%);
+  border: 1px solid var(--mint-cloud-light);
+}
+.clay-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 11px;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+}
+.clay-card__title {
+  margin: 14px 0 10px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-display);
+  line-height: 1.25;
+  letter-spacing: var(--tracking-heading);
+}
+.clay-card__sub {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  max-width: 32ch;
+}
+.clay-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+  margin-bottom: 22px;
+}
+.clay-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.clay-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.clay-card__cloud {
+  font-size: 56px;
+  opacity: 0.85;
+  filter: drop-shadow(0 4px 12px rgba(180, 100, 80, 0.15));
+}
+
+/* ---- 浮动输入条 ---- */
+.clay-floating-input {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: 88px;
+  z-index: 95;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.clay-floating-input__field {
+  flex: 1;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
+  border: 1px solid var(--mint-cloud);
+  background: var(--surface-0);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  box-shadow: 0 4px 16px rgba(74, 181, 116, 0.25);
+}
+.clay-floating-input__send {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--mint-cloud-cta);
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(111, 207, 138, 0.4);
+  flex-shrink: 0;
+}
+.clay-floating-input__cancel {
+  width: 40px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-light);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ---- FAB 备用（被主卡取代，可保留） ---- */
+.clay-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(180deg, var(--warm-amber) 0%, var(--warm-coral) 100%);
+  color: white;
+  font-size: 30px;
+  font-weight: 300;
+  cursor: pointer;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(255, 155, 133, 0.45),
+              inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -2px 4px rgba(200, 100, 80, 0.15);
+  transition: all var(--dur-fast) var(--ease-out-expo);
+}
+.clay-fab:active { transform: translateY(2px) scale(0.96); }
+
+/* ---- 折叠入口 ---- */
+.clay-collapse {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline-subtle, transparent);
+  background: var(--surface-1);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-light);
+  cursor: pointer;
+}
+
+/* ---- 天空画布（Round 3 + Round 12 早晨感） ---- */
+.clay-sky-canvas {
+  position: relative;
+  height: 300px;
+  border-radius: var(--radius-chunk, 28px);
+  background:
+    /* 早晨地平线暖光 — 暖琥珀色横线，从底部 25% 处透出来 */
+    radial-gradient(ellipse 80% 35% at 50% 78%, rgba(255, 180, 110, 0.32) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 28% at 28% 65%, rgba(255, 215, 175, 0.30) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 22% at 78% 70%, rgba(255, 195, 165, 0.28) 0%, transparent 60%),
+    /* 顶部冷光（天色 — 给视觉上方"空气感"） */
+    linear-gradient(180deg, var(--sky-dawn-1) 0%, var(--sky-dawn-2) 45%, var(--sky-dawn-3) 100%);
+  box-shadow:
+    inset 0 -8px 24px rgba(180, 100, 90, 0.12),
+    inset 0 4px 14px rgba(255, 240, 225, 0.55),
+    var(--shadow-clay);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* 早晨噪点纹理 — 给天空"不是平面"的感觉 */
+.clay-sky-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--noise-svg);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+/* 极淡的远山轮廓 — 让"地平线"有锚点 */
+.clay-sky-canvas::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 100% at 22% 100%, rgba(180, 100, 90, 0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 100% at 78% 100%, rgba(180, 100, 90, 0.10) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(180, 100, 90, 0.06) 100%);
+  z-index: 0;
+}
+.clay-sky-canvas__title {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding-top: 20px;
+}
+.clay-sky-canvas__clouds {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.clay-sky-cloud {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 10px rgba(180, 100, 80, 0.18));
+  transition: transform var(--dur-base) var(--ease-out-expo);
+}
+.clay-sky-cloud:hover { transform: scale(1.1); }
+.clay-sky-cloud:active { transform: scale(0.95); }
+
+/* ---- 设置区段（Round 4 简化） ---- */
+.clay-settings-section {
+  border-radius: var(--radius-chunk, 20px);
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-subtle);
+  box-shadow: 0 6px 18px rgba(180, 100, 80, 0.08);
+}
+.clay-settings-section__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.clay-settings-section__desc {
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: var(--leading-relaxed);
+  margin: 0 0 14px;
+}
+.clay-settings-section__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.clay-font-card {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-0);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.clay-font-card:hover { background: var(--warm-canvas); }
+.clay-font-card[data-active='true'] {
+  background: var(--mint-cloud-light);
+  border-color: var(--mint-cloud-deep);
+  border-width: 2px;
+}
+.clay-font-card__preview {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.clay-font-card__label {
+  font-size: 11px;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+}
+
+/* ---- Onboarding 建议芯片（Round 5 A-lite） ---- */
+.clay-suggest-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-0);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+  -webkit-tap-highlight-color: transparent;
+}
+.clay-suggest-chip:hover {
+  background: var(--mint-cloud-light);
+  border-color: var(--mint-cloud-deep);
+  color: var(--mint-cloud-text);
+}
+.clay-suggest-chip:active { transform: scale(0.97); }
+.clay-suggest-chip__icon { font-size: 16px; }
+
+/* ---- 番茄钟降级（卡片内联按钮） ---- */
+.clay-pomodoro-inline {
+  background: transparent;
+  border: none;
+  color: var(--ink-light);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 999px;
+  transition: all var(--dur-fast) var(--ease-out-quart);
+}
+.clay-pomodoro-inline:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ---- 快捷入口（Round 18+ 交互优化） ---- */
+.clay-quick-suggest {
+  transition: all var(--dur-fast) var(--ease-out-quart) !important;
+}
+.clay-quick-suggest:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(121, 98, 82, 0.1);
+  border-color: var(--mint-cloud-deep);
+}
+.clay-quick-suggest:active {
+  transform: translateY(0) scale(0.98);
+}
+

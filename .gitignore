@@ -1,0 +1,55 @@
+# ============================================================
+# daily-zero-decision — single-project repository
+#
+# This repo tracks ONLY:
+#   - root-level repo meta files (README, LICENSE, .github/, vercel.json)
+#   - the app/ subdirectory (React + TS application)
+#
+# Everything else at the repository root belongs to OTHER local
+# projects (each with its own git repo) and must never be tracked
+# here.
+# ============================================================
+
+# --- Ignore everything at the root by default -----------------
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/.github/
+!/vercel.json
+!/CHANGELOG.md
+
+# --- app/ is the tracked project ------------------------------
+!/app/
+# ...but never its build artifacts or dependencies
+app/node_modules/
+app/dist/
+app/coverage/
+
+# --- Common build/OS/tool junk (defense in depth) -------------
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+coverage/
+htmlcov/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*~
+
+# --- Heavy binary artifacts (keep out of history going forward)
+*.zip
+*.mp4
+*.mov
+*.pptx
+*.docx
+
+# --- Local editor / AI tool state ------------------------------
+.claude/
+.superpowers/
+.agent_status.md

@@ -1,0 +1,275 @@
+import { useState } from 'react';
+import { exportState } from '../utils/storage';
+import { copy } from '../utils/copy';
+import type { AppState, Preset } from '../types';
+import type { FontPref } from '../hooks/useFont';
+import { SoftButton } from '../components/ui';
+import { PetNameModal } from '../components/pet/PetNameModal';
+import type { UsePetResult } from '../hooks/usePet';
+
+interface SettingsPageProps {
+  state: AppState;
+  presets: Preset[]; // 保留字段，已不再使用，但避免破坏调用方
+  onUpdatePresets: (presets: Preset[]) => void;
+  onImport: () => void;
+  font: FontPref;
+  onFontChange: (next: FontPref) => void;
+  pet?: UsePetResult;
+  /** v0.3 重命名天空(由 App 透传 useTasks.handleSkyName) */
+  onRenameSky: (name: string) => void;
+}
+
+interface FontOption {
+  id: FontPref;
+  label: string;
+  desc: string;
+  preview: string;
+}
+
+const FONT_OPTIONS: FontOption[] = [
+  { id: 'rounded', label: '圆润', desc: '默认 · 暖圆体', preview: 'Aa 养一朵云' },
+  { id: 'serif',   label: '书卷', desc: '宋体 / Noto Serif', preview: 'Aa 养一朵云' },
+  { id: 'sans',    label: '现代', desc: '系统无衬线', preview: 'Aa 养一朵云' },
+  { id: 'mono',    label: '极客', desc: '等宽字体', preview: 'Aa 养一朵云' },
+];
+
+/**
+ * 设置页 — Round 4 精简
+ * 保留 4 块：字体 / 数据管理 / 重置 / 关于
+ * 预设管理移到「添加任务」的二级入口（TodayPage 里）
+ */
+export default function SettingsPage({
+  state,
+  presets: _presets,
+  onUpdatePresets: _onUpdatePresets,
+  onImport,
+  font,
+  onFontChange,
+  pet,
+  onRenameSky,
+}: SettingsPageProps) {
+  void _presets; void _onUpdatePresets;
+
+  const [showPetName, setShowPetName] = useState(false);
+
+  return (
+    <div
+      className="clay-content clay-scroll-area"
+      style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingBottom: '100px' }}
+    >
+      <div className="w-full max-w-md mx-auto" style={{ padding: '24px 16px' }}>
+        <h1
+          className="clay-text-h1 clay-balance tracking-heading"
+          style={{ fontSize: 32, textAlign: 'center', marginBottom: 20 }}
+        >
+          设置
+        </h1>
+
+        <section style={{ padding: '16px', margin: '0 0 16px', background: 'rgba(255, 230, 180, 0.3)', borderRadius: 16, border: '1px solid rgba(255, 200, 100, 0.4)' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 8px', color: 'var(--ink)' }}>
+            🎉 v0.1.0 更新
+          </h2>
+          <ul style={{ fontSize: 13, color: 'var(--ink-light)', margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
+            <li>首屏重塑："今天只做这一小步"</li>
+            <li>每日只生成 1 张卡（最多）</li>
+            <li>新增 SkyScene 天空场景</li>
+            <li>完成后只显示"去看看我的天空 / 明天再来"</li>
+            <li>支持 reduced-motion 减少动画</li>
+          </ul>
+          <p style={{ fontSize: 11, color: 'var(--ink-faint)', margin: '8px 0 0' }}>
+            详见 <code>app/CHANGELOG.md</code>
+          </p>
+        </section>
+
+        {/* 字体偏好 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">字体偏好</h2>
+          <p className="clay-settings-section__desc">
+            切换页面使用的字体系列，使用系统自带字体无需联网。
+          </p>
+          <div className="clay-settings-section__grid">
+            {FONT_OPTIONS.map((opt) => {
+              const isActive = font === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => onFontChange(opt.id)}
+                  aria-pressed={isActive}
+                  className="clay-font-card"
+                  data-active={isActive}
+                >
+                  <span
+                    className="clay-font-card__preview"
+                    style={{
+                      fontFamily: `var(--stack-${opt.id === 'rounded' ? 'rounded' : opt.id})`,
+                    }}
+                  >
+                    {opt.preview}
+                  </span>
+                  <span className="clay-font-card__label">
+                    {opt.label} · {opt.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* v0.3 我的天空 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">我的天空</h2>
+          <p className="clay-settings-section__desc">
+            这片天空的名字。它会出现在天空页、天空卡和图鉴上。
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              value={state.skyName}
+              maxLength={8}
+              onChange={(e) => onRenameSky(e.target.value.slice(0, 8))}
+              aria-label="天空的名字"
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                borderRadius: 14,
+                border: '1px solid var(--warm-border, var(--hairline-subtle))',
+                background: 'var(--surface-1, #FFF5EC)',
+                color: 'var(--ink)',
+                fontSize: 14,
+                fontFamily: 'var(--font-body)',
+                minHeight: 44,
+                outline: 'none',
+              }}
+            />
+          </div>
+        </section>
+
+        {/* 天空宠物 */}
+        {pet && (
+          <section className="clay-settings-section">
+            <h2 className="clay-settings-section__title">天空宠物</h2>
+            <p className="clay-settings-section__desc">
+              你的云猫住在天空里，陪你完成每一小步。
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                名字：<strong>{state.pet.name}</strong>
+              </div>
+              <SoftButton variant="ghost" size="sm" onClick={() => setShowPetName(true)}>
+                修改名字
+              </SoftButton>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                显示天空宠物
+              </div>
+              <button
+                role="switch"
+                aria-checked={state.pet.enabled}
+                onClick={() => pet.setPetEnabled(!state.pet.enabled)}
+                style={{
+                  width: 48, height: 26, borderRadius: 13,
+                  border: 'none', cursor: 'pointer',
+                  background: state.pet.enabled ? 'var(--mint, #6FBE8C)' : 'var(--hairline, #DDD)',
+                  position: 'relative', transition: 'background 0.2s',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 3, left: state.pet.enabled ? 25 : 3,
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: '#FFFAF1', transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }}
+                />
+              </button>
+            </div>
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-faint)',
+                margin: '8px 0 0',
+                fontStyle: 'italic',
+              }}
+            >
+              宠物是陪伴者，不是监工。关闭后数据会保留。
+            </p>
+          </section>
+        )}
+
+        {/* 数据管理 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">数据管理</h2>
+          <p className="clay-settings-section__desc">
+            导出或导入你的数据，云朵不会丢。
+          </p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <SoftButton variant="ghost" size="md" block onClick={() => exportState(state)}>
+              📤 导出
+            </SoftButton>
+            <SoftButton variant="ghost" size="md" block onClick={onImport}>
+              📥 导入
+            </SoftButton>
+          </div>
+        </section>
+
+        {/* 重置 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">重置数据</h2>
+          <p className="clay-settings-section__desc">
+            清空所有任务记录和连续天数，天空会回到最初的样子。
+          </p>
+          <SoftButton
+            variant="ghost"
+            size="md"
+            block
+            onClick={() => {
+              if (window.confirm(copy.resetConfirm())) {
+                localStorage.removeItem('daily-zero-decision');
+                window.location.reload();
+              }
+            }}
+            style={{ color: 'var(--warm-coral)' }}
+          >
+            {copy.reset()}
+          </SoftButton>
+        </section>
+
+        {/* 关于 */}
+        <section className="clay-settings-section">
+          <h2 className="clay-settings-section__title">关于</h2>
+          <p className="clay-settings-section__desc">每日零决策卡 · 养一朵云</p>
+          <p
+            className="clay-settings-section__desc"
+            style={{ opacity: 0.7, marginTop: 4 }}
+          >
+            每天说一句话，天空里就多一朵云。
+            漏签了也没关系，云会飘回来。
+          </p>
+        </section>
+
+        <div className="text-center" style={{ marginTop: 24, opacity: 0.5 }}>
+          <p
+            style={{
+              color: 'var(--ink-muted)',
+              fontSize: 13,
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            v0.2.0 · 用 ☁️ 做的
+          </p>
+        </div>
+      </div>
+
+      {pet && (
+        <PetNameModal
+          isOpen={showPetName}
+          currentName={state.pet.name}
+          isFirstMeet={false}
+          onConfirm={pet.renamePet}
+          onClose={() => setShowPetName(false)}
+        />
+      )}
+    </div>
+  );
+}

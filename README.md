@@ -1,177 +1,106 @@
-# 每日零决策卡 · 养一片自己的天空 ☁️
+# Daily Zero Decision · 每日零决策卡
 
-> **治愈不焦虑的打卡。你在养天空，天空不会 PUA 你。**
+> 把「想坚持的事」变成今天愿意完成的一小步。  
+> A quieter way to begin — one small action at a time.
 
-一个每日零决策打卡习惯应用。不是"坚持 X 天"的冷数字，是一片你亲手养出来的、独一无二的天空。每坚持一天，天空里多一朵属于你的云。
+**产品设计 / 前端工程** · React 18 · TypeScript · Vite · Vitest
 
-## 功能特性
+[体验逻辑](#体验逻辑) · [本地运行](#本地运行) · [技术实现](#技术实现) · [文档索引](#文档索引)
 
-- **今天** — 每日任务卡片：说一句话生成零决策卡，点完成养一朵云
-- **我的天空** — 云朵花园：连续打卡让天空从晨雾变夕阳
-- **统计** — 数据洞察：连续天数、心情趋势、任务分布
-- **番茄钟** — 内置专注计时器
-- **成就系统** — 解锁里程碑徽章
-- **数据导出/导入** — JSON 备份，云朵不会丢
-- **心情记录** — 每天记录一下心情
+---
 
-## 核心理念
+## 它解决什么问题？
 
-### 反 Duolingo
+很多习惯产品强调连续打卡、积分和不断完成任务。但真正困难的往往是**开始**。
 
-Duolingo 漏签会骂你、扣你 XP、看着火苗熄灭。
-**我们不会。**
+每日零决策卡围绕一个简单的过程展开：
 
-断签 = 多云的一天。
-你不欠这朵云任何东西。
-明天回来，云还在。
+**选择想做的事 → 缩小为今天的一小步 → 完成 → 在自己的天空里留下一朵云。**
 
-### 抖音天然可晒
+产品希望通过更轻的交互降低启动成本，而不是用断签惩罚制造压力。这是设计方向，**不是已经经过严格实验验证的行为改善结论**。
 
-"这是我坚持 30 天养出来的天空"——这句话本身就是一条短视频。
-**每个人的天空都不一样**，别人会想拍自己的。
+## 体验逻辑
 
-## 技术栈
+| 页面 | 主要用途 |
+| --- | --- |
+| **今天** | 管理今日行动卡，完成时保留简短反馈 |
+| **我的天空** | 把完成的记录转化为可以回顾的云朵 |
+| **统计 / 回顾** | 查看历史记录、趋势与阶段性变化 |
+| **设置** | 调整偏好，管理本地数据的导入与导出 |
 
-- React 18 + TypeScript
-- Tailwind CSS + clay.css design tokens
-- Vite 5
-- 纯前端，localStorage 持久化，可静态部署
+还包括番茄钟、完成动画、分享卡片、辅助提示等交互模块。功能入口可以从 [`app/src/App.tsx`](app/src/App.tsx) 与 [`app/src/pages/`](app/src/pages) 追踪。
 
-## 项目结构
+## 本地运行
 
-```
-src/
-├── App.tsx                    # 应用壳 + Tab 路由
-├── main.tsx                   # 入口
-├── types.ts                   # TypeScript 类型定义
-├── index.css                  # 全局样式
-├── pages/
-│   ├── TodayPage.tsx          # 今天 Tab
-│   ├── SkyPage.tsx            # 我的天空 Tab
-│   ├── StatsPage.tsx          # 统计 Tab
-│   └── SettingsPage.tsx       # 设置 Tab
-├── components/
-│   ├── task/
-│   │   ├── CompactTaskRow.tsx # 紧凑任务行
-│   │   └── TaskHistory.tsx    # 任务历史
-│   ├── sky/
-│   │   ├── HeroSky.tsx        # 天空视觉
-│   │   ├── Cloud.tsx          # 云朵组件
-│   │   └── StreakDisplay.tsx  # 连续天数显示
-│   ├── stats/
-│   │   ├── StatsDashboard.tsx # 统计面板
-│   │   └── AchievementGrid.tsx# 成就网格
-│   ├── search/
-│   │   ├── SearchBar.tsx      # 搜索栏
-│   │   └── SearchResults.tsx  # 搜索结果
-│   └── shared/
-│       ├── TabBar.tsx         # 底部 Tab 栏
-│       ├── Onboarding.tsx     # 新手引导
-│       ├── Celebration.tsx    # 庆祝动画
-│       ├── CompletionNote.tsx # 完成备注
-│       ├── MoodWidget.tsx     # 心情选择
-│       ├── DailyQuote.tsx     # 每日金句
-│       ├── Pomodoro.tsx       # 番茄钟
-│       ├── ShareCard.tsx      # 分享卡片
-│       └── PresetManager.tsx  # 预设管理
-├── hooks/
-│   ├── useAppState.ts         # 状态 + 持久化
-│   ├── useTasks.ts            # 任务 CRUD
-│   ├── useStreak.ts           # 连续天数
-│   ├── useSearch.ts           # 搜索状态
-│   └── usePomodoro.ts         # 番茄钟
-├── utils/
-│   ├── storage.ts             # localStorage 工具
-│   ├── copy.ts                # 文案系统
-│   ├── cloudSeed.ts           # 云朵种子生成
-│   ├── achievements.ts        # 成就定义
-│   └── skyMood.ts             # 天空心情计算
-└── theme/
-    └── clay.css               # 设计系统 tokens
-```
+**请注意：真正的前端应用在 `app/` 中，而不是仓库根目录。**
 
-## 快速开始
-
-### 环境要求
-
-- Node.js 18+
-- npm 或 yarn
-
-### 安装
+要求 Node.js 20+ 和 npm：
 
 ```bash
-npm install
+git clone https://github.com/Zhuyuyangyy/daily-zero-decision.git
+cd daily-zero-decision/app
+npm ci
+npm run dev
 ```
 
-### 开发
+本地页面通常位于 `http://localhost:5173`（以 Vite 实际输出为准）。
+
+### 验证与构建
 
 ```bash
-npm run dev          # http://localhost:5173
+cd app
+npm test
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-### 测试
+这些是 [`app/package.json`](app/package.json) 中的脚本入口；是否通过应以当前提交、运行环境和 CI 结果为准。构建产物由 Vite 输出。
 
-```bash
-npm test             # 运行所有测试
-npm run test:watch   # 监听模式
+## 技术实现
+
+| 方向 | 实现 |
+| --- | --- |
+| UI | React 18、TypeScript、Tailwind CSS |
+| 构建 | Vite 5 |
+| 测试与质量 | Vitest、TypeScript、ESLint |
+| 状态与交互 | React Hooks、任务与打卡状态、可独立维护的页面组件 |
+| 数据 | 浏览器本地持久化及备份流程；实际存储与数据约束以代码为准 |
+
+这个项目的重点不是复杂后端，而是把**交互体验、状态恢复、视觉反馈和用户控制权**做好。代码中还包含 Dexie、Zod 等依赖，不应把旧版文档中关于存储和依赖的绝对声明视为无需再检查的保证。
+
+### 代码入口
+
+```text
+app/
+├── src/
+│   ├── App.tsx          # 页面组合与主要交互入口
+│   ├── pages/           # Today / Sky / Stats / Settings
+│   ├── components/      # 可复用交互组件
+│   ├── hooks/           # 行为与状态逻辑
+│   └── utils/           # 工具与数据处理
+├── public/              # 静态资源
+├── package.json
+└── README.md            # 应用目录的简明说明
 ```
 
-### 构建
+仓库根目录还有阶段性实验和辅助工作区；如果只是想运行每日零决策卡，**从 `app/` 开始即可**。
 
-```bash
-npm run build        # → dist/
-```
+## 文档索引
 
-## 设计系统
+- [应用快速说明](app/README.md) — 简明使用与开发入口
+- [产品规格](app/PRODUCT_SPEC.md) — 功能与体验设计
+- [技术设计](app/TECH_SPEC.md) — 组件和工程约束
+- [数据结构](app/DATA_MODEL.md) — 状态与迁移
+- [版本记录](app/CHANGELOG.md) — 版本演进
+- [隐私说明](app/PRIVACY.md) · [安全说明](app/SECURITY.md) — 需要与当前实现持续核对
 
-采用 clay.css 设计系统，包含：
+## 维护说明
 
-- **暖奶油画布** — 柔和的背景色调
-- **软圆 3D** — claymorphism 风格的圆角和阴影
-- **命名 swatch** — Matcha / Lemon / Pomegranate 等语义化颜色
-- **4-8pt 间距** — 统一的间距系统
-- **44px 触点** — 移动端友好的触摸目标
+欢迎反馈复现步骤清晰的 Bug、可访问性问题或改进建议。提交修改时请先确认 `app/` 内对应的测试、类型检查与构建脚本。这个仓库目前仍以产品迭代和工程验证为主。
 
-详见 `src/theme/clay.css`。
+**License:** [MIT](LICENSE)
 
-## 架构说明
+---
 
-### 状态管理
-
-使用 React hooks 进行状态管理，无外部状态库：
-
-- `useAppState` — 核心状态 + localStorage 持久化
-- `useTasks` — 任务 CRUD 操作
-- `useStreak` — 连续天数派生值
-- `useSearch` — 搜索状态
-- `usePomodoro` — 番茄钟状态
-
-### 组件组织
-
-按功能模块组织组件：
-
-- **task/** — 任务相关组件
-- **sky/** — 天空视觉组件
-- **stats/** — 统计相关组件
-- **search/** — 搜索相关组件
-- **shared/** — 共享组件
-
-### 页面组件
-
-每个 Tab 对应一个页面组件：
-
-- `TodayPage` — 今天 Tab
-- `SkyPage` — 我的天空 Tab
-- `StatsPage` — 统计 Tab
-- `SettingsPage` — 设置 Tab
-
-## 视觉特色
-
-- **天空随坚持变丰盈**：晨雾 → 晨曦 → 晴空 → 暖阳 → 夕阳
-- **每朵云由日期 hash 生成**：同一日期永远同一朵云，不同日期不同
-- **8 种云的表情**：calm / smile / sleep / wink / tiny-smile / peeking / peaceful / neutral
-- **温柔文案系统**：每条文案都过"不骂你"审核
-
-## 许可证
-
-MIT
+<sub>Less pressure, more room to begin.</sub>

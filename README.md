@@ -47,8 +47,9 @@ npm run dev
 
 ### 验证与构建
 
+已按上面的快速启动命令进入 `app/` 时，直接运行：
+
 ```bash
-cd app
 npm test
 npm run typecheck
 npm run lint

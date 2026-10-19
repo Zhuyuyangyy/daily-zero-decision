@@ -74,7 +74,7 @@ app/src/
 
 ### 环境要求
 
-- Node.js 18+（CI 在 Node 20 / 22 上验证）
+- Node.js 20+（CI 在 Node 20 / 22 上验证）
 - npm
 
 ### 安装与开发
@@ -117,7 +117,7 @@ npm run build        # → app/dist/
 
 ## 视觉特色
 
-- **天空随坚持变丰盈**：晨雾 → 晨曦 → 晴空 → 暖阳 → 夕阳
+- **天空随坚持变丰盈**：晨雾 → 晨曦 → 晴空 → 暖阳 → 夕阳（代码内对应 dawn → morning → clear → sunny → golden 五档 mood）
 - **每朵云由日期 hash 生成**：同一日期永远同一朵云，不同日期不同
 - **8 种云的表情**：calm / smile / sleep / wink / tiny-smile / peeking / peaceful / neutral
 - **温柔文案系统**：每条文案都过"不骂你"审核
